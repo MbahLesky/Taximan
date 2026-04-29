@@ -1,40 +1,47 @@
 # Taximan Driver App
 
-The Driver App allows drivers to receive ride requests, execute trips, and track earnings.
+Taximan Driver is the driver-facing Flutter app for onboarding, managing availability, receiving ride requests, executing trips, and reviewing earnings.
 
----
+## Current Phase
 
-## Features (MVP)
+Phase 1: Driver App Foundation + UI Prototype.
 
-* Authentication
-* Driver onboarding
-* Availability (online/offline)
-* Booking management
-* Trip execution
-* Earnings tracking
-* Account management
+This build uses dummy data only. Firebase, authentication, Firestore, real maps, real-time trip updates, payments, and backend ride logic are intentionally not implemented yet.
 
----
+## Completed Work
 
-## Tech Stack
+- Renamed the app display name to `Taximan Driver`.
+- Added Driver color theme and Material 3 styling.
+- Added GoRouter navigation for all requested driver prototype screens.
+- Added Riverpod app wrapper for future state management.
+- Added a basic SharedPreferences service.
+- Added reusable UI widgets: `AppButton`, `AppTextField`, `AppCard`, and `BottomNavShell`.
+- Added dummy driver, vehicle, document, request, trip, and earnings data.
+- Added a simple green driver app icon placeholder and Android launcher icon assets.
 
-* Flutter
-* Riverpod
-* GoRouter
-* Firebase Auth
-* Cloud Firestore
-* Firebase Messaging
-* Google Maps
-* SharedPreferences
+## Dependencies
 
----
+- `flutter_riverpod`
+- `go_router`
+- `firebase_core`
+- `shared_preferences`
+- `connectivity_plus`
+- `cupertino_icons`
 
-## Project Structure
+Not added yet: `firebase_auth`, `cloud_firestore`, `firebase_storage`, `firebase_messaging`, and `google_maps_flutter`.
+
+## Folder Structure
 
 ```text
 lib/
 ├── core/
+│   ├── constants/
+│   ├── services/
+│   ├── theme/
+│   └── utils/
 ├── shared/
+│   ├── widgets/
+│   └── dummy/
 ├── features/
 │   ├── auth/
 │   ├── onboarding/
@@ -43,64 +50,39 @@ lib/
 │   ├── trip/
 │   ├── earnings/
 │   └── account/
+├── router/
+├── app.dart
+└── main.dart
 ```
 
----
-
-## Current Status
-
-Phase:
-**Project Foundation**
-
-Completed:
-
-* App setup
-* Routing
-* Theme
-* Placeholder screens
-
-Next:
-**Authentication Implementation**
-**Driver Onboarding**
-
----
-
-## Running the App
+## How To Run
 
 ```bash
 flutter pub get
 flutter run
 ```
 
----
+## Firebase Setup Still Required
 
-## Firebase Setup
-
-Add:
+Before backend work starts, add Firebase configuration files:
 
 ```text
 android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
 ```
 
----
+`Firebase.initializeApp()` is already present, but backend features remain TODO.
 
-## Notes
+## App Icon
 
-* Driver must be verified before going online
-* Driver cannot accept rides offline
-* Real-time updates are critical
+Placeholder icon:
 
----
+```text
+assets/icons/taximan_driver_icon.png
+```
 
-## Development Rules
+Android launcher PNGs were updated in the `android/app/src/main/res/mipmap-*` folders. A final production icon can replace these assets later.
 
-* Follow `/docs` strictly
-* Keep actions fast and clear
-* Use large buttons for driver actions
-* Keep logic inside providers/controllers
+## Next Phase
 
----
-
-## Summary
-
-This app is responsible for the driver workflow — receiving requests, completing trips, and earning income.
+Driver Authentication: real registration, login, session handling, and driver profile creation after Firebase configuration is added.
