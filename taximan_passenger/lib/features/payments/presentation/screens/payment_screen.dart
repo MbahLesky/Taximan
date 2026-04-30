@@ -45,7 +45,7 @@ class PaymentScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Confirm payment', onPressed: () => context.go('/payment-confirmation')),
+          AppButton(label: 'Confirm payment', onPressed: () => context.push('/payment-confirmation')),
         ],
       ),
     );

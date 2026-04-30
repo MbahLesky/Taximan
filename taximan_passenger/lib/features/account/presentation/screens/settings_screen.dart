@@ -14,12 +14,11 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavShell(
       currentIndex: 3,
+      title: 'Settings',
       child: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            Text('Settings', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
-            const SizedBox(height: AppSpacing.md),
             const AppCard(
               child: Column(
                 children: [

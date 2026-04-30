@@ -26,7 +26,7 @@ class VehicleDetailsScreen extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           const AppTextField(label: 'Capacity', hint: DummyData.vehicleCapacity, icon: Icons.groups_outlined),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Continue', onPressed: () => context.go('/document-upload')),
+          AppButton(label: 'Continue', onPressed: () => context.push('/document-upload')),
         ],
       ),
     );

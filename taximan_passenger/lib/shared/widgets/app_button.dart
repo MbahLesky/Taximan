@@ -12,6 +12,7 @@ class AppButton extends StatelessWidget {
     this.variant = AppButtonVariant.primary,
     this.icon,
     this.fullWidth = true,
+    this.isLoading = false,
   });
 
   final String label;
@@ -19,10 +20,16 @@ class AppButton extends StatelessWidget {
   final AppButtonVariant variant;
   final IconData? icon;
   final bool fullWidth;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
-    final child = icon == null
+    final child = isLoading
+        ? const SizedBox.square(
+            dimension: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        : icon == null
         ? Text(label)
         : Row(
             mainAxisSize: MainAxisSize.min,
@@ -33,28 +40,33 @@ class AppButton extends StatelessWidget {
             ],
           );
 
+    final effectiveOnPressed = isLoading ? null : onPressed;
     final button = switch (variant) {
       AppButtonVariant.primary => FilledButton(
-          onPressed: onPressed,
+          onPressed: effectiveOnPressed,
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: AppColors.primaryDark,
+            disabledBackgroundColor: AppColors.border,
+            disabledForegroundColor: AppColors.textSecondary,
           ),
           child: child,
         ),
-      AppButtonVariant.secondary => FilledButton(
-          onPressed: onPressed,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.primaryLight,
+      AppButtonVariant.secondary => OutlinedButton(
+          onPressed: effectiveOnPressed,
+          style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primaryDark,
+            side: const BorderSide(color: AppColors.border),
           ),
           child: child,
         ),
       AppButtonVariant.danger => FilledButton(
-          onPressed: onPressed,
+          onPressed: effectiveOnPressed,
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.error,
             foregroundColor: Colors.white,
+            disabledBackgroundColor: AppColors.border,
+            disabledForegroundColor: AppColors.textSecondary,
           ),
           child: child,
         ),

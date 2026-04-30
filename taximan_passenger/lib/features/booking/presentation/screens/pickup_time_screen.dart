@@ -50,7 +50,7 @@ class PickupTimeScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Continue to summary', onPressed: () => context.go('/ride-summary')),
+          AppButton(label: 'Continue to summary', onPressed: () => context.push('/ride-summary')),
         ],
       ),
     );

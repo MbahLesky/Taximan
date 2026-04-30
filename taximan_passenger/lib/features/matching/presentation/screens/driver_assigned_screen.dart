@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../trip/application/providers/trip_state_provider.dart';
 
-class DriverAssignedScreen extends StatelessWidget {
+class DriverAssignedScreen extends ConsumerWidget {
   const DriverAssignedScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final driver = ref.watch(tripStateProvider).assignedDriver;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Driver assigned')),
       body: ListView(
@@ -26,18 +29,47 @@ class DriverAssignedScreen extends StatelessWidget {
                   child: Icon(Icons.person, size: 40, color: AppColors.primaryDark),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                Text(DummyData.driverName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+                Text(driver?.fullName ?? 'Driver assigned', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
                 const SizedBox(height: AppSpacing.xs),
-                const Text('Rating ${DummyData.driverRating}'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ...List.generate(5, (index) => const Icon(Icons.star, size: 18, color: AppColors.warning)),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text('${driver?.rating.toStringAsFixed(1) ?? '4.8'} rating'),
+                  ],
+                ),
                 const Divider(height: 32),
-                const _InfoLine(icon: Icons.local_taxi, label: 'Vehicle', value: DummyData.vehicleName),
-                const _InfoLine(icon: Icons.pin, label: 'Plate number', value: DummyData.vehiclePlate),
-                const _InfoLine(icon: Icons.timer_outlined, label: 'Arrival ETA', value: DummyData.eta),
+                _InfoLine(icon: Icons.local_taxi, label: 'Vehicle', value: driver?.vehicle ?? ''),
+                _InfoLine(icon: Icons.pin, label: 'Plate number', value: driver?.plateNumber ?? ''),
+                _InfoLine(icon: Icons.timer_outlined, label: 'Arrival ETA', value: driver?.arrivalEta ?? ''),
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        label: 'Call',
+                        icon: Icons.call_outlined,
+                        variant: AppButtonVariant.secondary,
+                        onPressed: null,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: AppButton(
+                        label: 'Message',
+                        icon: Icons.message_outlined,
+                        variant: AppButtonVariant.secondary,
+                        onPressed: null,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Continue tracking', onPressed: () => context.go('/driver-en-route')),
+          AppButton(label: 'Continue tracking', onPressed: () => context.push('/driver-en-route')),
         ],
       ),
     );

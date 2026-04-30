@@ -15,17 +15,19 @@ class RegisterScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          const AppTextField(label: 'Full name', icon: Icons.badge_outlined),
-          const SizedBox(height: AppSpacing.md),
+          Text('Create your driver login', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
+          const SizedBox(height: AppSpacing.sm),
+          Text('Personal and vehicle details come next.', style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(height: AppSpacing.xl),
           const AppTextField(label: 'Email', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
           const SizedBox(height: AppSpacing.md),
           const AppTextField(label: 'Phone', icon: Icons.phone_outlined, keyboardType: TextInputType.phone),
           const SizedBox(height: AppSpacing.md),
           const AppTextField(label: 'Password', icon: Icons.lock_outline, obscureText: true),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Register', onPressed: () => context.go('/driver-personal-info')),
+          AppButton(label: 'Continue', onPressed: () => context.push('/driver-personal-info')),
           const SizedBox(height: AppSpacing.md),
-          TextButton(onPressed: () => context.go('/login'), child: const Text('Already have an account? Login')),
+          TextButton(onPressed: () => context.push('/login'), child: const Text('Already have an account? Login')),
         ],
       ),
     );

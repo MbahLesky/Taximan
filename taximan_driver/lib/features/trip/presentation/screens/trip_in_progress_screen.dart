@@ -51,7 +51,7 @@ class TripInProgressScreen extends StatelessWidget {
                     title: Text('Fare'),
                     subtitle: Text(DummyData.estimatedFare),
                   ),
-                  AppButton(label: 'End trip', onPressed: () => context.go('/trip-completed')),
+                  AppButton(label: 'End trip', onPressed: () => context.push('/trip-completed')),
                 ],
               ),
             ),

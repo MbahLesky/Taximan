@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../earnings/application/providers/earnings_provider.dart';
+import '../../application/providers/driver_state_provider.dart';
 import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
 
-class DriverDashboardScreen extends StatefulWidget {
+class DriverDashboardScreen extends ConsumerWidget {
   const DriverDashboardScreen({super.key});
 
   @override
-  State<DriverDashboardScreen> createState() => _DriverDashboardScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final driverState = ref.watch(driverStateProvider);
+    final earnings = ref.watch(earningsProvider);
+    final driver = driverState.driver;
+    final online = driverState.isOnline;
 
-class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
-  bool online = false;
-
-  @override
-  Widget build(BuildContext context) {
     return BottomNavShell(
       currentIndex: 0,
+      title: 'Dashboard',
       child: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -32,7 +34,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Hello, ${DummyData.driverName}', style: Theme.of(context).textTheme.titleMedium),
+                      Text('Good morning, ${driver.fullName.split(' ').first}', style: Theme.of(context).textTheme.titleMedium),
                       Text(
                         'Driver dashboard',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
@@ -40,20 +42,35 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     ],
                   ),
                 ),
-                Switch(value: online, activeColor: AppColors.primaryDark, onChanged: (value) => setState(() => online = value)),
+                _StatusBadge(label: driverState.statusLabel, online: online),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
             AppCard(
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(online ? Icons.radio_button_checked : Icons.radio_button_off, color: online ? AppColors.success : AppColors.textSecondary),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(child: Text(online ? 'Online and ready for requests' : DummyData.availabilityStatus)),
+                  Row(
+                    children: [
+                      Icon(
+                        online ? Icons.radio_button_checked : Icons.radio_button_off,
+                        color: online ? AppColors.success : AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Text(
+                          online ? 'ONLINE - available for requests' : 'OFFLINE - not receiving requests',
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
                   AppButton(
-                    label: online ? 'Online' : 'Go Online',
-                    fullWidth: false,
-                    onPressed: () => setState(() => online = !online),
+                    label: online ? 'Go Offline' : 'Go Online',
+                    icon: online ? Icons.power_settings_new : Icons.bolt,
+                    variant: online ? AppButtonVariant.secondary : AppButtonVariant.primary,
+                    onPressed: () => ref.read(driverStateProvider.notifier).toggleAvailability(),
                   ),
                 ],
               ),
@@ -69,10 +86,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
             Row(
-              children: const [
-                Expanded(child: _MetricCard(title: 'Today', value: DummyData.todayEarnings, icon: Icons.payments_outlined)),
-                SizedBox(width: AppSpacing.sm),
-                Expanded(child: _MetricCard(title: 'Trips', value: DummyData.completedTripsCount, icon: Icons.route)),
+              children: [
+                Expanded(child: _MetricCard(title: 'Today', value: earnings.todayFormatted, icon: Icons.payments_outlined)),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(child: _MetricCard(title: 'Trips', value: '${earnings.completedTrips}', icon: Icons.route)),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
@@ -90,12 +107,37 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
               children: [
-                _QuickAction(label: 'Schedule', icon: Icons.schedule, onTap: () => context.go('/availability-schedule')),
-                _QuickAction(label: 'Demo request', icon: Icons.notifications_active_outlined, onTap: () => context.go('/incoming-request')),
-                _QuickAction(label: 'Documents', icon: Icons.folder_copy_outlined, onTap: () => context.go('/document-status')),
+                _QuickAction(label: 'Schedule', icon: Icons.schedule, onTap: () => context.push('/availability-schedule')),
+                _QuickAction(label: 'Demo request', icon: Icons.notifications_active_outlined, onTap: () => context.push('/incoming-request')),
+                _QuickAction(label: 'Documents', icon: Icons.folder_copy_outlined, onTap: () => context.push('/document-status')),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.label, required this.online});
+
+  final String label;
+  final bool online;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: online ? AppColors.primaryLight : AppColors.border,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: online ? AppColors.primaryDark : AppColors.textSecondary,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );

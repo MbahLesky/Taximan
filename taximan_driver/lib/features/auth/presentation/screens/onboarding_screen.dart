@@ -11,6 +11,7 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: const Text('Welcome')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xl),
@@ -51,12 +52,12 @@ class OnboardingScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary, height: 1.4),
               ),
               const Spacer(),
-              AppButton(label: 'Get Started', onPressed: () => context.go('/register')),
+              AppButton(label: 'Get Started', onPressed: () => context.push('/register')),
               const SizedBox(height: AppSpacing.compact),
               AppButton(
                 label: 'Login',
                 variant: AppButtonVariant.secondary,
-                onPressed: () => context.go('/login'),
+                onPressed: () => context.push('/login'),
               ),
             ],
           ),

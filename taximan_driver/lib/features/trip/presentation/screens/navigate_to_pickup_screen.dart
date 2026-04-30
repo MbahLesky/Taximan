@@ -45,7 +45,7 @@ class NavigateToPickupScreen extends StatelessWidget {
                     title: Text(DummyData.passengerName),
                     subtitle: Text('ETA ${DummyData.tripEta}'),
                   ),
-                  AppButton(label: 'Mark arrival', onPressed: () => context.go('/mark-arrival')),
+                  AppButton(label: 'Mark arrival', onPressed: () => context.push('/mark-arrival')),
                 ],
               ),
             ),

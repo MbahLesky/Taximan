@@ -54,7 +54,7 @@ class TripInProgressScreen extends StatelessWidget {
                     onPressed: null,
                   ),
                   const SizedBox(height: AppSpacing.compact),
-                  AppButton(label: 'Simulate trip completed', onPressed: () => context.go('/payment')),
+                  AppButton(label: 'Simulate trip completed', onPressed: () => context.push('/payment')),
                 ],
               ),
             ),

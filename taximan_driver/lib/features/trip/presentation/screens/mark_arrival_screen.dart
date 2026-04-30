@@ -35,7 +35,7 @@ class MarkArrivalScreen extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            AppButton(label: 'Confirm arrival', onPressed: () => context.go('/trip-start')),
+            AppButton(label: 'Confirm arrival', onPressed: () => context.push('/trip-start')),
           ],
         ),
       ),

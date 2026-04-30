@@ -23,7 +23,7 @@ class LoginScreen extends StatelessWidget {
           const SizedBox(height: AppSpacing.xl),
           AppButton(label: 'Login', onPressed: () => context.go('/dashboard')),
           const SizedBox(height: AppSpacing.md),
-          TextButton(onPressed: () => context.go('/register'), child: const Text('Create a driver account')),
+          TextButton(onPressed: () => context.push('/register'), child: const Text('Create a driver account')),
         ],
       ),
     );

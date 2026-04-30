@@ -30,7 +30,7 @@ class LoginScreen extends StatelessWidget {
             AppButton(label: 'Login', onPressed: () => context.go('/home')),
             const SizedBox(height: AppSpacing.md),
             TextButton(
-              onPressed: () => context.go('/register'),
+              onPressed: () => context.push('/register'),
               child: const Text('Create a passenger account'),
             ),
           ],

@@ -32,7 +32,7 @@ class RegisterScreen extends StatelessWidget {
             AppButton(label: 'Register', onPressed: () => context.go('/home')),
             const SizedBox(height: AppSpacing.md),
             TextButton(
-              onPressed: () => context.go('/login'),
+              onPressed: () => context.push('/login'),
               child: const Text('Already have an account? Login'),
             ),
           ],

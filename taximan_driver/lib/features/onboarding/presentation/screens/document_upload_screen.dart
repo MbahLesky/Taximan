@@ -37,7 +37,7 @@ class DocumentUploadScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Continue', onPressed: () => context.go('/profile-photo')),
+          AppButton(label: 'Continue', onPressed: () => context.push('/profile-photo')),
         ],
       ),
     );

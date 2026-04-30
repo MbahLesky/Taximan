@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../account/application/providers/user_provider.dart';
+import '../../application/providers/booking_state_provider.dart';
 import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
 
-class PassengerHomeScreen extends StatelessWidget {
+class PassengerHomeScreen extends ConsumerWidget {
   const PassengerHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userProvider);
+    final bookingState = ref.watch(bookingStateProvider);
+    final booking = bookingState.booking;
+
     return BottomNavShell(
       currentIndex: 0,
+      title: 'Home',
       child: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -25,7 +33,7 @@ class PassengerHomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Hello, ${DummyData.passengerName}', style: Theme.of(context).textTheme.titleMedium),
+                      Text('Good morning, ${user.fullName.split(' ').first}', style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         'Where are you going?',
@@ -41,8 +49,17 @@ class PassengerHomeScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.md),
+            AppCard(
+              child: _LocationTile(
+                icon: Icons.my_location,
+                title: 'Current Location',
+                value: booking.pickupLocation,
+                onTap: () => context.push('/pickup'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
             Container(
-              height: 270,
+              height: 210,
               decoration: BoxDecoration(
                 color: AppColors.primaryLight,
                 borderRadius: BorderRadius.circular(24),
@@ -77,53 +94,49 @@ class PassengerHomeScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             AppCard(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _LocationTile(
-                    icon: Icons.my_location,
-                    title: 'Current location',
-                    value: DummyData.pickupLocation,
-                    onTap: () => context.go('/pickup'),
-                  ),
-                  const Divider(height: 24),
-                  _LocationTile(
                     icon: Icons.search,
-                    title: 'Destination',
-                    value: 'Where are you going?',
-                    onTap: () => context.go('/destination'),
+                    title: 'Where are you going?',
+                    value: booking.destination,
+                    onTap: () => context.push('/destination'),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   AppButton(
-                    label: 'Plan a ride',
+                    label: 'Choose destination',
                     icon: Icons.arrow_forward,
-                    onPressed: () => context.go('/destination'),
+                    onPressed: () => context.push('/destination'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Ride action', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: const [
+                      Expanded(child: _ActionPill(icon: Icons.flash_on, label: 'Ride now')),
+                      SizedBox(width: AppSpacing.sm),
+                      Expanded(child: _ActionPill(icon: Icons.payments_outlined, label: DummyData.paymentMethod)),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppButton(
+                    label: 'Review ride summary',
+                    onPressed: bookingState.canConfirmRide ? () => context.push('/ride-summary') : null,
                   ),
                 ],
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text('Quick actions', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: DummyData.quickActions
-                  .map(
-                    (action) => Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: AppSpacing.sm),
-                        child: AppCard(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          child: Center(
-                            child: Text(action, style: const TextStyle(fontWeight: FontWeight.w700)),
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-            const SizedBox(height: AppSpacing.lg),
             Text('Recent destinations', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: AppSpacing.sm),
-            ...DummyData.recentDestinations.map(
+            ...bookingState.recentDestinations.map(
               (destination) => AppCard(
                 margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: ListTile(
@@ -131,12 +144,41 @@ class PassengerHomeScreen extends StatelessWidget {
                   leading: const Icon(Icons.history),
                   title: Text(destination),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.go('/pickup-time'),
+                  onTap: () {
+                    ref.read(bookingStateProvider.notifier).setDestination(destination);
+                    context.push('/pickup-time');
+                  },
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ActionPill extends StatelessWidget {
+  const _ActionPill({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.compact),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18, color: AppColors.primaryDark),
+          const SizedBox(width: AppSpacing.xs),
+          Flexible(child: Text(label, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800))),
+        ],
       ),
     );
   }
@@ -172,11 +214,11 @@ class _MapPlaceholderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final roadPaint = Paint()
-      ..color = Colors.white.withOpacity(0.8)
+      ..color = Colors.white.withValues(alpha: 0.8)
       ..strokeWidth = 18
       ..strokeCap = StrokeCap.round;
     final smallRoadPaint = Paint()
-      ..color = Colors.white.withOpacity(0.55)
+      ..color = Colors.white.withValues(alpha: 0.55)
       ..strokeWidth = 9
       ..strokeCap = StrokeCap.round;
 

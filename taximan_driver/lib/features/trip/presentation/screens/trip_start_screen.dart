@@ -26,7 +26,7 @@ class TripStartScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Start trip', onPressed: () => context.go('/trip-in-progress')),
+          AppButton(label: 'Start trip', onPressed: () => context.push('/trip-in-progress')),
         ],
       ),
     );

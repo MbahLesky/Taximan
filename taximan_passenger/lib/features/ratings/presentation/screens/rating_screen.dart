@@ -41,7 +41,7 @@ class RatingScreen extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            AppButton(label: 'Continue', onPressed: () => context.go('/feedback')),
+            AppButton(label: 'Continue', onPressed: () => context.push('/feedback')),
           ],
         ),
       ),

@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
+import '../../application/providers/booking_state_provider.dart';
 
-class DestinationSearchScreen extends StatelessWidget {
+class DestinationSearchScreen extends ConsumerWidget {
   const DestinationSearchScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bookingState = ref.watch(bookingStateProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Destination')),
       body: ListView(
@@ -33,18 +37,24 @@ class DestinationSearchScreen extends StatelessWidget {
                 title: Text(destination),
                 subtitle: const Text('Tap to use this destination'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.go('/pickup-time'),
+                onTap: () {
+                  ref.read(bookingStateProvider.notifier).setDestination(destination);
+                  context.push('/pickup-time');
+                },
               ),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
           Text('Recent', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: AppSpacing.sm),
-          ...DummyData.recentDestinations.map(
+          ...bookingState.recentDestinations.map(
             (destination) => ListTile(
               leading: const Icon(Icons.history),
               title: Text(destination),
-              onTap: () => context.go('/pickup-time'),
+              onTap: () {
+                ref.read(bookingStateProvider.notifier).setDestination(destination);
+                context.push('/pickup-time');
+              },
             ),
           ),
         ],

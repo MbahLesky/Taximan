@@ -37,7 +37,7 @@ class ProfilePhotoScreen extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            AppButton(label: 'Continue', onPressed: () => context.go('/verification-pending')),
+            AppButton(label: 'Continue', onPressed: () => context.push('/verification-pending')),
           ],
         ),
       ),

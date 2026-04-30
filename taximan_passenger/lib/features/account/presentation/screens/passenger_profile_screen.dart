@@ -14,12 +14,11 @@ class PassengerProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavShell(
       currentIndex: 2,
+      title: 'Profile',
       child: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            Text('Profile', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
-            const SizedBox(height: AppSpacing.md),
             AppCard(
               child: Column(
                 children: [

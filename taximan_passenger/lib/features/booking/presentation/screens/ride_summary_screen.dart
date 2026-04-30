@@ -1,46 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../application/providers/booking_state_provider.dart';
 
-class RideSummaryScreen extends StatefulWidget {
+class RideSummaryScreen extends ConsumerStatefulWidget {
   const RideSummaryScreen({super.key});
 
   @override
-  State<RideSummaryScreen> createState() => _RideSummaryScreenState();
+  ConsumerState<RideSummaryScreen> createState() => _RideSummaryScreenState();
 }
 
-class _RideSummaryScreenState extends State<RideSummaryScreen> {
+class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
   bool rideSharing = false;
 
   @override
   Widget build(BuildContext context) {
+    final bookingState = ref.watch(bookingStateProvider);
+    final booking = bookingState.booking;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Ride summary')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          const AppCard(
+          AppCard(
             child: Column(
               children: [
-                _SummaryRow(icon: Icons.my_location, label: 'Pickup', value: DummyData.pickupLocation),
-                Divider(height: 24),
-                _SummaryRow(icon: Icons.location_on, label: 'Destination', value: DummyData.destination),
+                _RouteRow(
+                  pickup: booking.pickupLocation,
+                  destination: booking.destination,
+                ),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.md),
           AppCard(
             child: Column(
-              children: const [
-                _MetricRow(label: 'Distance', value: DummyData.distance),
-                _MetricRow(label: 'ETA', value: DummyData.eta),
-                _MetricRow(label: 'Estimated fare', value: DummyData.estimatedFare, highlighted: true),
-                _MetricRow(label: 'Payment', value: DummyData.paymentMethod),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Estimated fare', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  booking.formattedFare,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: AppColors.primaryDark,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const Divider(height: 32),
+                Row(
+                  children: [
+                    Expanded(child: _MetricTile(icon: Icons.route, label: 'Distance', value: booking.distance)),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(child: _MetricTile(icon: Icons.timer_outlined, label: 'ETA', value: booking.eta)),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _MetricRow(label: 'Payment', value: booking.paymentMethod),
               ],
             ),
           ),
@@ -55,33 +76,53 @@ class _RideSummaryScreenState extends State<RideSummaryScreen> {
               onChanged: (value) => setState(() => rideSharing = value),
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Confirm ride', onPressed: () => context.go('/searching-driver')),
         ],
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.all(AppSpacing.md),
+        child: AppButton(
+          label: 'Confirm Ride',
+          isLoading: bookingState.isLoading,
+          onPressed: bookingState.canConfirmRide
+              ? () {
+                  ref.read(bookingStateProvider.notifier).markSearching();
+                  context.push('/searching-driver');
+                }
+              : null,
+        ),
       ),
     );
   }
 }
 
-class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({required this.icon, required this.label, required this.value});
+class _RouteRow extends StatelessWidget {
+  const _RouteRow({required this.pickup, required this.destination});
 
-  final IconData icon;
-  final String label;
-  final String value;
+  final String pickup;
+  final String destination;
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon),
+        Column(
+          children: [
+            const Icon(Icons.my_location, size: 20, color: AppColors.info),
+            Container(width: 2, height: 34, color: AppColors.border),
+            const Icon(Icons.location_on, size: 22, color: AppColors.error),
+          ],
+        ),
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(color: AppColors.textSecondary)),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
+              const Text('Pickup', style: TextStyle(color: AppColors.textSecondary)),
+              Text(pickup, style: const TextStyle(fontWeight: FontWeight.w800)),
+              const SizedBox(height: AppSpacing.md),
+              const Text('Destination', style: TextStyle(color: AppColors.textSecondary)),
+              Text(destination, style: const TextStyle(fontWeight: FontWeight.w800)),
             ],
           ),
         ),
@@ -90,12 +131,40 @@ class _SummaryRow extends StatelessWidget {
   }
 }
 
+class _MetricTile extends StatelessWidget {
+  const _MetricTile({required this.icon, required this.label, required this.value});
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppColors.primaryDark),
+          const SizedBox(height: AppSpacing.sm),
+          Text(label, style: const TextStyle(color: AppColors.textSecondary)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+        ],
+      ),
+    );
+  }
+}
+
 class _MetricRow extends StatelessWidget {
-  const _MetricRow({required this.label, required this.value, this.highlighted = false});
+  const _MetricRow({required this.label, required this.value});
 
   final String label;
   final String value;
-  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
@@ -106,10 +175,10 @@ class _MetricRow extends StatelessWidget {
           Expanded(child: Text(label, style: const TextStyle(color: AppColors.textSecondary))),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.w800,
-              color: highlighted ? AppColors.primaryDark : AppColors.textPrimary,
-              fontSize: highlighted ? 18 : 15,
+              color: AppColors.textPrimary,
+              fontSize: 15,
             ),
           ),
         ],

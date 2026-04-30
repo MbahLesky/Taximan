@@ -49,7 +49,7 @@ class SearchingDriverScreen extends StatelessWidget {
                   AppButton(
                     label: 'Show fare proposal',
                     variant: AppButtonVariant.secondary,
-                    onPressed: () => context.go('/fare-proposal'),
+                    onPressed: () => context.push('/fare-proposal'),
                   ),
                   const SizedBox(height: AppSpacing.compact),
                   AppButton(

@@ -28,7 +28,7 @@ class VerificationRejectedScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             const AppCard(child: Text(DummyData.rejectionReason)),
             const Spacer(),
-            AppButton(label: 'Update documents', onPressed: () => context.go('/document-upload')),
+            AppButton(label: 'Update documents', onPressed: () => context.push('/document-upload')),
           ],
         ),
       ),

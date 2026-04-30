@@ -1,17 +1,17 @@
 class DummyData {
   const DummyData._();
 
-  static const passengerName = 'Mireille N.';
+  static const passengerName = 'Mireille Ngono';
   static const passengerPhone = '+237 6 77 45 22 18';
-  static const passengerEmail = 'mireille@example.com';
+  static const passengerEmail = 'mireille.ngono@example.com';
   static const pickupLocation = 'Mvan Carrefour, Yaounde';
   static const destination = 'Bonamoussadi, Douala';
-  static const estimatedFare = '4,500 XAF';
-  static const proposedFare = '5,000 XAF';
+  static const estimatedFare = '4,500 FCFA';
+  static const proposedFare = '5,000 FCFA';
   static const distance = '14.8 km';
   static const eta = '18 min';
   static const remainingTime = '11 min';
-  static const driverName = 'Jean T.';
+  static const driverName = 'Jean Talla';
   static const driverRating = '4.8';
   static const vehicleName = 'Toyota Corolla';
   static const vehiclePlate = 'LT 4821 AB';
@@ -27,7 +27,7 @@ class DummyData {
 
   static const recentDestinations = [
     'Carrefour Warda',
-    'Marché Central',
+    'Marche Central',
     'Bonapriso',
   ];
 
@@ -42,21 +42,21 @@ class DummyData {
       'date': 'Apr 26, 2026',
       'pickup': 'Mvan Carrefour',
       'destination': 'Bastos',
-      'fare': '2,800 XAF',
+      'fare': '2,800 FCFA',
       'status': 'Completed',
     },
     {
       'date': 'Apr 21, 2026',
       'pickup': 'Akwa',
       'destination': 'Bonamoussadi',
-      'fare': '3,500 XAF',
+      'fare': '3,500 FCFA',
       'status': 'Completed',
     },
     {
       'date': 'Apr 18, 2026',
       'pickup': 'Carrefour Warda',
       'destination': 'Melen',
-      'fare': '2,000 XAF',
+      'fare': '2,000 FCFA',
       'status': 'Completed',
     },
   ];

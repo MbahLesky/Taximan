@@ -17,13 +17,9 @@ class DriverPersonalInfoScreen extends StatelessWidget {
         children: [
           const AppTextField(label: 'Full name', icon: Icons.badge_outlined),
           const SizedBox(height: AppSpacing.md),
-          const AppTextField(label: 'Phone number', icon: Icons.phone_outlined, keyboardType: TextInputType.phone),
-          const SizedBox(height: AppSpacing.md),
-          const AppTextField(label: 'Email', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
-          const SizedBox(height: AppSpacing.md),
           const AppTextField(label: 'City or location', icon: Icons.location_city_outlined),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Continue', onPressed: () => context.go('/vehicle-details')),
+          AppButton(label: 'Continue', onPressed: () => context.push('/vehicle-details')),
         ],
       ),
     );

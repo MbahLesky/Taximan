@@ -45,7 +45,7 @@ class DriverEnRouteScreen extends StatelessWidget {
                     title: Text(DummyData.driverName),
                     subtitle: Text('${DummyData.vehicleName} - ${DummyData.vehiclePlate}'),
                   ),
-                  AppButton(label: 'Simulate driver arrived', onPressed: () => context.go('/driver-arrived')),
+                  AppButton(label: 'Simulate driver arrived', onPressed: () => context.push('/driver-arrived')),
                 ],
               ),
             ),

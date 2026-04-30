@@ -5,15 +5,18 @@ class BottomNavShell extends StatelessWidget {
   const BottomNavShell({
     required this.currentIndex,
     required this.child,
+    required this.title,
     super.key,
   });
 
   final int currentIndex;
   final Widget child;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text(title)),
       body: child,
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,

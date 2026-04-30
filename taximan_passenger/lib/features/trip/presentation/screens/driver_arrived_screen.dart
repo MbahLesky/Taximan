@@ -36,7 +36,7 @@ class DriverArrivedScreen extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            AppButton(label: 'Continue', onPressed: () => context.go('/trip-in-progress')),
+            AppButton(label: 'Continue', onPressed: () => context.push('/trip-in-progress')),
           ],
         ),
       ),

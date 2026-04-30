@@ -12,6 +12,7 @@ class PaymentConfirmationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: const Text('Payment confirmation')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -30,7 +31,7 @@ class PaymentConfirmationScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900),
               ),
               const Spacer(),
-              AppButton(label: 'Continue to rating', onPressed: () => context.go('/rating')),
+              AppButton(label: 'Continue to rating', onPressed: () => context.push('/rating')),
             ],
           ),
         ),
