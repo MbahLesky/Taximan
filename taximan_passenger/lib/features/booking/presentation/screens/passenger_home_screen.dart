@@ -22,7 +22,7 @@ class PassengerHomeScreen extends ConsumerWidget {
 
     return BottomNavShell(
       currentIndex: 0,
-      title: 'Home',
+      title: 'Home Dashboard',
       child: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -33,11 +33,15 @@ class PassengerHomeScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Good morning, ${user.fullName.split(' ').first}', style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                        'Good morning, ${user.fullName.split(' ').first}',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        'Where are you going?',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                        'Plan your ride',
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ],
                   ),
@@ -47,6 +51,48 @@ class PassengerHomeScreen extends ConsumerWidget {
                   icon: const Icon(Icons.person_outline),
                 ),
               ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            AppCard(
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.local_taxi,
+                      color: AppColors.primaryDark,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Ready when you are',
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          '${DummyData.nearbyDrivers.length} drivers nearby around your pickup area',
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => context.go('/drivers'),
+                    child: const Text('View'),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             AppCard(
@@ -73,19 +119,58 @@ class PassengerHomeScreen extends ConsumerWidget {
                   const Positioned(
                     top: 88,
                     left: 72,
-                    child: Icon(Icons.my_location, color: AppColors.info, size: 28),
+                    child: Icon(
+                      Icons.my_location,
+                      color: AppColors.info,
+                      size: 28,
+                    ),
                   ),
                   const Positioned(
                     right: 76,
                     bottom: 84,
-                    child: Icon(Icons.location_on, color: AppColors.error, size: 34),
+                    child: Icon(
+                      Icons.location_on,
+                      color: AppColors.error,
+                      size: 34,
+                    ),
                   ),
                   Positioned(
                     right: 16,
                     bottom: 16,
                     child: IconButton.filled(
-                      onPressed: () {},
+                      tooltip: 'Use current location',
+                      onPressed: () => context.push('/pickup'),
                       icon: const Icon(Icons.gps_fixed),
+                    ),
+                  ),
+                  Positioned(
+                    left: 16,
+                    top: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.compact,
+                        vertical: AppSpacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.sensors,
+                            size: 16,
+                            color: AppColors.success,
+                          ),
+                          SizedBox(width: AppSpacing.xs),
+                          Text(
+                            'Location active',
+                            style: TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -104,7 +189,9 @@ class PassengerHomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   AppButton(
-                    label: 'Choose destination',
+                    label: booking.destination == 'Select destination'
+                        ? 'Choose destination'
+                        : 'Change destination',
                     icon: Icons.arrow_forward,
                     onPressed: () => context.push('/destination'),
                   ),
@@ -116,25 +203,76 @@ class PassengerHomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Ride action', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                  Text(
+                    'Ride action',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: const [
-                      Expanded(child: _ActionPill(icon: Icons.flash_on, label: 'Ride now')),
+                  const Row(
+                    children: [
+                      Expanded(
+                        child: _ActionPill(
+                          icon: Icons.flash_on,
+                          label: 'Ride now',
+                        ),
+                      ),
                       SizedBox(width: AppSpacing.sm),
-                      Expanded(child: _ActionPill(icon: Icons.payments_outlined, label: DummyData.paymentMethod)),
+                      Expanded(
+                        child: _ActionPill(
+                          icon: Icons.schedule,
+                          label: 'Schedule',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  const Row(
+                    children: [
+                      Expanded(
+                        child: _ActionPill(
+                          icon: Icons.payments_outlined,
+                          label: DummyData.paymentMethod,
+                        ),
+                      ),
+                      SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: _ActionPill(
+                          icon: Icons.group_outlined,
+                          label: 'Ride share',
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
                   AppButton(
                     label: 'Review ride summary',
-                    onPressed: bookingState.canConfirmRide ? () => context.push('/ride-summary') : null,
+                    icon: Icons.receipt_long_outlined,
+                    onPressed: bookingState.canConfirmRide
+                        ? () => context.push('/ride-summary')
+                        : null,
                   ),
                 ],
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text('Recent destinations', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Recent destinations',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => context.go('/trips'),
+                  child: const Text('Trips'),
+                ),
+              ],
+            ),
             const SizedBox(height: AppSpacing.sm),
             ...bookingState.recentDestinations.map(
               (destination) => AppCard(
@@ -145,7 +283,9 @@ class PassengerHomeScreen extends ConsumerWidget {
                   title: Text(destination),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
-                    ref.read(bookingStateProvider.notifier).setDestination(destination);
+                    ref
+                        .read(bookingStateProvider.notifier)
+                        .setDestination(destination);
                     context.push('/pickup-time');
                   },
                 ),
@@ -167,7 +307,10 @@ class _ActionPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.compact),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.compact,
+      ),
       decoration: BoxDecoration(
         color: AppColors.primaryLight,
         borderRadius: BorderRadius.circular(14),
@@ -177,7 +320,13 @@ class _ActionPill extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: AppColors.primaryDark),
           const SizedBox(width: AppSpacing.xs),
-          Flexible(child: Text(label, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800))),
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
         ],
       ),
     );
@@ -202,8 +351,17 @@ class _LocationTile extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon),
-      title: Text(title, style: const TextStyle(color: AppColors.textSecondary)),
-      subtitle: Text(value, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+      title: Text(
+        title,
+        style: const TextStyle(color: AppColors.textSecondary),
+      ),
+      subtitle: Text(
+        value,
+        style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+        ),
+      ),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
     );
@@ -222,9 +380,21 @@ class _MapPlaceholderPainter extends CustomPainter {
       ..strokeWidth = 9
       ..strokeCap = StrokeCap.round;
 
-    canvas.drawLine(Offset(24, size.height * .28), Offset(size.width - 38, size.height * .68), roadPaint);
-    canvas.drawLine(Offset(40, size.height * .78), Offset(size.width * .72, 30), smallRoadPaint);
-    canvas.drawLine(Offset(size.width * .15, 48), Offset(size.width * .92, size.height * .24), smallRoadPaint);
+    canvas.drawLine(
+      Offset(24, size.height * .28),
+      Offset(size.width - 38, size.height * .68),
+      roadPaint,
+    );
+    canvas.drawLine(
+      Offset(40, size.height * .78),
+      Offset(size.width * .72, 30),
+      smallRoadPaint,
+    );
+    canvas.drawLine(
+      Offset(size.width * .15, 48),
+      Offset(size.width * .92, size.height * .24),
+      smallRoadPaint,
+    );
   }
 
   @override

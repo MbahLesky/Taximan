@@ -23,26 +23,70 @@ class DriverAssignedScreen extends ConsumerWidget {
           AppCard(
             child: Column(
               children: [
+                const Align(
+                  alignment: Alignment.centerRight,
+                  child: Chip(
+                    visualDensity: VisualDensity.compact,
+                    backgroundColor: AppColors.primaryLight,
+                    side: BorderSide.none,
+                    avatar: Icon(
+                      Icons.check_circle,
+                      size: 18,
+                      color: AppColors.success,
+                    ),
+                    label: Text('Confirmed'),
+                  ),
+                ),
                 const CircleAvatar(
                   radius: 36,
                   backgroundColor: AppColors.primaryLight,
-                  child: Icon(Icons.person, size: 40, color: AppColors.primaryDark),
+                  child: Icon(
+                    Icons.person,
+                    size: 40,
+                    color: AppColors.primaryDark,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                Text(driver?.fullName ?? 'Driver assigned', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+                Text(
+                  driver?.fullName ?? 'Driver assigned',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: AppSpacing.xs),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ...List.generate(5, (index) => const Icon(Icons.star, size: 18, color: AppColors.warning)),
+                    ...List.generate(
+                      5,
+                      (index) => const Icon(
+                        Icons.star,
+                        size: 18,
+                        color: AppColors.warning,
+                      ),
+                    ),
                     const SizedBox(width: AppSpacing.xs),
-                    Text('${driver?.rating.toStringAsFixed(1) ?? '4.8'} rating'),
+                    Text(
+                      '${driver?.rating.toStringAsFixed(1) ?? '4.8'} rating',
+                    ),
                   ],
                 ),
                 const Divider(height: 32),
-                _InfoLine(icon: Icons.local_taxi, label: 'Vehicle', value: driver?.vehicle ?? ''),
-                _InfoLine(icon: Icons.pin, label: 'Plate number', value: driver?.plateNumber ?? ''),
-                _InfoLine(icon: Icons.timer_outlined, label: 'Arrival ETA', value: driver?.arrivalEta ?? ''),
+                _InfoLine(
+                  icon: Icons.local_taxi,
+                  label: 'Vehicle',
+                  value: driver?.vehicle ?? '',
+                ),
+                _InfoLine(
+                  icon: Icons.pin,
+                  label: 'Plate number',
+                  value: driver?.plateNumber ?? '',
+                ),
+                _InfoLine(
+                  icon: Icons.timer_outlined,
+                  label: 'Arrival ETA',
+                  value: driver?.arrivalEta ?? '',
+                ),
                 const SizedBox(height: AppSpacing.sm),
                 Row(
                   children: [
@@ -51,7 +95,7 @@ class DriverAssignedScreen extends ConsumerWidget {
                         label: 'Call',
                         icon: Icons.call_outlined,
                         variant: AppButtonVariant.secondary,
-                        onPressed: null,
+                        onPressed: () {},
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -60,7 +104,7 @@ class DriverAssignedScreen extends ConsumerWidget {
                         label: 'Message',
                         icon: Icons.message_outlined,
                         variant: AppButtonVariant.secondary,
-                        onPressed: null,
+                        onPressed: () {},
                       ),
                     ),
                   ],
@@ -68,8 +112,23 @@ class DriverAssignedScreen extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: AppSpacing.md),
+          const AppCard(
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.security_outlined, color: AppColors.info),
+              title: Text('Safety check'),
+              subtitle: Text(
+                'Confirm the plate number before entering the taxi.',
+              ),
+            ),
+          ),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Continue tracking', onPressed: () => context.push('/driver-en-route')),
+          AppButton(
+            label: 'Continue tracking',
+            icon: Icons.near_me_outlined,
+            onPressed: () => context.push('/driver-en-route'),
+          ),
         ],
       ),
     );
@@ -77,7 +136,11 @@ class DriverAssignedScreen extends ConsumerWidget {
 }
 
 class _InfoLine extends StatelessWidget {
-  const _InfoLine({required this.icon, required this.label, required this.value});
+  const _InfoLine({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   final IconData icon;
   final String label;
@@ -88,8 +151,14 @@ class _InfoLine extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon),
-      title: Text(label, style: const TextStyle(color: AppColors.textSecondary)),
-      trailing: Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
+      title: Text(
+        label,
+        style: const TextStyle(color: AppColors.textSecondary),
+      ),
+      trailing: Text(
+        value,
+        style: const TextStyle(fontWeight: FontWeight.w800),
+      ),
     );
   }
 }

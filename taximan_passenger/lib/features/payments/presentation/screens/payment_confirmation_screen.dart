@@ -23,15 +23,23 @@ class PaymentConfirmationScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.xl),
               Text(
                 'Payment confirmed',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 DummyData.estimatedFare,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900),
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const Spacer(),
-              AppButton(label: 'Continue to rating', onPressed: () => context.push('/rating')),
+              AppButton(
+                label: 'Continue to rating',
+                icon: Icons.star_outline,
+                onPressed: () => context.push('/rating'),
+              ),
             ],
           ),
         ),

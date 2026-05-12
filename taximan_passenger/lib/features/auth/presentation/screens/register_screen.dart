@@ -18,16 +18,30 @@ class RegisterScreen extends StatelessWidget {
           children: [
             Text(
               'Start riding with Taximan',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: AppSpacing.xl),
             const AppTextField(label: 'Full name', icon: Icons.badge_outlined),
             const SizedBox(height: AppSpacing.md),
-            const AppTextField(label: 'Email', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
+            const AppTextField(
+              label: 'Email',
+              icon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
+            ),
             const SizedBox(height: AppSpacing.md),
-            const AppTextField(label: 'Phone', icon: Icons.phone_outlined, keyboardType: TextInputType.phone),
+            const AppTextField(
+              label: 'Phone',
+              icon: Icons.phone_outlined,
+              keyboardType: TextInputType.phone,
+            ),
             const SizedBox(height: AppSpacing.md),
-            const AppTextField(label: 'Password', icon: Icons.lock_outline, obscureText: true),
+            const AppTextField(
+              label: 'Password',
+              icon: Icons.lock_outline,
+              obscureText: true,
+            ),
             const SizedBox(height: AppSpacing.xl),
             AppButton(label: 'Register', onPressed: () => context.go('/home')),
             const SizedBox(height: AppSpacing.md),

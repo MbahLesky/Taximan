@@ -21,11 +21,16 @@ class PaymentScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Trip fare', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Trip fare',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   DummyData.estimatedFare,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const Divider(height: 32),
                 const ListTile(
@@ -38,14 +43,61 @@ class PaymentScreen extends StatelessWidget {
                 const ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.account_balance_wallet_outlined),
-                  title: Text('Escrow placeholder'),
-                  subtitle: Text('Payment integration comes later.'),
+                  title: Text('Escrow'),
+                  subtitle: Text(
+                    'Reserve funds in-app when payment integration is enabled.',
+                  ),
                 ),
               ],
             ),
           ),
+          const SizedBox(height: AppSpacing.md),
+          const AppCard(
+            child: Column(
+              children: [
+                _PaymentLine(
+                  label: 'Trip fare',
+                  value: DummyData.estimatedFare,
+                ),
+                _PaymentLine(
+                  label: 'Payment status',
+                  value: 'Pending confirmation',
+                ),
+                _PaymentLine(label: 'Receipt', value: 'Saved to trip history'),
+              ],
+            ),
+          ),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Confirm payment', onPressed: () => context.push('/payment-confirmation')),
+          AppButton(
+            label: 'Confirm payment',
+            icon: Icons.verified_outlined,
+            onPressed: () => context.push('/payment-confirmation'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentLine extends StatelessWidget {
+  const _PaymentLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
         ],
       ),
     );

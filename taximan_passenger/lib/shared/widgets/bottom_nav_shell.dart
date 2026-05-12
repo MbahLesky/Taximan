@@ -16,7 +16,22 @@ class BottomNavShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        leading: currentIndex == 0
+            ? null
+            : IconButton(
+                tooltip: 'Back',
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/home');
+                  }
+                },
+              ),
+        title: Text(title),
+      ),
       body: child,
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,
@@ -26,21 +41,45 @@ class BottomNavShell extends StatelessWidget {
               context.go('/home');
               break;
             case 1:
-              context.go('/trip-history');
+              context.go('/trips');
               break;
             case 2:
-              context.go('/profile');
+              context.go('/drivers');
               break;
             case 3:
-              context.go('/settings');
+              context.go('/tracking');
+              break;
+            case 4:
+              context.go('/profile');
               break;
           }
         },
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.history), label: 'Trips'),
-          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Profile'),
-          NavigationDestination(icon: Icon(Icons.settings_outlined), label: 'Settings'),
+          NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.alt_route_outlined),
+            selectedIcon: Icon(Icons.alt_route),
+            label: 'Trips',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.local_taxi_outlined),
+            selectedIcon: Icon(Icons.local_taxi),
+            label: 'Drivers',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.near_me_outlined),
+            selectedIcon: Icon(Icons.near_me),
+            label: 'Tracking',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
     );

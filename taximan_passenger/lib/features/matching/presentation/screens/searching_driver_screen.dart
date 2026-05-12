@@ -34,20 +34,40 @@ class SearchingDriverScreen extends StatelessWidget {
             Text(
               'Searching for nearby drivers',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               'We are sending your request to available taxis around your pickup point.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
             ),
             const Spacer(),
             AppCard(
               child: Column(
                 children: [
+                  const _SearchStep(
+                    icon: Icons.sensors,
+                    label: 'Contacting nearby drivers',
+                    active: true,
+                  ),
+                  const _SearchStep(
+                    icon: Icons.payments_outlined,
+                    label: 'Waiting for fare response',
+                    active: true,
+                  ),
+                  const _SearchStep(
+                    icon: Icons.verified_outlined,
+                    label: 'Confirming best match',
+                  ),
+                  const Divider(height: 28),
                   AppButton(
                     label: 'Show fare proposal',
+                    icon: Icons.request_quote_outlined,
                     variant: AppButtonVariant.secondary,
                     onPressed: () => context.push('/fare-proposal'),
                   ),
@@ -62,6 +82,40 @@ class SearchingDriverScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SearchStep extends StatelessWidget {
+  const _SearchStep({
+    required this.icon,
+    required this.label,
+    this.active = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: active ? AppColors.success : AppColors.textSecondary,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
       ),
     );
   }

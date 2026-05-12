@@ -25,23 +25,51 @@ class RatingScreen extends StatelessWidget {
                   const CircleAvatar(
                     radius: 34,
                     backgroundColor: AppColors.primaryLight,
-                    child: Icon(Icons.person, color: AppColors.primaryDark, size: 36),
+                    child: Icon(
+                      Icons.person,
+                      color: AppColors.primaryDark,
+                      size: 36,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  Text(DummyData.driverName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+                  Text(
+                    DummyData.driverName,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.lg),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
                       5,
-                      (index) => const Icon(Icons.star, size: 38, color: AppColors.warning),
+                      (index) => const Icon(
+                        Icons.star,
+                        size: 38,
+                        color: AppColors.warning,
+                      ),
                     ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
+                    children: const [
+                      Chip(label: Text('Safe ride')),
+                      Chip(label: Text('On time')),
+                      Chip(label: Text('Clean car')),
+                    ],
                   ),
                 ],
               ),
             ),
             const Spacer(),
-            AppButton(label: 'Continue', onPressed: () => context.push('/feedback')),
+            AppButton(
+              label: 'Continue',
+              icon: Icons.rate_review_outlined,
+              onPressed: () => context.push('/feedback'),
+            ),
           ],
         ),
       ),

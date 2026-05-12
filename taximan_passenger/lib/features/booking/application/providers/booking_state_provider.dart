@@ -2,6 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/models/booking.dart';
 
+const _defaultPickupLocation = 'Mvan Carrefour, Yaounde';
+const _unsetDestination = 'Select destination';
+
 class BookingState {
   const BookingState({
     required this.booking,
@@ -15,7 +18,10 @@ class BookingState {
   final bool isLoading;
   final String? errorMessage;
 
-  bool get canConfirmRide => booking.destination.isNotEmpty && !isLoading;
+  bool get canConfirmRide =>
+      booking.destination.isNotEmpty &&
+      booking.destination != _unsetDestination &&
+      !isLoading;
 
   BookingState copyWith({
     Booking? booking,
@@ -34,25 +40,41 @@ class BookingState {
 
 class BookingController extends StateNotifier<BookingState> {
   BookingController()
-      : super(
-          const BookingState(
-            booking: Booking(
-              id: 'booking-demo-001',
-              pickupLocation: 'Mvan Carrefour, Yaounde',
-              destination: 'Bonamoussadi, Douala',
-              estimatedFare: 4500,
-              distance: '14.8 km',
-              eta: '18 min',
-              paymentMethod: 'Cash',
-              status: 'draft',
-            ),
-            recentDestinations: [
-              'Bastos Roundabout',
-              'Douala Grand Mall',
-              'Marche Central, Yaounde',
-            ],
+    : super(
+        const BookingState(
+          booking: Booking(
+            id: 'booking-demo-001',
+            pickupLocation: _defaultPickupLocation,
+            destination: _unsetDestination,
+            estimatedFare: 0,
+            distance: '--',
+            eta: '--',
+            paymentMethod: 'Cash',
+            status: 'draft',
           ),
-        );
+          recentDestinations: [
+            'Bastos Roundabout',
+            'Douala Grand Mall',
+            'Marche Central, Yaounde',
+          ],
+        ),
+      );
+
+  void startNewTrip() {
+    state = state.copyWith(
+      booking: const Booking(
+        id: 'booking-demo-001',
+        pickupLocation: _defaultPickupLocation,
+        destination: _unsetDestination,
+        estimatedFare: 0,
+        distance: '--',
+        eta: '--',
+        paymentMethod: 'Cash',
+        status: 'draft',
+      ),
+      isLoading: false,
+    );
+  }
 
   void setPickup(String pickupLocation) {
     state = state.copyWith(
@@ -108,4 +130,6 @@ class BookingController extends StateNotifier<BookingState> {
 }
 
 final bookingStateProvider =
-    StateNotifierProvider<BookingController, BookingState>((ref) => BookingController());
+    StateNotifierProvider<BookingController, BookingState>(
+      (ref) => BookingController(),
+    );

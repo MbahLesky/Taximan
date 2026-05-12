@@ -49,8 +49,34 @@ class PickupTimeScreen extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: AppSpacing.md),
+          const AppCard(
+            child: Column(
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.notifications_active_outlined),
+                  title: Text('Pickup reminder'),
+                  subtitle: Text(
+                    'We will notify you when a scheduled driver is being assigned.',
+                  ),
+                ),
+                Divider(height: 1),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.shield_outlined),
+                  title: Text('Flexible cancellation'),
+                  subtitle: Text('Cancel any time before the trip starts.'),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Continue to summary', onPressed: () => context.push('/ride-summary')),
+          AppButton(
+            label: 'Continue to summary',
+            icon: Icons.receipt_long_outlined,
+            onPressed: () => context.push('/ride-summary'),
+          ),
         ],
       ),
     );

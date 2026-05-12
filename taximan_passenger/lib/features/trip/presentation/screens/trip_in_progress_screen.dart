@@ -25,7 +25,17 @@ class TripInProgressScreen extends StatelessWidget {
                 border: Border.all(color: AppColors.border),
               ),
               child: const Center(
-                child: Icon(Icons.route, size: 86, color: AppColors.primaryDark),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.route, size: 86, color: AppColors.primaryDark),
+                    SizedBox(height: AppSpacing.sm),
+                    Text(
+                      'Route progress',
+                      style: TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -46,15 +56,38 @@ class TripInProgressScreen extends StatelessWidget {
                     title: Text('Destination'),
                     subtitle: Text(DummyData.destination),
                   ),
-                  const Text('Estimated remaining time: ${DummyData.remainingTime}'),
+                  const SizedBox(height: AppSpacing.sm),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: const LinearProgressIndicator(
+                      value: .56,
+                      minHeight: 8,
+                      backgroundColor: AppColors.border,
+                      color: AppColors.primaryDark,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  const Row(
+                    children: [
+                      Expanded(child: Text('Estimated remaining time')),
+                      Text(
+                        DummyData.remainingTime,
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: AppSpacing.md),
                   AppButton(
-                    label: 'End trip placeholder',
+                    label: 'Share trip status',
+                    icon: Icons.ios_share_outlined,
                     variant: AppButtonVariant.secondary,
-                    onPressed: null,
+                    onPressed: () {},
                   ),
                   const SizedBox(height: AppSpacing.compact),
-                  AppButton(label: 'Simulate trip completed', onPressed: () => context.push('/payment')),
+                  AppButton(
+                    label: 'Simulate trip completed',
+                    onPressed: () => context.push('/payment'),
+                  ),
                 ],
               ),
             ),

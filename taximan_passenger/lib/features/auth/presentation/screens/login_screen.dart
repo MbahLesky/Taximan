@@ -18,16 +18,39 @@ class LoginScreen extends StatelessWidget {
           children: [
             Text(
               'Welcome back',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Text('Use any details for this UI prototype.', style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              'Use any details for this UI prototype.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(height: AppSpacing.xl),
-            const AppTextField(label: 'Email or phone', icon: Icons.person_outline),
+            const AppTextField(
+              label: 'Email or phone',
+              icon: Icons.person_outline,
+            ),
             const SizedBox(height: AppSpacing.md),
-            const AppTextField(label: 'Password', icon: Icons.lock_outline, obscureText: true),
+            const AppTextField(
+              label: 'Password',
+              icon: Icons.lock_outline,
+              obscureText: true,
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => context.push('/forgot-password'),
+                child: const Text('Forgot password?'),
+              ),
+            ),
             const SizedBox(height: AppSpacing.xl),
-            AppButton(label: 'Login', onPressed: () => context.go('/home')),
+            AppButton(
+              label: 'Login',
+              icon: Icons.login,
+              onPressed: () => context.go('/home'),
+            ),
             const SizedBox(height: AppSpacing.md),
             TextButton(
               onPressed: () => context.push('/register'),

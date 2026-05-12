@@ -31,12 +31,20 @@ class OnboardingScreen extends StatelessWidget {
                     Positioned(
                       top: 36,
                       left: 28,
-                      child: Icon(Icons.location_on, size: 56, color: AppColors.primaryDark),
+                      child: Icon(
+                        Icons.location_on,
+                        size: 56,
+                        color: AppColors.primaryDark,
+                      ),
                     ),
                     Positioned(
                       right: 34,
                       bottom: 44,
-                      child: Icon(Icons.local_taxi, size: 92, color: AppColors.primaryDark),
+                      child: Icon(
+                        Icons.local_taxi,
+                        size: 92,
+                        color: AppColors.primaryDark,
+                      ),
                     ),
                   ],
                 ),
@@ -45,16 +53,16 @@ class OnboardingScreen extends StatelessWidget {
               Text(
                 'Your ride, from doorstep to destination.',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
                 'Request nearby taxis, preview your fare, and follow every step of the trip with a simple passenger experience.',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.textSecondary,
-                      height: 1.4,
-                    ),
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
               ),
               const Spacer(),
               AppButton(

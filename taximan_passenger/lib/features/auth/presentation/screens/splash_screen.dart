@@ -48,22 +48,26 @@ class _SplashScreenState extends State<SplashScreen> {
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(28),
                 ),
-                child: const Icon(Icons.local_taxi, size: 48, color: AppColors.primaryDark),
+                child: const Icon(
+                  Icons.local_taxi,
+                  size: 48,
+                  color: AppColors.primaryDark,
+                ),
               ),
               const SizedBox(height: AppSpacing.xl),
               Text(
                 'Taximan Passenger',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                    ),
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 'Book trusted rides in minutes.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
               ),
             ],
           ),

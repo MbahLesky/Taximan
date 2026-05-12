@@ -28,6 +28,40 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
+          Container(
+            height: 170,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(painter: _SummaryMapPainter()),
+                ),
+                const Positioned(
+                  left: 52,
+                  top: 54,
+                  child: Icon(
+                    Icons.my_location,
+                    color: AppColors.info,
+                    size: 28,
+                  ),
+                ),
+                const Positioned(
+                  right: 52,
+                  bottom: 44,
+                  child: Icon(
+                    Icons.location_on,
+                    color: AppColors.error,
+                    size: 34,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
           AppCard(
             child: Column(
               children: [
@@ -43,25 +77,41 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Estimated fare', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Estimated fare',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   booking.formattedFare,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: AppColors.primaryDark,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    color: AppColors.primaryDark,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const Divider(height: 32),
                 Row(
                   children: [
-                    Expanded(child: _MetricTile(icon: Icons.route, label: 'Distance', value: booking.distance)),
+                    Expanded(
+                      child: _MetricTile(
+                        icon: Icons.route,
+                        label: 'Distance',
+                        value: booking.distance,
+                      ),
+                    ),
                     const SizedBox(width: AppSpacing.sm),
-                    Expanded(child: _MetricTile(icon: Icons.timer_outlined, label: 'ETA', value: booking.eta)),
+                    Expanded(
+                      child: _MetricTile(
+                        icon: Icons.timer_outlined,
+                        label: 'ETA',
+                        value: booking.eta,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MetricRow(label: 'Payment', value: booking.paymentMethod),
+                _MetricRow(label: 'Driver fare proposal', value: 'Allowed'),
               ],
             ),
           ),
@@ -72,8 +122,21 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
               value: rideSharing,
               activeColor: AppColors.primaryDark,
               title: const Text('Ride sharing'),
-              subtitle: const Text('Share this trip with another passenger when available.'),
+              subtitle: const Text(
+                'Share this trip with another passenger when available.',
+              ),
               onChanged: (value) => setState(() => rideSharing = value),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          const AppCard(
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.info_outline, color: AppColors.info),
+              title: Text('Fare can be negotiated'),
+              subtitle: Text(
+                'A nearby driver may accept the estimate or send a different fare proposal.',
+              ),
             ),
           ),
         ],
@@ -82,6 +145,7 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
         minimum: const EdgeInsets.all(AppSpacing.md),
         child: AppButton(
           label: 'Confirm Ride',
+          icon: Icons.local_taxi_outlined,
           isLoading: bookingState.isLoading,
           onPressed: bookingState.canConfirmRide
               ? () {
@@ -93,6 +157,39 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
       ),
     );
   }
+}
+
+class _SummaryMapPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final roadPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.72)
+      ..strokeWidth = 12
+      ..strokeCap = StrokeCap.round;
+    final routePaint = Paint()
+      ..color = AppColors.primaryDark
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawLine(
+      Offset(24, size.height * .72),
+      Offset(size.width - 32, 38),
+      roadPaint,
+    );
+    canvas.drawLine(
+      Offset(size.width * .12, 42),
+      Offset(size.width * .88, size.height - 36),
+      roadPaint,
+    );
+    canvas.drawLine(
+      Offset(68, 72),
+      Offset(size.width - 68, size.height - 56),
+      routePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _RouteRow extends StatelessWidget {
@@ -118,11 +215,20 @@ class _RouteRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Pickup', style: TextStyle(color: AppColors.textSecondary)),
+              const Text(
+                'Pickup',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
               Text(pickup, style: const TextStyle(fontWeight: FontWeight.w800)),
               const SizedBox(height: AppSpacing.md),
-              const Text('Destination', style: TextStyle(color: AppColors.textSecondary)),
-              Text(destination, style: const TextStyle(fontWeight: FontWeight.w800)),
+              const Text(
+                'Destination',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+              Text(
+                destination,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
             ],
           ),
         ),
@@ -132,7 +238,11 @@ class _RouteRow extends StatelessWidget {
 }
 
 class _MetricTile extends StatelessWidget {
-  const _MetricTile({required this.icon, required this.label, required this.value});
+  const _MetricTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   final IconData icon;
   final String label;
@@ -172,7 +282,12 @@ class _MetricRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
         children: [
-          Expanded(child: Text(label, style: const TextStyle(color: AppColors.textSecondary))),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
           Text(
             value,
             style: const TextStyle(

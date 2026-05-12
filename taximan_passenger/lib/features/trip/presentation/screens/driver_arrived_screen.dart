@@ -24,19 +24,37 @@ class DriverArrivedScreen extends StatelessWidget {
             Text(
               'Your driver has arrived',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: AppSpacing.md),
             const AppCard(
-              child: ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.my_location),
-                title: Text('Pickup point'),
-                subtitle: Text(DummyData.pickupLocation),
+              child: Column(
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.my_location),
+                    title: Text('Pickup point'),
+                    subtitle: Text(DummyData.pickupLocation),
+                  ),
+                  Divider(height: 1),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.local_taxi),
+                    title: Text(DummyData.vehicleName),
+                    subtitle: Text(DummyData.vehiclePlate),
+                    trailing: Icon(Icons.verified, color: AppColors.success),
+                  ),
+                ],
               ),
             ),
             const Spacer(),
-            AppButton(label: 'Continue', onPressed: () => context.push('/trip-in-progress')),
+            AppButton(
+              label: 'Start tracking trip',
+              icon: Icons.route_outlined,
+              onPressed: () => context.push('/trip-in-progress'),
+            ),
           ],
         ),
       ),

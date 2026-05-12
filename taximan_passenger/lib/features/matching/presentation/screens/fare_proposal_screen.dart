@@ -28,8 +28,15 @@ class FareProposalScreen extends StatelessWidget {
                   subtitle: Text('Driver rating ${DummyData.driverRating}'),
                 ),
                 const Divider(height: 28),
-                const _FareLine(label: 'Original fare', value: DummyData.estimatedFare),
-                const _FareLine(label: 'Proposed fare', value: DummyData.proposedFare, highlighted: true),
+                const _FareLine(
+                  label: 'Original fare',
+                  value: DummyData.estimatedFare,
+                ),
+                const _FareLine(
+                  label: 'Proposed fare',
+                  value: DummyData.proposedFare,
+                  highlighted: true,
+                ),
                 const SizedBox(height: AppSpacing.md),
                 Container(
                   width: double.infinity,
@@ -44,7 +51,10 @@ class FareProposalScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Accept proposal', onPressed: () => context.push('/driver-assigned')),
+          AppButton(
+            label: 'Accept proposal',
+            onPressed: () => context.push('/driver-assigned'),
+          ),
           const SizedBox(height: AppSpacing.compact),
           AppButton(
             label: 'Reject and keep searching',
@@ -58,7 +68,11 @@ class FareProposalScreen extends StatelessWidget {
 }
 
 class _FareLine extends StatelessWidget {
-  const _FareLine({required this.label, required this.value, this.highlighted = false});
+  const _FareLine({
+    required this.label,
+    required this.value,
+    this.highlighted = false,
+  });
 
   final String label;
   final String value;
@@ -70,12 +84,19 @@ class _FareLine extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
         children: [
-          Expanded(child: Text(label, style: const TextStyle(color: AppColors.textSecondary))),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
           Text(
             value,
             style: TextStyle(
               fontWeight: FontWeight.w800,
-              color: highlighted ? AppColors.primaryDark : AppColors.textPrimary,
+              color: highlighted
+                  ? AppColors.primaryDark
+                  : AppColors.textPrimary,
               fontSize: highlighted ? 20 : 16,
             ),
           ),

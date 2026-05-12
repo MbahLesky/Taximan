@@ -31,10 +31,33 @@ class DummyData {
     'Bonapriso',
   ];
 
-  static const quickActions = [
-    'Ride now',
-    'Schedule',
-    'Cash',
+  static const quickActions = ['Ride now', 'Schedule', 'Cash'];
+
+  static const nearbyDrivers = [
+    {
+      'name': 'Jean Talla',
+      'vehicle': 'Toyota Corolla',
+      'plate': 'LT 4821 AB',
+      'rating': '4.8',
+      'eta': '4 min',
+      'distance': '1.2 km',
+    },
+    {
+      'name': 'Nadine Abena',
+      'vehicle': 'Hyundai Accent',
+      'plate': 'CE 1930 BA',
+      'rating': '4.7',
+      'eta': '7 min',
+      'distance': '2.4 km',
+    },
+    {
+      'name': 'Samuel Mefire',
+      'vehicle': 'Toyota Yaris',
+      'plate': 'LT 7745 AC',
+      'rating': '4.9',
+      'eta': '9 min',
+      'distance': '3.1 km',
+    },
   ];
 
   static const tripHistory = [
