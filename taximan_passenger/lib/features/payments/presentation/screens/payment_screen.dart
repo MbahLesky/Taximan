@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../application/providers/payment_state_provider.dart';
 
-class PaymentScreen extends StatelessWidget {
+class PaymentScreen extends ConsumerWidget {
   const PaymentScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final paymentState = ref.watch(paymentStateProvider);
+    final payment = paymentState.activePayment;
+    final fare = payment?.formattedAmount ?? '0 FCFA';
+
     return Scaffold(
       appBar: AppBar(title: const Text('Payment')),
       body: ListView(
@@ -27,43 +32,54 @@ class PaymentScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  DummyData.estimatedFare,
+                  fare,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const Divider(height: 32),
-                const ListTile(
+                ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.payments_outlined),
-                  title: Text('Cash'),
-                  subtitle: Text('Pay the driver directly.'),
-                  trailing: Icon(Icons.check_circle, color: AppColors.success),
+                  leading: const Icon(Icons.payments_outlined),
+                  title: const Text('Cash'),
+                  subtitle: const Text('Pay the driver directly.'),
+                  trailing: paymentState.selectedMethod == 'cash'
+                      ? const Icon(Icons.check_circle, color: AppColors.success)
+                      : null,
+                  onTap: () => ref
+                      .read(paymentStateProvider.notifier)
+                      .selectMethod('cash'),
                 ),
-                const ListTile(
+                ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.account_balance_wallet_outlined),
-                  title: Text('Escrow'),
-                  subtitle: Text(
+                  leading: const Icon(Icons.account_balance_wallet_outlined),
+                  title: const Text('Escrow'),
+                  subtitle: const Text(
                     'Reserve funds in-app when payment integration is enabled.',
                   ),
+                  trailing: paymentState.selectedMethod == 'escrow'
+                      ? const Icon(Icons.check_circle, color: AppColors.success)
+                      : null,
+                  onTap: () => ref
+                      .read(paymentStateProvider.notifier)
+                      .selectMethod('escrow'),
                 ),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          const AppCard(
+          AppCard(
             child: Column(
               children: [
-                _PaymentLine(
-                  label: 'Trip fare',
-                  value: DummyData.estimatedFare,
-                ),
+                _PaymentLine(label: 'Trip fare', value: fare),
                 _PaymentLine(
                   label: 'Payment status',
-                  value: 'Pending confirmation',
+                  value: payment?.status ?? 'pending',
                 ),
-                _PaymentLine(label: 'Receipt', value: 'Saved to trip history'),
+                const _PaymentLine(
+                  label: 'Receipt',
+                  value: 'Saved to trip history',
+                ),
               ],
             ),
           ),
@@ -71,7 +87,11 @@ class PaymentScreen extends StatelessWidget {
           AppButton(
             label: 'Confirm payment',
             icon: Icons.verified_outlined,
-            onPressed: () => context.push('/payment-confirmation'),
+            isLoading: paymentState.isLoading,
+            onPressed: () {
+              ref.read(paymentStateProvider.notifier).confirmPayment();
+              context.push('/payment-confirmation');
+            },
           ),
         ],
       ),

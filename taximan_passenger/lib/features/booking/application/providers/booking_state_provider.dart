@@ -78,15 +78,9 @@ class BookingController extends StateNotifier<BookingState> {
 
   void setPickup(String pickupLocation) {
     state = state.copyWith(
-      booking: Booking(
-        id: state.booking.id,
+      booking: state.booking.copyWith(
         pickupLocation: pickupLocation,
-        destination: state.booking.destination,
-        estimatedFare: state.booking.estimatedFare,
-        distance: state.booking.distance,
-        eta: state.booking.eta,
-        paymentMethod: state.booking.paymentMethod,
-        status: state.booking.status,
+        updatedAt: DateTime.now(),
       ),
     );
   }
@@ -98,34 +92,91 @@ class BookingController extends StateNotifier<BookingState> {
     ].take(4).toList();
 
     state = state.copyWith(
-      booking: Booking(
-        id: state.booking.id,
-        pickupLocation: state.booking.pickupLocation,
+      booking: state.booking.copyWith(
         destination: destination,
         estimatedFare: destination.contains('Douala') ? 4500 : 2800,
         distance: destination.contains('Douala') ? '14.8 km' : '8.4 km',
         eta: destination.contains('Douala') ? '18 min' : '12 min',
-        paymentMethod: state.booking.paymentMethod,
         status: 'draft',
+        updatedAt: DateTime.now(),
       ),
       recentDestinations: updatedRecent,
     );
   }
 
+  void setPickupTime({
+    required String pickupTimeType,
+    DateTime? scheduledPickupTime,
+  }) {
+    state = state.copyWith(
+      booking: state.booking.copyWith(
+        pickupTimeType: pickupTimeType,
+        scheduledPickupTime: scheduledPickupTime,
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  void setRideSharing(bool isRideSharing) {
+    state = state.copyWith(
+      booking: state.booking.copyWith(
+        isRideSharing: isRideSharing,
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  void setPaymentMethod(String paymentMethod) {
+    state = state.copyWith(
+      booking: state.booking.copyWith(
+        paymentMethod: paymentMethod,
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
   void markSearching() {
     state = state.copyWith(
-      booking: Booking(
-        id: state.booking.id,
-        pickupLocation: state.booking.pickupLocation,
-        destination: state.booking.destination,
-        estimatedFare: state.booking.estimatedFare,
-        distance: state.booking.distance,
-        eta: state.booking.eta,
-        paymentMethod: state.booking.paymentMethod,
+      booking: state.booking.copyWith(
         status: 'searching',
+        updatedAt: DateTime.now(),
       ),
       isLoading: true,
     );
+  }
+
+  void setDriverAssigned({
+    required String driverId,
+    required String vehicleId,
+    int? finalFare,
+  }) {
+    state = state.copyWith(
+      booking: state.booking.copyWith(
+        driverId: driverId,
+        vehicleId: vehicleId,
+        finalFare: finalFare,
+        status: 'accepted',
+        acceptedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+      isLoading: false,
+    );
+  }
+
+  void cancelBooking(String reason) {
+    state = state.copyWith(
+      booking: state.booking.copyWith(
+        status: 'cancelled',
+        cancelledAt: DateTime.now(),
+        cancellationReason: reason,
+        updatedAt: DateTime.now(),
+      ),
+      isLoading: false,
+    );
+  }
+
+  void clearError() {
+    state = state.copyWith(errorMessage: null);
   }
 }
 

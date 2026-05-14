@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -6,12 +7,15 @@ import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../application/providers/matching_state_provider.dart';
 
-class FareProposalScreen extends StatelessWidget {
+class FareProposalScreen extends ConsumerWidget {
   const FareProposalScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final proposal = ref.watch(matchingStateProvider).fareProposal;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Fare proposal')),
       body: ListView(
@@ -32,9 +36,10 @@ class FareProposalScreen extends StatelessWidget {
                   label: 'Original fare',
                   value: DummyData.estimatedFare,
                 ),
-                const _FareLine(
+                _FareLine(
                   label: 'Proposed fare',
-                  value: DummyData.proposedFare,
+                  value:
+                      proposal?.formattedProposedFare ?? DummyData.proposedFare,
                   highlighted: true,
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -45,7 +50,7 @@ class FareProposalScreen extends StatelessWidget {
                     color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Text(DummyData.driverNote),
+                  child: Text(proposal?.message ?? DummyData.driverNote),
                 ),
               ],
             ),
@@ -53,13 +58,19 @@ class FareProposalScreen extends StatelessWidget {
           const SizedBox(height: AppSpacing.xl),
           AppButton(
             label: 'Accept proposal',
-            onPressed: () => context.push('/driver-assigned'),
+            onPressed: () {
+              ref.read(matchingStateProvider.notifier).acceptProposal();
+              context.push('/driver-assigned');
+            },
           ),
           const SizedBox(height: AppSpacing.compact),
           AppButton(
             label: 'Reject and keep searching',
             variant: AppButtonVariant.secondary,
-            onPressed: () => context.pop(),
+            onPressed: () {
+              ref.read(matchingStateProvider.notifier).rejectProposal();
+              context.pop();
+            },
           ),
         ],
       ),

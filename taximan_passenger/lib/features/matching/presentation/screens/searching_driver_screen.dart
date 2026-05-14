@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../../shared/models/fare_proposal.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../application/providers/matching_state_provider.dart';
 
-class SearchingDriverScreen extends StatelessWidget {
+class SearchingDriverScreen extends ConsumerWidget {
   const SearchingDriverScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(title: const Text('Finding driver')),
       body: Padding(
@@ -69,13 +72,33 @@ class SearchingDriverScreen extends StatelessWidget {
                     label: 'Show fare proposal',
                     icon: Icons.request_quote_outlined,
                     variant: AppButtonVariant.secondary,
-                    onPressed: () => context.push('/fare-proposal'),
+                    onPressed: () {
+                      ref
+                          .read(matchingStateProvider.notifier)
+                          .showFareProposal(
+                            FareProposal(
+                              id: 'proposal-demo-001',
+                              bookingId: 'booking-demo-001',
+                              driverId: 'driver-001',
+                              vehicleId: 'vehicle-demo-001',
+                              originalFare: 4500,
+                              proposedFare: 5200,
+                              message:
+                                  'Traffic is heavy around this pickup area.',
+                              createdAt: DateTime.now(),
+                            ),
+                          );
+                      context.push('/fare-proposal');
+                    },
                   ),
                   const SizedBox(height: AppSpacing.compact),
                   AppButton(
                     label: 'Cancel search',
                     variant: AppButtonVariant.danger,
-                    onPressed: () => context.go('/home'),
+                    onPressed: () {
+                      ref.read(matchingStateProvider.notifier).cancelSearch();
+                      context.go('/home');
+                    },
                   ),
                 ],
               ),

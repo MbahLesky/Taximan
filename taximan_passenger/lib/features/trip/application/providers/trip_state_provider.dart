@@ -61,7 +61,56 @@ class TripController extends StateNotifier<TripState> {
       );
 
   void setStatus(String status) {
-    state = state.copyWith(status: status);
+    state = state.copyWith(
+      status: status,
+      activeTrip: state.activeTrip?.copyWith(
+        status: status,
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  void setDriverArriving() {
+    setStatus('driver_arriving');
+  }
+
+  void markDriverArrived() {
+    setStatus('arrived');
+  }
+
+  void startTrip() {
+    state = state.copyWith(
+      status: 'in_progress',
+      activeTrip: state.activeTrip?.copyWith(
+        status: 'in_progress',
+        startedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  void completeTrip({int? finalFare, int? actualDurationMinutes}) {
+    state = state.copyWith(
+      status: 'completed',
+      activeTrip: state.activeTrip?.copyWith(
+        status: 'completed',
+        finalFare: finalFare,
+        actualDurationMinutes: actualDurationMinutes,
+        completedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  void cancelTrip() {
+    state = state.copyWith(
+      status: 'cancelled',
+      activeTrip: state.activeTrip?.copyWith(
+        status: 'cancelled',
+        cancelledAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
   }
 }
 
