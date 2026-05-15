@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "385844694654",
+    "project_id": "taximan-835d2",
+    "storage_bucket": "taximan-835d2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:385844694654:android:88d5b55fa115ad014b522f",
+        "android_client_info": {
+          "package_name": "com.iamlespa.taximan_passenger"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJPCfLMfuGkXNwyfn95x78sAFypDfLjaM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
