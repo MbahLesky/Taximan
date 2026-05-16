@@ -1,4 +1,9 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../data/auth_repository.dart';
 
 class AuthState {
   const AuthState({
@@ -33,10 +38,92 @@ class AuthState {
 }
 
 class AuthController extends StateNotifier<AuthState> {
-  AuthController()
-    : super(const AuthState(userId: 'passenger-001', isAuthenticated: true));
+  AuthController(this._repository)
+      : super(
+          AuthState(
+            userId: _repository.currentUser?.uid,
+            isAuthenticated: _repository.currentUser != null,
+          ),
+        ) {
+    _authSubscription = _repository.authStateChanges().listen(_setFirebaseUser);
+  }
 
-  void login(String userId) {
+  final AuthRepository _repository;
+  late final StreamSubscription<firebase_auth.User?> _authSubscription;
+
+  void _setFirebaseUser(firebase_auth.User? user) {
+    state = AuthState(
+      userId: user?.uid,
+      isAuthenticated: user != null,
+      isLoading: false,
+    );
+  }
+
+  Future<void> login({
+    required String email,
+    required String password,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final user = await _repository.login(email: email, password: password);
+      state = AuthState(userId: user.uid, isAuthenticated: true);
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _friendlyAuthMessage(e),
+      );
+      rethrow;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> registerPassenger({
+    required String fullName,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final user = await _repository.registerPassenger(
+        fullName: fullName,
+        email: email,
+        phone: phone,
+        password: password,
+      );
+      state = AuthState(userId: user.uid, isAuthenticated: true);
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _friendlyAuthMessage(e),
+      );
+      rethrow;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      await _repository.sendPasswordResetEmail(email);
+      state = state.copyWith(isLoading: false);
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _friendlyAuthMessage(e),
+      );
+      rethrow;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      rethrow;
+    }
+  }
+
+  void setAuthenticatedUser(String userId) {
     state = state.copyWith(
       userId: userId,
       isAuthenticated: true,
@@ -45,7 +132,8 @@ class AuthController extends StateNotifier<AuthState> {
     );
   }
 
-  void logout() {
+  Future<void> logout() async {
+    await _repository.logout();
     state = const AuthState();
   }
 
@@ -56,8 +144,31 @@ class AuthController extends StateNotifier<AuthState> {
   void setError(String message) {
     state = state.copyWith(isLoading: false, errorMessage: message);
   }
+
+  @override
+  void dispose() {
+    _authSubscription.cancel();
+    super.dispose();
+  }
 }
 
+String _friendlyAuthMessage(firebase_auth.FirebaseAuthException exception) {
+  return switch (exception.code) {
+    'invalid-email' => 'Enter a valid email address.',
+    'user-disabled' => 'This account has been disabled.',
+    'user-not-found' || 'wrong-password' || 'invalid-credential' =>
+      'Email or password is incorrect.',
+    'email-already-in-use' => 'An account already exists for this email.',
+    'weak-password' => 'Use a stronger password.',
+    'network-request-failed' => 'Check your internet connection and try again.',
+    _ => exception.message ?? 'Authentication failed. Please try again.',
+  };
+}
+
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepository();
+});
+
 final authStateProvider = StateNotifierProvider<AuthController, AuthState>(
-  (ref) => AuthController(),
+  (ref) => AuthController(ref.watch(authRepositoryProvider)),
 );

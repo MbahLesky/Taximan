@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../core/constants/ride_statuses.dart';
 import '../../../shared/models/booking.dart';
 
 class BookingRepository {
@@ -13,9 +14,19 @@ class BookingRepository {
   /// Create a new booking
   Future<Booking> createBooking(Booking booking) async {
     try {
-      final docRef = _firestore.collection(_collection).doc(booking.id);
-      await docRef.set(booking.toMap());
-      return booking;
+      final shouldGenerateId =
+          booking.id.isEmpty || booking.id.startsWith('booking-demo-');
+      final docRef = shouldGenerateId
+          ? _firestore.collection(_collection).doc()
+          : _firestore.collection(_collection).doc(booking.id);
+      final bookingToCreate = booking.copyWith(
+        id: docRef.id,
+        status: BookingStatus.searching,
+        createdAt: booking.createdAt ?? DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      await docRef.set(bookingToCreate.toMap());
+      return bookingToCreate;
     } catch (e) {
       throw Exception('Failed to create booking: $e');
     }
@@ -33,6 +44,18 @@ class BookingRepository {
     } catch (e) {
       throw Exception('Failed to fetch booking: $e');
     }
+  }
+
+  /// Stream a booking by ID
+  Stream<Booking?> streamBooking(String bookingId) {
+    return _firestore.collection(_collection).doc(bookingId).snapshots().map(
+      (doc) {
+        if (!doc.exists) {
+          return null;
+        }
+        return Booking.fromMap(doc.data() as Map<String, dynamic>);
+      },
+    );
   }
 
   /// Get all bookings for a passenger
@@ -89,7 +112,7 @@ class BookingRepository {
       await _firestore.collection(_collection).doc(bookingId).update({
         'driverId': driverId,
         'vehicleId': vehicleId,
-        'status': 'assigned',
+        'status': BookingStatus.accepted,
         'acceptedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -117,8 +140,7 @@ class BookingRepository {
     return _firestore
         .collection(_collection)
         .where('passengerId', isEqualTo: passengerId)
-        .where('status',
-            whereIn: ['draft', 'searching', 'proposed', 'assigned', 'in_progress'])
+        .where('status', whereIn: BookingStatus.active)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {

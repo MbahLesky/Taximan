@@ -17,6 +17,13 @@ final bookingProvider =
   return repository.getBooking(bookingId);
 });
 
+/// Stream a specific booking
+final bookingStreamProvider =
+    StreamProvider.family<Booking?, String>((ref, bookingId) {
+  final repository = ref.watch(bookingRepositoryProvider);
+  return repository.streamBooking(bookingId);
+});
+
 /// Stream active bookings
 final activeBookingsStreamProvider =
     StreamProvider.family<List<Booking>, String>((ref, passengerId) {

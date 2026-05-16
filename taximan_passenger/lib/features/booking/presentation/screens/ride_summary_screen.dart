@@ -6,6 +6,8 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../auth/application/providers/auth_state_provider.dart';
+import '../../application/providers/repositories.dart';
 import '../../application/providers/booking_state_provider.dart';
 
 class RideSummaryScreen extends ConsumerStatefulWidget {
@@ -17,6 +19,34 @@ class RideSummaryScreen extends ConsumerStatefulWidget {
 
 class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
   bool rideSharing = false;
+
+  Future<void> _confirmRide() async {
+    final authState = ref.read(authStateProvider);
+    final passengerId = authState.userId;
+    if (passengerId == null) {
+      context.go('/login');
+      return;
+    }
+
+    final bookingController = ref.read(bookingStateProvider.notifier);
+    bookingController.markSearching();
+
+    try {
+      final draft = ref.read(bookingStateProvider).booking.copyWith(
+            passengerId: passengerId,
+            isRideSharing: rideSharing,
+          );
+      final booking = await ref.read(bookingRepositoryProvider).createBooking(
+            draft,
+          );
+      bookingController.setBooking(booking);
+      if (mounted) {
+        context.push('/searching-driver');
+      }
+    } catch (e) {
+      bookingController.setError('Could not create booking. Try again.');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,6 +169,13 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
               ),
             ),
           ),
+          if (bookingState.errorMessage != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              bookingState.errorMessage!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -147,12 +184,7 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
           label: 'Confirm Ride',
           icon: Icons.local_taxi_outlined,
           isLoading: bookingState.isLoading,
-          onPressed: bookingState.canConfirmRide
-              ? () {
-                  ref.read(bookingStateProvider.notifier).markSearching();
-                  context.push('/searching-driver');
-                }
-              : null,
+          onPressed: bookingState.canConfirmRide ? _confirmRide : null,
         ),
       ),
     );

@@ -1,15 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
+import '../../application/providers/auth_state_provider.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) {
+      ref
+          .read(authStateProvider.notifier)
+          .setError('Enter your email and password.');
+      return;
+    }
+
+    try {
+      await ref
+          .read(authStateProvider.notifier)
+          .login(email: email, password: password);
+      if (mounted) {
+        context.go('/home');
+      }
+    } catch (_) {
+      // The provider exposes the user-facing error.
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authStateProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
       body: SafeArea(
@@ -24,19 +65,24 @@ class LoginScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Use any details for this UI prototype.',
+              'Sign in with your passenger email and password.',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: AppSpacing.xl),
-            const AppTextField(
-              label: 'Email or phone',
+            AppTextField(
+              controller: _emailController,
+              label: 'Email',
               icon: Icons.person_outline,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: AppSpacing.md),
-            const AppTextField(
+            AppTextField(
+              controller: _passwordController,
               label: 'Password',
               icon: Icons.lock_outline,
               obscureText: true,
+              textInputAction: TextInputAction.done,
             ),
             Align(
               alignment: Alignment.centerRight,
@@ -46,10 +92,18 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
+            if (authState.errorMessage != null) ...[
+              Text(
+                authState.errorMessage!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
             AppButton(
               label: 'Login',
               icon: Icons.login,
-              onPressed: () => context.go('/home'),
+              isLoading: authState.isLoading,
+              onPressed: _submit,
             ),
             const SizedBox(height: AppSpacing.md),
             TextButton(

@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../auth/application/providers/auth_state_provider.dart';
 import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
 
-class PassengerProfileScreen extends StatelessWidget {
+class PassengerProfileScreen extends ConsumerWidget {
   const PassengerProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return BottomNavShell(
       currentIndex: 4,
       title: 'Profile',
@@ -102,7 +104,12 @@ class PassengerProfileScreen extends StatelessWidget {
               label: 'Logout',
               icon: Icons.logout,
               variant: AppButtonVariant.danger,
-              onPressed: () => context.go('/login'),
+              onPressed: () async {
+                await ref.read(authStateProvider.notifier).logout();
+                if (context.mounted) {
+                  context.go('/login');
+                }
+              },
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/ride_statuses.dart';
 import '../../../../shared/models/driver.dart';
 import '../../../../shared/models/trip.dart';
 
@@ -7,7 +8,7 @@ class TripState {
   const TripState({
     this.assignedDriver,
     this.activeTrip,
-    this.status = 'accepted',
+    this.status = TripStatus.driverArriving,
     this.isLoading = false,
     this.errorMessage,
   });
@@ -54,7 +55,7 @@ class TripController extends StateNotifier<TripState> {
             fare: 4500,
             distance: '14.8 km',
             duration: '18 min',
-            status: 'driver_arriving',
+            status: TripStatus.driverArriving,
             date: 'Apr 30, 2026',
           ),
         ),
@@ -71,18 +72,18 @@ class TripController extends StateNotifier<TripState> {
   }
 
   void setDriverArriving() {
-    setStatus('driver_arriving');
+    setStatus(TripStatus.driverArriving);
   }
 
   void markDriverArrived() {
-    setStatus('arrived');
+    setStatus(TripStatus.arrived);
   }
 
   void startTrip() {
     state = state.copyWith(
-      status: 'in_progress',
+      status: TripStatus.inProgress,
       activeTrip: state.activeTrip?.copyWith(
-        status: 'in_progress',
+        status: TripStatus.inProgress,
         startedAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ),
@@ -91,9 +92,9 @@ class TripController extends StateNotifier<TripState> {
 
   void completeTrip({int? finalFare, int? actualDurationMinutes}) {
     state = state.copyWith(
-      status: 'completed',
+      status: TripStatus.completed,
       activeTrip: state.activeTrip?.copyWith(
-        status: 'completed',
+        status: TripStatus.completed,
         finalFare: finalFare,
         actualDurationMinutes: actualDurationMinutes,
         completedAt: DateTime.now(),
@@ -104,9 +105,9 @@ class TripController extends StateNotifier<TripState> {
 
   void cancelTrip() {
     state = state.copyWith(
-      status: 'cancelled',
+      status: TripStatus.cancelled,
       activeTrip: state.activeTrip?.copyWith(
-        status: 'cancelled',
+        status: TripStatus.cancelled,
         cancelledAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ),

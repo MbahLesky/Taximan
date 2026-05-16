@@ -7,13 +7,57 @@ import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../application/providers/fare_proposal_providers.dart';
 import '../../application/providers/matching_state_provider.dart';
 
-class FareProposalScreen extends ConsumerWidget {
+class FareProposalScreen extends ConsumerStatefulWidget {
   const FareProposalScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FareProposalScreen> createState() => _FareProposalScreenState();
+}
+
+class _FareProposalScreenState extends ConsumerState<FareProposalScreen> {
+  bool _isResponding = false;
+
+  Future<void> _acceptProposal() async {
+    final proposal = ref.read(matchingStateProvider).fareProposal;
+    setState(() => _isResponding = true);
+    try {
+      if (proposal != null && !proposal.id.startsWith('proposal-demo-')) {
+        await ref.read(fareProposalRepositoryProvider).acceptProposal(proposal);
+      }
+      ref.read(matchingStateProvider.notifier).acceptProposal();
+      if (mounted) {
+        context.push('/driver-assigned');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isResponding = false);
+      }
+    }
+  }
+
+  Future<void> _rejectProposal() async {
+    final proposal = ref.read(matchingStateProvider).fareProposal;
+    setState(() => _isResponding = true);
+    try {
+      if (proposal != null && !proposal.id.startsWith('proposal-demo-')) {
+        await ref.read(fareProposalRepositoryProvider).rejectProposal(proposal);
+      }
+      ref.read(matchingStateProvider.notifier).rejectProposal();
+      if (mounted) {
+        context.pop();
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isResponding = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final proposal = ref.watch(matchingStateProvider).fareProposal;
 
     return Scaffold(
@@ -58,19 +102,14 @@ class FareProposalScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xl),
           AppButton(
             label: 'Accept proposal',
-            onPressed: () {
-              ref.read(matchingStateProvider.notifier).acceptProposal();
-              context.push('/driver-assigned');
-            },
+            isLoading: _isResponding,
+            onPressed: _acceptProposal,
           ),
           const SizedBox(height: AppSpacing.compact),
           AppButton(
             label: 'Reject and keep searching',
             variant: AppButtonVariant.secondary,
-            onPressed: () {
-              ref.read(matchingStateProvider.notifier).rejectProposal();
-              context.pop();
-            },
+            onPressed: _isResponding ? null : _rejectProposal,
           ),
         ],
       ),

@@ -3,10 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/ride_statuses.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/models/fare_proposal.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../booking/application/providers/booking_providers.dart';
+import '../../../booking/application/providers/booking_state_provider.dart';
+import '../../application/providers/fare_proposal_providers.dart';
 import '../../application/providers/matching_state_provider.dart';
 
 class SearchingDriverScreen extends ConsumerWidget {
@@ -14,6 +18,32 @@ class SearchingDriverScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final bookingId = ref.watch(bookingStateProvider).booking.id;
+    final hasRealBooking = !bookingId.startsWith('booking-demo-');
+
+    if (hasRealBooking) {
+      ref.listen(bookingStreamProvider(bookingId), (_, next) {
+        final booking = next.valueOrNull;
+        if (booking == null) {
+          return;
+        }
+        if (booking.status == BookingStatus.accepted ||
+            booking.status == BookingStatus.driverArriving) {
+          ref.read(bookingStateProvider.notifier).setBooking(booking);
+          context.push('/driver-assigned');
+        }
+      });
+
+      ref.listen(pendingFareProposalProvider(bookingId), (_, next) {
+        final proposal = next.valueOrNull;
+        if (proposal == null) {
+          return;
+        }
+        ref.read(matchingStateProvider.notifier).showFareProposal(proposal);
+        context.push('/fare-proposal');
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Finding driver')),
       body: Padding(

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/ride_statuses.dart';
 import '../../../../shared/models/booking.dart';
 
 const _defaultPickupLocation = 'Mvan Carrefour, Yaounde';
@@ -50,7 +51,7 @@ class BookingController extends StateNotifier<BookingState> {
             distance: '--',
             eta: '--',
             paymentMethod: 'Cash',
-            status: 'draft',
+            status: BookingStatus.draft,
           ),
           recentDestinations: [
             'Bastos Roundabout',
@@ -70,7 +71,7 @@ class BookingController extends StateNotifier<BookingState> {
         distance: '--',
         eta: '--',
         paymentMethod: 'Cash',
-        status: 'draft',
+        status: BookingStatus.draft,
       ),
       isLoading: false,
     );
@@ -97,7 +98,7 @@ class BookingController extends StateNotifier<BookingState> {
         estimatedFare: destination.contains('Douala') ? 4500 : 2800,
         distance: destination.contains('Douala') ? '14.8 km' : '8.4 km',
         eta: destination.contains('Douala') ? '18 min' : '12 min',
-        status: 'draft',
+        status: BookingStatus.draft,
         updatedAt: DateTime.now(),
       ),
       recentDestinations: updatedRecent,
@@ -138,11 +139,15 @@ class BookingController extends StateNotifier<BookingState> {
   void markSearching() {
     state = state.copyWith(
       booking: state.booking.copyWith(
-        status: 'searching',
+        status: BookingStatus.searching,
         updatedAt: DateTime.now(),
       ),
       isLoading: true,
     );
+  }
+
+  void setBooking(Booking booking) {
+    state = state.copyWith(booking: booking, isLoading: false);
   }
 
   void setDriverAssigned({
@@ -155,7 +160,7 @@ class BookingController extends StateNotifier<BookingState> {
         driverId: driverId,
         vehicleId: vehicleId,
         finalFare: finalFare,
-        status: 'accepted',
+        status: BookingStatus.accepted,
         acceptedAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ),
@@ -166,7 +171,7 @@ class BookingController extends StateNotifier<BookingState> {
   void cancelBooking(String reason) {
     state = state.copyWith(
       booking: state.booking.copyWith(
-        status: 'cancelled',
+        status: BookingStatus.cancelled,
         cancelledAt: DateTime.now(),
         cancellationReason: reason,
         updatedAt: DateTime.now(),
@@ -177,6 +182,10 @@ class BookingController extends StateNotifier<BookingState> {
 
   void clearError() {
     state = state.copyWith(errorMessage: null);
+  }
+
+  void setError(String message) {
+    state = state.copyWith(isLoading: false, errorMessage: message);
   }
 }
 

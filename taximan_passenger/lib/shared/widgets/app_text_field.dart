@@ -13,7 +13,9 @@ class AppTextField extends StatelessWidget {
     this.maxLines = 1,
     this.enabled = true,
     this.errorText,
+    this.controller,
     this.onChanged,
+    this.textInputAction,
   });
 
   final String label;
@@ -24,7 +26,9 @@ class AppTextField extends StatelessWidget {
   final int maxLines;
   final bool enabled;
   final String? errorText;
+  final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
+  final TextInputAction? textInputAction;
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +38,13 @@ class AppTextField extends StatelessWidget {
         Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
         const SizedBox(height: AppSpacing.xs),
         TextField(
+          controller: controller,
           enabled: enabled,
           obscureText: obscureText,
           keyboardType: keyboardType,
           maxLines: obscureText ? 1 : maxLines,
           onChanged: onChanged,
+          textInputAction: textInputAction,
           decoration: InputDecoration(
             hintText: hint,
             errorText: errorText,

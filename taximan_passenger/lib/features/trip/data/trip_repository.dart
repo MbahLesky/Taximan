@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../core/constants/ride_statuses.dart';
 import '../../../shared/models/trip.dart';
 
 class TripRepository {
@@ -123,8 +124,7 @@ class TripRepository {
     return _firestore
         .collection(_collection)
         .where('passengerId', isEqualTo: passengerId)
-        .where('status',
-            whereIn: ['accepted', 'en_route', 'arrived', 'in_progress'])
+        .where('status', whereIn: TripStatus.active)
         .orderBy('createdAt', descending: true)
         .limit(1)
         .snapshots()
