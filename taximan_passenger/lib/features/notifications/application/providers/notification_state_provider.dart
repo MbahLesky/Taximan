@@ -30,22 +30,7 @@ class NotificationState {
 }
 
 class NotificationController extends StateNotifier<NotificationState> {
-  NotificationController()
-    : super(
-        NotificationState(
-          notifications: [
-            NotificationRecord(
-              id: 'notification-demo-001',
-              userId: 'passenger-001',
-              title: 'Driver Assigned',
-              body: 'Jean Talla is on the way to your pickup point.',
-              type: 'driver_assigned',
-              relatedId: 'booking-demo-001',
-              createdAt: DateTime.now(),
-            ),
-          ],
-        ),
-      );
+  NotificationController() : super(const NotificationState());
 
   void addNotification(NotificationRecord notification) {
     state = state.copyWith(

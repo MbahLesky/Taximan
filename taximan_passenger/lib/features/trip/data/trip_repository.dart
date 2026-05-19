@@ -14,9 +14,16 @@ class TripRepository {
   /// Create a new trip
   Future<Trip> createTrip(Trip trip) async {
     try {
-      final docRef = _firestore.collection(_collection).doc(trip.id);
-      await docRef.set(trip.toMap());
-      return trip;
+      final docRef = trip.id.isEmpty
+          ? _firestore.collection(_collection).doc()
+          : _firestore.collection(_collection).doc(trip.id);
+      final tripToCreate = trip.copyWith(
+        id: docRef.id,
+        createdAt: trip.createdAt ?? DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      await docRef.set(tripToCreate.toMap());
+      return tripToCreate;
     } catch (e) {
       throw Exception('Failed to create trip: $e');
     }

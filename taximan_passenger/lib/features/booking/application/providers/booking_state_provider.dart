@@ -44,7 +44,7 @@ class BookingController extends StateNotifier<BookingState> {
     : super(
         const BookingState(
           booking: Booking(
-            id: 'booking-demo-001',
+            id: '',
             pickupLocation: _defaultPickupLocation,
             destination: _unsetDestination,
             estimatedFare: 0,
@@ -64,7 +64,7 @@ class BookingController extends StateNotifier<BookingState> {
   void startNewTrip() {
     state = state.copyWith(
       booking: const Booking(
-        id: 'booking-demo-001',
+        id: '',
         pickupLocation: _defaultPickupLocation,
         destination: _unsetDestination,
         estimatedFare: 0,

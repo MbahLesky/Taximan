@@ -35,21 +35,7 @@ class PaymentState {
 }
 
 class PaymentController extends StateNotifier<PaymentState> {
-  PaymentController()
-    : super(
-        const PaymentState(
-          activePayment: Payment(
-            id: 'payment-demo-001',
-            bookingId: 'booking-demo-001',
-            tripId: 'trip-demo-001',
-            passengerId: 'passenger-001',
-            driverId: 'driver-001',
-            amount: 4500,
-            method: 'cash',
-            status: 'pending',
-          ),
-        ),
-      );
+  PaymentController() : super(const PaymentState());
 
   void selectMethod(String method) {
     state = state.copyWith(
@@ -65,6 +51,10 @@ class PaymentController extends StateNotifier<PaymentState> {
       isLoading: false,
       errorMessage: null,
     );
+  }
+
+  void setLoading(bool isLoading) {
+    state = state.copyWith(isLoading: isLoading, errorMessage: null);
   }
 
   void confirmPayment({String confirmedBy = 'passenger'}) {

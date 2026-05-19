@@ -13,9 +13,15 @@ class RatingRepository {
   /// Create a new rating
   Future<Rating> createRating(Rating rating) async {
     try {
-      final docRef = _firestore.collection(_collection).doc(rating.id);
-      await docRef.set(rating.toMap());
-      return rating;
+      final docRef = rating.id.isEmpty
+          ? _firestore.collection(_collection).doc()
+          : _firestore.collection(_collection).doc(rating.id);
+      final ratingToCreate = rating.copyWith(
+        id: docRef.id,
+        createdAt: rating.createdAt ?? DateTime.now(),
+      );
+      await docRef.set(ratingToCreate.toMap());
+      return ratingToCreate;
     } catch (e) {
       throw Exception('Failed to create rating: $e');
     }

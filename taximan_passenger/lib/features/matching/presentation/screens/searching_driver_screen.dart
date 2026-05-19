@@ -19,7 +19,8 @@ class SearchingDriverScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bookingId = ref.watch(bookingStateProvider).booking.id;
-    final hasRealBooking = !bookingId.startsWith('booking-demo-');
+    final hasRealBooking =
+        bookingId.isNotEmpty && !bookingId.startsWith('booking-demo-');
 
     if (hasRealBooking) {
       ref.listen(bookingStreamProvider(bookingId), (_, next) {
@@ -98,30 +99,32 @@ class SearchingDriverScreen extends ConsumerWidget {
                     label: 'Confirming best match',
                   ),
                   const Divider(height: 28),
-                  AppButton(
-                    label: 'Show fare proposal',
-                    icon: Icons.request_quote_outlined,
-                    variant: AppButtonVariant.secondary,
-                    onPressed: () {
-                      ref
-                          .read(matchingStateProvider.notifier)
-                          .showFareProposal(
-                            FareProposal(
-                              id: 'proposal-demo-001',
-                              bookingId: 'booking-demo-001',
-                              driverId: 'driver-001',
-                              vehicleId: 'vehicle-demo-001',
-                              originalFare: 4500,
-                              proposedFare: 5200,
-                              message:
-                                  'Traffic is heavy around this pickup area.',
-                              createdAt: DateTime.now(),
-                            ),
-                          );
-                      context.push('/fare-proposal');
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.compact),
+                  if (!hasRealBooking) ...[
+                    AppButton(
+                      label: 'Show demo fare proposal',
+                      icon: Icons.request_quote_outlined,
+                      variant: AppButtonVariant.secondary,
+                      onPressed: () {
+                        ref
+                            .read(matchingStateProvider.notifier)
+                            .showFareProposal(
+                              FareProposal(
+                                id: 'proposal-demo-001',
+                                bookingId: 'booking-demo-001',
+                                driverId: 'driver-001',
+                                vehicleId: 'vehicle-demo-001',
+                                originalFare: 4500,
+                                proposedFare: 5200,
+                                message:
+                                    'Traffic is heavy around this pickup area.',
+                                createdAt: DateTime.now(),
+                              ),
+                            );
+                        context.push('/fare-proposal');
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.compact),
+                  ],
                   AppButton(
                     label: 'Cancel search',
                     variant: AppButtonVariant.danger,

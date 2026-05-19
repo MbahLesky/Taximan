@@ -7,6 +7,7 @@ import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../booking/application/providers/booking_state_provider.dart';
 import '../../application/providers/fare_proposal_providers.dart';
 import '../../application/providers/matching_state_provider.dart';
 
@@ -26,6 +27,13 @@ class _FareProposalScreenState extends ConsumerState<FareProposalScreen> {
     try {
       if (proposal != null && !proposal.id.startsWith('proposal-demo-')) {
         await ref.read(fareProposalRepositoryProvider).acceptProposal(proposal);
+      }
+      if (proposal != null) {
+        ref.read(bookingStateProvider.notifier).setDriverAssigned(
+              driverId: proposal.driverId,
+              vehicleId: proposal.vehicleId,
+              finalFare: proposal.proposedFare,
+            );
       }
       ref.read(matchingStateProvider.notifier).acceptProposal();
       if (mounted) {

@@ -4,9 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../auth/application/providers/auth_state_provider.dart';
+import '../../../booking/application/providers/booking_state_provider.dart';
+import '../../../booking/application/providers/repositories.dart';
+import '../../../trip/application/providers/trip_state_provider.dart';
 import '../../application/providers/rating_state_provider.dart';
 
 class RatingScreen extends ConsumerWidget {
@@ -15,6 +18,18 @@ class RatingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ratingState = ref.watch(ratingStateProvider);
+    final booking = ref.watch(bookingStateProvider).booking;
+    final tripState = ref.watch(tripStateProvider);
+    final activeTrip = tripState.activeTrip;
+    final trip = activeTrip?.bookingId == booking.id ? activeTrip : null;
+    final driver = tripState.assignedDriver;
+    final passengerId =
+        ref.watch(authStateProvider).userId ?? booking.passengerId;
+    final driverId = booking.driverId ?? trip?.driverId ?? driver?.id ?? '';
+    final canSubmit = passengerId.isNotEmpty &&
+        driverId.isNotEmpty &&
+        booking.id.isNotEmpty &&
+        !ratingState.isSubmitting;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Rate your driver')),
@@ -37,7 +52,7 @@ class RatingScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    DummyData.driverName,
+                    driver?.fullName ?? 'Your driver',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
@@ -81,18 +96,39 @@ class RatingScreen extends ConsumerWidget {
               label: 'Continue',
               icon: Icons.rate_review_outlined,
               isLoading: ratingState.isSubmitting,
-              onPressed: () {
-                ref
-                    .read(ratingStateProvider.notifier)
-                    .submit(
-                      tripId: 'trip-demo-001',
-                      bookingId: 'booking-demo-001',
-                      passengerId: 'passenger-001',
-                      driverId: 'driver-001',
-                    );
-                context.push('/feedback');
-              },
+              onPressed: canSubmit
+                  ? () async {
+                      final controller =
+                          ref.read(ratingStateProvider.notifier);
+                      final rating = controller.submit(
+                        tripId: trip?.id ?? '',
+                        bookingId: booking.id,
+                        passengerId: passengerId,
+                        driverId: driverId,
+                      );
+                      try {
+                        final saved = await ref
+                            .read(ratingRepositoryProvider)
+                            .createRating(rating);
+                        controller.setSubmitted(saved);
+                        if (context.mounted) {
+                          context.push('/feedback');
+                        }
+                      } catch (e) {
+                        controller.setError(
+                          'Could not submit rating. Try again.',
+                        );
+                      }
+                    }
+                  : null,
             ),
+            if (ratingState.errorMessage != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                ratingState.errorMessage!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
           ],
         ),
       ),

@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../application/providers/payment_state_provider.dart';
 
-class PaymentConfirmationScreen extends StatelessWidget {
+class PaymentConfirmationScreen extends ConsumerWidget {
   const PaymentConfirmationScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fare = ref.watch(paymentStateProvider).activePayment?.formattedAmount;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Payment confirmation')),
       body: SafeArea(
@@ -29,7 +32,7 @@ class PaymentConfirmationScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                DummyData.estimatedFare,
+                fare ?? 'Payment recorded',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w900,
                 ),

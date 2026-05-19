@@ -57,7 +57,7 @@ class RatingController extends StateNotifier<RatingState> {
     state = state.copyWith(reportIssue: reportIssue, issueType: issueType);
   }
 
-  void submit({
+  Rating submit({
     required String tripId,
     required String bookingId,
     required String passengerId,
@@ -66,7 +66,7 @@ class RatingController extends StateNotifier<RatingState> {
     state = state.copyWith(isSubmitting: true, errorMessage: null);
 
     final rating = Rating(
-      id: 'rating-demo-001',
+      id: '',
       tripId: tripId,
       bookingId: bookingId,
       passengerId: passengerId,
@@ -80,9 +80,23 @@ class RatingController extends StateNotifier<RatingState> {
 
     state = state.copyWith(
       submittedRating: rating,
+      isSubmitting: true,
+      errorMessage: null,
+    );
+
+    return rating;
+  }
+
+  void setSubmitted(Rating rating) {
+    state = state.copyWith(
+      submittedRating: rating,
       isSubmitting: false,
       errorMessage: null,
     );
+  }
+
+  void setError(String message) {
+    state = state.copyWith(isSubmitting: false, errorMessage: message);
   }
 }
 

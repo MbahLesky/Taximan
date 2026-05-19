@@ -4,15 +4,105 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../../shared/models/payment.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../auth/application/providers/auth_state_provider.dart';
+import '../../../booking/application/providers/booking_state_provider.dart';
+import '../../../booking/application/providers/repositories.dart';
+import '../../../trip/application/providers/trip_state_provider.dart';
 import '../../application/providers/payment_state_provider.dart';
 
-class PaymentScreen extends ConsumerWidget {
+class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PaymentScreen> createState() => _PaymentScreenState();
+}
+
+class _PaymentScreenState extends ConsumerState<PaymentScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _ensurePayment());
+  }
+
+  Future<void> _ensurePayment() async {
+    final paymentState = ref.read(paymentStateProvider);
+    if (paymentState.activePayment != null || paymentState.isLoading) {
+      return;
+    }
+
+    final booking = ref.read(bookingStateProvider).booking;
+    final activeTrip = ref.read(tripStateProvider).activeTrip;
+    final trip = activeTrip?.bookingId == booking.id ? activeTrip : null;
+    final passengerId =
+        ref.read(authStateProvider).userId ?? booking.passengerId;
+    final driverId = booking.driverId ?? trip?.driverId;
+    final amount = trip?.finalFare ?? booking.finalFare ?? booking.estimatedFare;
+
+    if (booking.id.isEmpty || passengerId.isEmpty || driverId == null) {
+      ref
+          .read(paymentStateProvider.notifier)
+          .markFailed('Payment is not ready for this trip yet.');
+      return;
+    }
+
+    ref.read(paymentStateProvider.notifier).setLoading(true);
+    try {
+      final payment = await ref.read(paymentRepositoryProvider).createPayment(
+            Payment(
+              id: '',
+              bookingId: booking.id,
+              tripId: trip?.id ?? '',
+              passengerId: passengerId,
+              driverId: driverId,
+              amount: amount,
+              method: paymentState.selectedMethod,
+              createdAt: DateTime.now(),
+            ),
+          );
+      ref.read(paymentStateProvider.notifier).createPayment(payment);
+    } catch (e) {
+      ref
+          .read(paymentStateProvider.notifier)
+          .markFailed('Could not prepare payment. Try again.');
+    }
+  }
+
+  Future<void> _confirmPayment(BuildContext context) async {
+    await _ensurePayment();
+    final payment = ref.read(paymentStateProvider).activePayment;
+    if (payment == null) {
+      return;
+    }
+
+    ref.read(paymentStateProvider.notifier).setLoading(true);
+    try {
+      await ref
+          .read(paymentRepositoryProvider)
+          .confirmPayment(payment.id, 'passenger');
+      ref.read(paymentStateProvider.notifier).confirmPayment();
+      if (context.mounted) {
+        context.push('/payment-confirmation');
+      }
+    } catch (e) {
+      ref
+          .read(paymentStateProvider.notifier)
+          .markFailed('Could not confirm payment. Try again.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(paymentStateProvider, (_, next) {
+      if (next.activePayment == null &&
+          !next.isLoading &&
+          next.errorMessage == null) {
+        _ensurePayment();
+      }
+    });
+
     final paymentState = ref.watch(paymentStateProvider);
     final payment = paymentState.activePayment;
     final fare = payment?.formattedAmount ?? '0 FCFA';
@@ -88,11 +178,17 @@ class PaymentScreen extends ConsumerWidget {
             label: 'Confirm payment',
             icon: Icons.verified_outlined,
             isLoading: paymentState.isLoading,
-            onPressed: () {
-              ref.read(paymentStateProvider.notifier).confirmPayment();
-              context.push('/payment-confirmation');
-            },
+            onPressed: paymentState.activePayment == null
+                ? null
+                : () => _confirmPayment(context),
           ),
+          if (paymentState.errorMessage != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              paymentState.errorMessage!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
         ],
       ),
     );

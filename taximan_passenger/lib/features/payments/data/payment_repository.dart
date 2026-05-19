@@ -13,9 +13,15 @@ class PaymentRepository {
   /// Create a new payment record
   Future<Payment> createPayment(Payment payment) async {
     try {
-      final docRef = _firestore.collection(_collection).doc(payment.id);
-      await docRef.set(payment.toMap());
-      return payment;
+      final docRef = payment.id.isEmpty
+          ? _firestore.collection(_collection).doc()
+          : _firestore.collection(_collection).doc(payment.id);
+      final paymentToCreate = payment.copyWith(
+        id: docRef.id,
+        createdAt: payment.createdAt ?? DateTime.now(),
+      );
+      await docRef.set(paymentToCreate.toMap());
+      return paymentToCreate;
     } catch (e) {
       throw Exception('Failed to create payment: $e');
     }
@@ -64,7 +70,8 @@ class PaymentRepository {
 
       if (query.docs.isNotEmpty) {
         return Payment.fromMap(query.docs.first.data());
-    }     return null;
+      }
+      return null;
     } catch (e) {
       throw Exception('Failed to fetch payment by trip: $e');
     }
