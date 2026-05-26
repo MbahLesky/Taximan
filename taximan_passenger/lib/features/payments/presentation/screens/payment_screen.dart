@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/models/payment.dart';
+import '../../../../shared/utils/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../auth/application/providers/auth_state_provider.dart';
@@ -84,6 +85,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           .confirmPayment(payment.id, 'passenger');
       ref.read(paymentStateProvider.notifier).confirmPayment();
       if (context.mounted) {
+        AppToast.success(
+          context,
+          title: 'Payment confirmed',
+          description: 'Your receipt has been saved to trip history.',
+        );
         context.push('/payment-confirmation');
       }
     } catch (e) {
@@ -100,6 +106,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           !next.isLoading &&
           next.errorMessage == null) {
         _ensurePayment();
+      }
+    });
+    ref.listen(paymentStateProvider, (previous, next) {
+      final message = next.errorMessage;
+      if (message != null && message != previous?.errorMessage) {
+        AppToast.error(context, title: 'Payment error', description: message);
       }
     });
 
@@ -182,13 +194,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 ? null
                 : () => _confirmPayment(context),
           ),
-          if (paymentState.errorMessage != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              paymentState.errorMessage!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ],
         ],
       ),
     );

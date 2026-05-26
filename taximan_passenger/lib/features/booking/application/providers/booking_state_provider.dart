@@ -234,6 +234,7 @@ class BookingController extends StateNotifier<BookingState> {
     );
   }
 
+/// This method is used to set the booking details in the state, typically after a booking has been created or updated. It updates the booking information and sets the loading state to false, indicating that the booking data is now available and any loading process has completed.
   void setBooking(Booking booking) {
     state = state.copyWith(booking: booking, isLoading: false);
   }

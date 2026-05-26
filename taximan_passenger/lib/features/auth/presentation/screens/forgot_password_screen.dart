@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../../shared/utils/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
@@ -36,8 +37,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     try {
       await ref.read(authStateProvider.notifier).sendPasswordResetEmail(email);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password reset email sent.')),
+        AppToast.success(
+          context,
+          title: 'Reset email sent',
+          description: 'Check your inbox for password reset instructions.',
         );
         context.pop();
       }
@@ -48,6 +51,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(authStateProvider, (previous, next) {
+      final message = next.errorMessage;
+      if (message != null && message != previous?.errorMessage) {
+        AppToast.error(
+          context,
+          title: 'Password reset failed',
+          description: message,
+        );
+      }
+    });
+
     final authState = ref.watch(authStateProvider);
 
     return Scaffold(
@@ -97,13 +111,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               textInputAction: TextInputAction.done,
             ),
             const SizedBox(height: AppSpacing.xl),
-            if (authState.errorMessage != null) ...[
-              Text(
-                authState.errorMessage!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-              const SizedBox(height: AppSpacing.md),
-            ],
             AppButton(
               label: 'Send reset instructions',
               icon: Icons.send_outlined,

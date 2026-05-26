@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/utils/app_spacing.dart';
+import '../../../../shared/utils/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../application/providers/auth_state_provider.dart';
@@ -59,6 +60,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(authStateProvider, (previous, next) {
+      final message = next.errorMessage;
+      if (message != null && message != previous?.errorMessage) {
+        AppToast.error(
+          context,
+          title: 'Registration failed',
+          description: message,
+        );
+      }
+    });
+
     final authState = ref.watch(authStateProvider);
 
     return Scaffold(
@@ -105,13 +117,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               textInputAction: TextInputAction.done,
             ),
             const SizedBox(height: AppSpacing.xl),
-            if (authState.errorMessage != null) ...[
-              Text(
-                authState.errorMessage!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-              const SizedBox(height: AppSpacing.md),
-            ],
             AppButton(
               label: 'Register',
               isLoading: authState.isLoading,

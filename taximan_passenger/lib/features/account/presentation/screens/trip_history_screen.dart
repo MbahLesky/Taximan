@@ -28,7 +28,7 @@ class TripHistoryScreen extends ConsumerWidget {
 
     return BottomNavShell(
       currentIndex: 1,
-      title: 'Trips',
+      title: 'Trips and Bookings',
       child: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),

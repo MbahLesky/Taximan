@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/models/driver.dart';
+import '../../../../shared/utils/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../matching/application/providers/driver_providers.dart';
@@ -30,6 +31,16 @@ class _DriverPreferenceScreenState
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(availableDriversProvider, (previous, next) {
+      if (next.hasError && previous?.hasError != true) {
+        AppToast.warning(
+          context,
+          title: 'Driver list unavailable',
+          description: 'You can still continue with automatic matching.',
+        );
+      }
+    });
+
     final booking = ref.watch(bookingStateProvider).booking;
     final driversAsync = ref.watch(availableDriversProvider);
     final hasPreferredDriver = booking.preferredDriverId?.isNotEmpty == true;

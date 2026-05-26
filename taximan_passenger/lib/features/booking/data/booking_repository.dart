@@ -11,6 +11,7 @@ class BookingRepository {
 
   static const String _collection = 'bookings';
 
+  // Creates a new booking in Firestore. If the booking has an empty ID, it generates a new document reference; otherwise, it uses the provided ID. The booking is initialized with a status of "searching" and timestamps for creation and update. If the operation is successful, it returns the created booking; if there's an error, it throws an exception.
   /// Create a new booking
   Future<Booking> createBooking(Booking booking) async {
     try {

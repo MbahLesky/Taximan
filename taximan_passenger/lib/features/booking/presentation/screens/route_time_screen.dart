@@ -6,6 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/data/bamenda_locations.dart';
 import '../../../../shared/models/app_location.dart';
+import '../../../../shared/utils/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../application/providers/booking_state_provider.dart';
@@ -51,6 +52,17 @@ class RouteTimeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(bookingStateProvider, (previous, next) {
+      final message = next.errorMessage;
+      if (message != null && message != previous?.errorMessage) {
+        AppToast.error(
+          context,
+          title: 'Location unavailable',
+          description: message,
+        );
+      }
+    });
+
     final booking = ref.watch(bookingStateProvider).booking;
     final controller = ref.read(bookingStateProvider.notifier);
 

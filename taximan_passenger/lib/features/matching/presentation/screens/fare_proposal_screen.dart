@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../../shared/utils/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../booking/application/providers/booking_state_provider.dart';
@@ -36,7 +37,20 @@ class _FareProposalScreenState extends ConsumerState<FareProposalScreen> {
           );
       ref.read(matchingStateProvider.notifier).acceptProposal();
       if (mounted) {
+        AppToast.success(
+          context,
+          title: 'Proposal accepted',
+          description: 'The driver has been assigned to your ride.',
+        );
         context.push('/driver-assigned');
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.error(
+          context,
+          title: 'Could not accept proposal',
+          description: 'Check your connection and try again.',
+        );
       }
     } finally {
       if (mounted) {
@@ -55,7 +69,20 @@ class _FareProposalScreenState extends ConsumerState<FareProposalScreen> {
       await ref.read(fareProposalRepositoryProvider).rejectProposal(proposal);
       ref.read(matchingStateProvider.notifier).rejectProposal();
       if (mounted) {
+        AppToast.success(
+          context,
+          title: 'Proposal rejected',
+          description: 'We will keep searching for another driver.',
+        );
         context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.error(
+          context,
+          title: 'Could not reject proposal',
+          description: 'Check your connection and try again.',
+        );
       }
     } finally {
       if (mounted) {

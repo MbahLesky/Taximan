@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/providers/network_status_provider.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../../shared/utils/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../auth/application/providers/auth_state_provider.dart';
@@ -23,9 +24,11 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
     final authState = ref.read(authStateProvider);
     final networkStatus = ref.read(networkStatusProvider);
     if (networkStatus.isOffline) {
-      ref
-          .read(bookingStateProvider.notifier)
-          .setError('Internet connection required to request a ride.');
+      AppToast.warning(
+        context,
+        title: 'No internet connection',
+        description: 'Reconnect before requesting a ride.',
+      );
       return;
     }
 
@@ -48,6 +51,11 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
           .createBooking(draft);
       bookingController.setBooking(booking);
       if (mounted) {
+        AppToast.success(
+          context,
+          title: 'Ride request sent',
+          description: 'Drivers can now respond to your booking.',
+        );
         context.push('/searching-driver');
       }
     } catch (e) {
@@ -57,6 +65,17 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(bookingStateProvider, (previous, next) {
+      final message = next.errorMessage;
+      if (message != null && message != previous?.errorMessage) {
+        AppToast.error(
+          context,
+          title: 'Booking error',
+          description: message,
+        );
+      }
+    });
+
     final bookingState = ref.watch(bookingStateProvider);
     final networkStatus = ref.watch(networkStatusProvider);
     final booking = bookingState.booking;
@@ -210,13 +229,6 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
               ],
             ),
           ),
-          if (bookingState.errorMessage != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              bookingState.errorMessage!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ],
           if (networkStatus.isOffline) ...[
             const SizedBox(height: AppSpacing.md),
             const AppCard(

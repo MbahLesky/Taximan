@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../../shared/utils/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../auth/application/providers/auth_state_provider.dart';
@@ -17,6 +18,13 @@ class RatingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(ratingStateProvider, (previous, next) {
+      final message = next.errorMessage;
+      if (message != null && message != previous?.errorMessage) {
+        AppToast.error(context, title: 'Rating error', description: message);
+      }
+    });
+
     final ratingState = ref.watch(ratingStateProvider);
     final booking = ref.watch(bookingStateProvider).booking;
     final tripState = ref.watch(tripStateProvider);
@@ -112,6 +120,11 @@ class RatingScreen extends ConsumerWidget {
                             .createRating(rating);
                         controller.setSubmitted(saved);
                         if (context.mounted) {
+                          AppToast.success(
+                            context,
+                            title: 'Rating submitted',
+                            description: 'Thanks for helping improve Taximan.',
+                          );
                           context.push('/feedback');
                           controller.reset();
                         }
@@ -123,13 +136,6 @@ class RatingScreen extends ConsumerWidget {
                     }
                   : null,
             ),
-            if (ratingState.errorMessage != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                ratingState.errorMessage!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ],
           ],
         ),
       ),

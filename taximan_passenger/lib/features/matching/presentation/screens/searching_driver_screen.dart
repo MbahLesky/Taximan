@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/ride_statuses.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../../shared/utils/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../booking/application/providers/booking_providers.dart';
@@ -29,6 +30,11 @@ class SearchingDriverScreen extends ConsumerWidget {
         if (booking.status == BookingStatus.accepted ||
             booking.status == BookingStatus.driverArriving) {
           ref.read(bookingStateProvider.notifier).setBooking(booking);
+          AppToast.success(
+            context,
+            title: 'Driver assigned',
+            description: 'Your driver is heading to the pickup location.',
+          );
           context.push('/driver-assigned');
         }
       });
@@ -39,6 +45,11 @@ class SearchingDriverScreen extends ConsumerWidget {
           return;
         }
         ref.read(matchingStateProvider.notifier).showFareProposal(proposal);
+        AppToast.warning(
+          context,
+          title: 'New fare proposal',
+          description: 'Review the driver proposal before continuing.',
+        );
         context.push('/fare-proposal');
       });
     }
