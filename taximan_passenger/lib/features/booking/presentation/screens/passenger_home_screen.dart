@@ -209,15 +209,15 @@ class PassengerHomeScreen extends ConsumerWidget {
                     value: booking.destination.isEmpty
                         ? 'Select destination'
                         : booking.destination,
-                    onTap: () => context.push('/destination'),
+                    onTap: () => context.push('/pickup'),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   AppButton(
                     label: booking.destination.isEmpty
-                        ? 'Choose destination'
-                        : 'Change destination',
+                        ? 'Plan route'
+                        : 'Change route',
                     icon: Icons.arrow_forward,
-                    onPressed: () => context.push('/destination'),
+                    onPressed: () => context.push('/pickup'),
                   ),
                 ],
               ),
@@ -311,7 +311,7 @@ class PassengerHomeScreen extends ConsumerWidget {
                     ref
                         .read(bookingStateProvider.notifier)
                         .setDestinationFromBooking(recentBooking);
-                    context.push('/pickup-time');
+                    context.push('/destination');
                   },
                 ),
               ),
@@ -325,7 +325,7 @@ class PassengerHomeScreen extends ConsumerWidget {
                   subtitle: const Text(
                     'Completed bookings from the database will appear here.',
                   ),
-                  onTap: () => context.push('/destination'),
+                  onTap: () => context.push('/pickup'),
                 ),
               ),
           ],

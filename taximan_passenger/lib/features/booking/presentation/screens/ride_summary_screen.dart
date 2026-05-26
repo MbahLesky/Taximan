@@ -19,8 +19,6 @@ class RideSummaryScreen extends ConsumerStatefulWidget {
 }
 
 class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
-  bool rideSharing = false;
-
   Future<void> _confirmRide() async {
     final authState = ref.read(authStateProvider);
     final networkStatus = ref.read(networkStatusProvider);
@@ -41,13 +39,13 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
     bookingController.markSearching();
 
     try {
-      final draft = ref.read(bookingStateProvider).booking.copyWith(
-            passengerId: passengerId,
-            isRideSharing: rideSharing,
-          );
-      final booking = await ref.read(bookingRepositoryProvider).createBooking(
-            draft,
-          );
+      final draft = ref
+          .read(bookingStateProvider)
+          .booking
+          .copyWith(passengerId: passengerId);
+      final booking = await ref
+          .read(bookingRepositoryProvider)
+          .createBooking(draft);
       bookingController.setBooking(booking);
       if (mounted) {
         context.push('/searching-driver');
@@ -64,7 +62,7 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
     final booking = bookingState.booking;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ride summary')),
+      appBar: AppBar(title: const Text('Trip summary')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
@@ -118,7 +116,7 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Estimated fare',
+                  'Fare and route',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: AppSpacing.xs),
@@ -153,21 +151,13 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MetricRow(label: 'Payment', value: booking.paymentMethod),
-                _MetricRow(label: 'Driver fare proposal', value: 'Allowed'),
+                _MetricRow(
+                  label: 'Proposed pay',
+                  value: booking.proposedFareAmount > 0
+                      ? booking.formattedProposedFare
+                      : 'Use estimate',
+                ),
               ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppCard(
-            child: SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: rideSharing,
-              activeColor: AppColors.primaryDark,
-              title: const Text('Ride sharing'),
-              subtitle: const Text(
-                'Share this trip with another passenger when available.',
-              ),
-              onChanged: (value) => setState(() => rideSharing = value),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -176,42 +166,46 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Payment method',
+                  'Ride details',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(
-                      value: 'Cash',
-                      icon: Icon(Icons.payments_outlined),
-                      label: Text('Cash'),
-                    ),
-                    ButtonSegment(
-                      value: 'Escrow',
-                      icon: Icon(Icons.account_balance_wallet_outlined),
-                      label: Text('Escrow'),
-                    ),
-                  ],
-                  selected: {booking.paymentMethod},
-                  onSelectionChanged: (selection) {
-                    ref
-                        .read(bookingStateProvider.notifier)
-                        .setPaymentMethod(selection.first);
-                  },
+                _MetricRow(
+                  label: 'Pickup time',
+                  value: booking.pickupTimeType == 'now'
+                      ? 'Now'
+                      : booking.scheduledPickupTime == null
+                      ? 'Scheduled'
+                      : _formatDateTime(booking.scheduledPickupTime!),
                 ),
+                _MetricRow(
+                  label: 'Ride sharing',
+                  value: booking.isRideSharing ? 'Allowed' : 'Private ride',
+                ),
+                _MetricRow(
+                  label: 'Passengers',
+                  value: booking.passengerCount.toString(),
+                ),
+                _MetricRow(
+                  label: 'Luggage',
+                  value: booking.hasLuggage
+                      ? '${booking.luggageCount} piece(s)'
+                      : 'None',
+                ),
+                _MetricRow(
+                  label: 'Driver',
+                  value: booking.preferredDriverName ?? 'Auto-match',
+                ),
+                if (booking.additionalInfo.isNotEmpty) ...[
+                  const Divider(height: 28),
+                  Text(
+                    'Additional info',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(booking.additionalInfo),
+                ],
               ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          const AppCard(
-            child: ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.info_outline, color: AppColors.info),
-              title: Text('Fare can be negotiated'),
-              subtitle: Text(
-                'A nearby driver may accept the estimate or send a different fare proposal.',
-              ),
             ),
           ),
           if (bookingState.errorMessage != null) ...[
@@ -247,6 +241,12 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
       ),
     );
   }
+}
+
+String _formatDateTime(DateTime value) {
+  final hour = value.hour.toString().padLeft(2, '0');
+  final minute = value.minute.toString().padLeft(2, '0');
+  return '${value.day}/${value.month}/${value.year} at $hour:$minute';
 }
 
 class _SummaryMapPainter extends CustomPainter {

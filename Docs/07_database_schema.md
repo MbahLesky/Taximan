@@ -51,12 +51,23 @@ Store locations as both readable text and coordinates.
 
 ```json
 {
-  "address": "Mile 4, Nkwen, Bamenda",
+  "name": "Mile 4 Junction",
+  "address": "Mile 4 Junction, Bamenda, Cameroon",
+  "city": "Bamenda",
+  "state": "North West",
+  "country": "Cameroon",
   "latitude": 5.9876,
   "longitude": 10.1598,
-  "placeId": "google_place_id_optional"
+  "placeId": "bamenda_mile_4_junction",
+  "source": "preset"
 }
 ```
+
+The passenger app currently hardcodes the supported Bamenda locations in a
+list of `AppLocation` models: Commercial Avenue, City Chemist, Mobile Nkwen,
+Foncha Junction, Foncha Street, Mile 4 Junction, Health Center Junction,
+Bambili Square, Bambui, Upstation, and Finance Nkwen. Each address is stored
+with "Bamenda, Cameroon".
 
 ---
 
@@ -268,14 +279,22 @@ Stores ride booking requests and matching state.
   "scheduledPickupTime": null,
 
   "isRideSharing": false,
+  "passengerCount": 1,
+  "hasLuggage": false,
+  "luggageCount": 0,
+  "additionalInfo": "",
 
   "distanceKm": 4.5,
   "estimatedDurationMinutes": 15,
   "estimatedFare": 1500,
+  "proposedFareAmount": 1500,
   "finalFare": null,
 
   "paymentMethod": "cash",
   "paymentStatus": "pending",
+
+  "preferredDriverId": null,
+  "preferredDriverName": null,
 
   "status": "searching",
 

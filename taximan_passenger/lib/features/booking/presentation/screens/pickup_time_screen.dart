@@ -4,110 +4,153 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../../shared/models/driver.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../matching/application/providers/driver_providers.dart';
 import '../../application/providers/booking_state_provider.dart';
 
-class PickupTimeScreen extends ConsumerWidget {
+class PickupTimeScreen extends ConsumerStatefulWidget {
   const PickupTimeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PickupTimeScreen> createState() => _PickupTimeScreenState();
+}
+
+class _PickupTimeScreenState extends ConsumerState<PickupTimeScreen> {
+  String _query = '';
+
+  void _selectDriver(Driver driver) {
+    ref
+        .read(bookingStateProvider.notifier)
+        .setPreferredDriver(driverId: driver.id, driverName: driver.fullName);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final booking = ref.watch(bookingStateProvider).booking;
-    final controller = ref.read(bookingStateProvider.notifier);
+    final driversAsync = ref.watch(availableDriversProvider);
+    final hasPreferredDriver = booking.preferredDriverId?.isNotEmpty == true;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pickup time')),
+      appBar: AppBar(title: const Text('Driver preference')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
           AppCard(
             child: ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.flash_on, color: AppColors.warning),
-              title: const Text('Ride now'),
-              subtitle: const Text('Driver search starts right away.'),
-              trailing: booking.pickupTimeType == 'now'
-                  ? const Icon(Icons.check_circle, color: AppColors.success)
-                  : null,
-              onTap: () => controller.setPickupTime(pickupTimeType: 'now'),
+              leading: const Icon(Icons.shuffle, color: AppColors.info),
+              title: const Text('Any available driver'),
+              subtitle: const Text(
+                'Skip driver selection and let Taximan match the ride.',
+              ),
+              trailing: hasPreferredDriver
+                  ? null
+                  : const Icon(Icons.check_circle, color: AppColors.success),
+              onTap: () {
+                ref.read(bookingStateProvider.notifier).clearPreferredDriver();
+                context.push('/ride-summary');
+              },
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.schedule),
-                  title: const Text('Schedule ride'),
-                  subtitle: const Text('Select a later pickup time.'),
-                  trailing: booking.pickupTimeType == 'scheduled'
-                      ? const Icon(
-                          Icons.check_circle,
-                          color: AppColors.success,
-                        )
-                      : null,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: [
-                    ActionChip(
-                      label: const Text('In 30 minutes'),
-                      onPressed: () => controller.setPickupTime(
-                        pickupTimeType: 'scheduled',
-                        scheduledPickupTime: DateTime.now().add(
-                          const Duration(minutes: 30),
-                        ),
-                      ),
-                    ),
-                    ActionChip(
-                      label: const Text('In 1 hour'),
-                      onPressed: () => controller.setPickupTime(
-                        pickupTimeType: 'scheduled',
-                        scheduledPickupTime: DateTime.now().add(
-                          const Duration(hours: 1),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+          TextField(
+            decoration: const InputDecoration(
+              hintText: 'Search drivers by name, car, or plate',
+              prefixIcon: Icon(Icons.search),
             ),
+            onChanged: (value) => setState(() => _query = value),
           ),
           const SizedBox(height: AppSpacing.md),
-          const AppCard(
-            child: Column(
-              children: [
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.notifications_active_outlined),
-                  title: Text('Pickup reminder'),
-                  subtitle: Text(
-                    'We will notify you when a scheduled driver is being assigned.',
+          driversAsync.when(
+            data: (drivers) {
+              final filteredDrivers = _filterDrivers(drivers);
+              if (filteredDrivers.isEmpty) {
+                return const AppCard(
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.person_search_outlined),
+                    title: Text('No drivers found'),
+                    subtitle: Text('You can continue without selecting one.'),
                   ),
-                ),
-                Divider(height: 1),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.shield_outlined),
-                  title: Text('Flexible cancellation'),
-                  subtitle: Text('Cancel any time before the trip starts.'),
-                ),
-              ],
+                );
+              }
+              return Column(
+                children: filteredDrivers.map((driver) {
+                  final isSelected = booking.preferredDriverId == driver.id;
+                  return AppCard(
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: AppColors.primaryLight,
+                        child: Text(
+                          driver.fullName.isEmpty
+                              ? 'D'
+                              : driver.fullName.substring(0, 1),
+                          style: const TextStyle(
+                            color: AppColors.primaryDark,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                      title: Text(driver.fullName),
+                      subtitle: Text(
+                        '${driver.vehicle} - ${driver.plateNumber} - '
+                        '${driver.arrivalEta}',
+                      ),
+                      trailing: isSelected
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: AppColors.success,
+                            )
+                          : const Icon(Icons.arrow_forward),
+                      onTap: () => _selectDriver(driver),
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+            error: (_, __) => const AppCard(
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.cloud_off, color: AppColors.warning),
+                title: Text('Driver list unavailable'),
+                subtitle: Text('You can still continue with auto-matching.'),
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          AppButton(
-            label: 'Continue to summary',
-            icon: Icons.receipt_long_outlined,
-            onPressed: () => context.push('/ride-summary'),
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(AppSpacing.xl),
+                child: CircularProgressIndicator(),
+              ),
+            ),
           ),
         ],
       ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.all(AppSpacing.md),
+        child: AppButton(
+          label: hasPreferredDriver
+              ? 'Propose to selected driver'
+              : 'Skip to summary',
+          icon: Icons.receipt_long_outlined,
+          onPressed: () => context.push('/ride-summary'),
+        ),
+      ),
     );
+  }
+
+  List<Driver> _filterDrivers(List<Driver> drivers) {
+    final query = _query.trim().toLowerCase();
+    if (query.isEmpty) {
+      return drivers;
+    }
+    return drivers.where((driver) {
+      return driver.fullName.toLowerCase().contains(query) ||
+          driver.vehicle.toLowerCase().contains(query) ||
+          driver.plateNumber.toLowerCase().contains(query);
+    }).toList();
   }
 }

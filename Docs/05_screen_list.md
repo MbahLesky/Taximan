@@ -40,21 +40,27 @@ The screens are grouped by application, feature, and user flow to guide UI desig
 
 **Purpose:** Main map screen where passenger starts a booking.
 
-### 7. Pickup Location Screen
+### 7. Route & Time Screen
 
-**Purpose:** Allow passenger to confirm or edit pickup location.
+**Purpose:** Allow passenger to choose pickup, destination, and pickup time.
+Locations are limited to supported Bamenda places and can be selected through
+current location, autocomplete, or a map pin style picker.
 
-### 8. Destination Search Screen
+### 8. Ride Details Screen
 
-**Purpose:** Allow passenger to search and select destination.
+**Purpose:** Capture ride sharing preference, passenger count, luggage,
+payment method, proposed fare amount, and optional trip notes.
 
-### 9. Pickup Time Screen
+### 9. Driver Preference Screen
 
-**Purpose:** Allow passenger to choose immediate ride or scheduled pickup time.
+**Purpose:** Let passenger optionally search and select a preferred driver,
+or skip the step and use automatic driver matching.
 
-### 10. Ride Summary Screen
+### 10. Trip Summary Screen
 
-**Purpose:** Show route, distance, ETA, estimated fare, ride sharing option, and payment method.
+**Purpose:** Show route, distance, ETA, pickup time, ride sharing, passenger
+and luggage details, fare pricing, payment method, selected driver, and
+Firestore upload action.
 
 ---
 

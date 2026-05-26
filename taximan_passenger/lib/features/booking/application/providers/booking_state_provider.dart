@@ -1,7 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/ride_statuses.dart';
+import '../../../../shared/data/bamenda_locations.dart';
 import '../../../../shared/models/booking.dart';
+import '../../../../shared/models/app_location.dart';
 
 const _unsetDestination = '';
 
@@ -42,16 +46,17 @@ class BookingState {
 class BookingController extends StateNotifier<BookingState> {
   BookingController()
     : super(
-        const BookingState(
+        BookingState(
           booking: Booking(
             id: '',
-            pickupLocation: '',
+            pickupLocation: defaultPassengerLocation.fullAddress,
             destination: _unsetDestination,
             estimatedFare: 0,
             distance: '',
             eta: '',
             paymentMethod: 'Cash',
             status: BookingStatus.draft,
+            pickupLocationDetails: defaultPassengerLocation,
           ),
           recentDestinations: [],
         ),
@@ -59,45 +64,134 @@ class BookingController extends StateNotifier<BookingState> {
 
   void startNewTrip() {
     state = state.copyWith(
-      booking: const Booking(
+      booking: Booking(
         id: '',
-        pickupLocation: '',
+        pickupLocation: defaultPassengerLocation.fullAddress,
         destination: _unsetDestination,
         estimatedFare: 0,
         distance: '',
         eta: '',
         paymentMethod: 'Cash',
         status: BookingStatus.draft,
+        pickupLocationDetails: defaultPassengerLocation,
       ),
       isLoading: false,
     );
   }
 
   void setPickup(String pickupLocation) {
+    final matchedLocation = _findLocation(pickupLocation);
+    final location =
+        matchedLocation ??
+        AppLocation(
+          name: pickupLocation,
+          address: pickupLocation,
+          source: 'typed',
+          updatedAt: DateTime.now(),
+        );
+    setPickupLocation(location);
+  }
+
+  void setPickupLocation(AppLocation location) {
     state = state.copyWith(
-      booking: state.booking.copyWith(
-        pickupLocation: pickupLocation,
-        updatedAt: DateTime.now(),
+      booking: _withRouteEstimate(
+        state.booking.copyWith(
+          pickupLocation: location.fullAddress,
+          pickupLocationDetails: location.copyWith(updatedAt: DateTime.now()),
+          updatedAt: DateTime.now(),
+        ),
       ),
     );
   }
 
+  void setDestinationLocation(AppLocation location) {
+    final updatedRecent = [
+      location.fullAddress,
+      ...state.recentDestinations.where((item) => item != location.fullAddress),
+    ].take(4).toList();
+
+    state = state.copyWith(
+      booking: _withRouteEstimate(
+        state.booking.copyWith(
+          destination: location.fullAddress,
+          destinationLocationDetails: location.copyWith(
+            updatedAt: DateTime.now(),
+          ),
+          status: BookingStatus.draft,
+          updatedAt: DateTime.now(),
+        ),
+      ),
+      recentDestinations: updatedRecent,
+    );
+  }
+
   void setDestination(String destination) {
+    final matchedLocation = _findLocation(destination);
+    if (matchedLocation != null) {
+      setDestinationLocation(matchedLocation);
+      return;
+    }
+
+    final location = AppLocation(
+      name: destination,
+      address: destination,
+      source: 'typed',
+      updatedAt: DateTime.now(),
+    );
     final updatedRecent = [
       destination,
       ...state.recentDestinations.where((item) => item != destination),
     ].take(4).toList();
 
     state = state.copyWith(
-      booking: state.booking.copyWith(
-        destination: destination,
-        estimatedFare: 0,
-        distance: '',
-        eta: '',
-        status: BookingStatus.draft,
-        updatedAt: DateTime.now(),
+      booking: _withRouteEstimate(
+        state.booking.copyWith(
+          destination: destination,
+          destinationLocationDetails: location,
+          status: BookingStatus.draft,
+          updatedAt: DateTime.now(),
+        ),
       ),
       recentDestinations: updatedRecent,
+    );
+  }
+
+  void setPickupTime({
+    required String pickupTimeType,
+    DateTime? scheduledPickupTime,
+  }) {
+    state = state.copyWith(
+      booking: state.booking.copyWith(
+        pickupTimeType: pickupTimeType,
+        scheduledPickupTime: scheduledPickupTime,
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  void setRideDetails({
+    required bool isRideSharing,
+    required int passengerCount,
+    required bool hasLuggage,
+    required int luggageCount,
+    required String paymentMethod,
+    required int proposedFareAmount,
+    required String additionalInfo,
+  }) {
+    state = state.copyWith(
+      booking: state.booking.copyWith(
+        isRideSharing: isRideSharing,
+        passengerCount: passengerCount,
+        hasLuggage: hasLuggage,
+        luggageCount: hasLuggage ? luggageCount : 0,
+        paymentMethod: paymentMethod,
+        proposedFareAmount: proposedFareAmount,
+        estimatedFare: proposedFareAmount > 0
+            ? proposedFareAmount
+            : state.booking.estimatedFare,
+        additionalInfo: additionalInfo,
+        updatedAt: DateTime.now(),
+      ),
     );
   }
 
@@ -113,17 +207,18 @@ class BookingController extends StateNotifier<BookingState> {
     );
   }
 
-  void setPickupTime({
-    required String pickupTimeType,
-    DateTime? scheduledPickupTime,
-  }) {
+  void setPreferredDriver({String? driverId, String? driverName}) {
     state = state.copyWith(
       booking: state.booking.copyWith(
-        pickupTimeType: pickupTimeType,
-        scheduledPickupTime: scheduledPickupTime,
+        preferredDriverId: driverId,
+        preferredDriverName: driverName,
         updatedAt: DateTime.now(),
       ),
     );
+  }
+
+  void clearPreferredDriver() {
+    setPreferredDriver(driverId: '', driverName: '');
   }
 
   void setRideSharing(bool isRideSharing) {
@@ -195,6 +290,60 @@ class BookingController extends StateNotifier<BookingState> {
   void setError(String message) {
     state = state.copyWith(isLoading: false, errorMessage: message);
   }
+
+  Booking _withRouteEstimate(Booking booking) {
+    final pickup = booking.pickup;
+    final destination = booking.destinationLocation;
+    if (!pickup.hasCoordinates || !destination.hasCoordinates) {
+      return booking.copyWith(distance: '', eta: '');
+    }
+
+    final distanceKm = _distanceInKm(pickup, destination);
+    final durationMinutes = math.max(5, (distanceKm / 22 * 60).round());
+    final estimatedFare = math.max(500, (500 + distanceKm * 220).round());
+
+    return booking.copyWith(
+      distance: '${distanceKm.toStringAsFixed(1)} km',
+      eta: '$durationMinutes min',
+      distanceKm: distanceKm,
+      estimatedDurationMinutes: durationMinutes,
+      estimatedFare: booking.proposedFareAmount > 0
+          ? booking.proposedFareAmount
+          : estimatedFare,
+    );
+  }
+
+  AppLocation? _findLocation(String value) {
+    final query = value.trim().toLowerCase();
+    if (query.isEmpty) {
+      return null;
+    }
+    for (final location in bamendaLocations) {
+      if (location.name?.toLowerCase() == query ||
+          location.fullAddress.toLowerCase() == query) {
+        return location;
+      }
+    }
+    return null;
+  }
+
+  double _distanceInKm(AppLocation pickup, AppLocation destination) {
+    const earthRadiusKm = 6371;
+    final lat1 = _toRadians(pickup.latitude!);
+    final lat2 = _toRadians(destination.latitude!);
+    final deltaLat = _toRadians(destination.latitude! - pickup.latitude!);
+    final deltaLng = _toRadians(destination.longitude! - pickup.longitude!);
+    final a =
+        math.sin(deltaLat / 2) * math.sin(deltaLat / 2) +
+        math.cos(lat1) *
+            math.cos(lat2) *
+            math.sin(deltaLng / 2) *
+            math.sin(deltaLng / 2);
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return earthRadiusKm * c;
+  }
+
+  double _toRadians(double degrees) => degrees * math.pi / 180;
 }
 
 final bookingStateProvider =
