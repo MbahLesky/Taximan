@@ -4,9 +4,9 @@ Taximan Passenger is the rider-facing Flutter app for booking taxis, viewing dri
 
 ## Current Phase
 
-Phase 1: Passenger App Foundation + UI Prototype.
+Phase 4: Passenger Booking UI complete, with Firebase-backed data providers.
 
-This build uses dummy data only. Firebase, authentication, Firestore, real maps, real payments, and backend ride logic are intentionally not implemented yet.
+The passenger booking flow now stores and reads core booking, driver, fare proposal, trip, profile, payment, and rating data through repositories/providers instead of local dummy data.
 
 ## Completed Work
 
@@ -16,7 +16,8 @@ This build uses dummy data only. Firebase, authentication, Firestore, real maps,
 - Added Riverpod app wrapper for future state management.
 - Added a basic SharedPreferences service.
 - Added reusable UI widgets: `AppButton`, `AppTextField`, `AppCard`, and `BottomNavShell`.
-- Added dummy passenger, trip, driver, fare, and payment data.
+- Added Firebase-backed providers for passenger profile, bookings, drivers, trips, fare proposals, payments, and ratings.
+- Added a network status provider for online-first booking actions.
 - Added a simple yellow passenger app icon placeholder and Android launcher icon assets.
 
 ## Dependencies
@@ -28,7 +29,7 @@ This build uses dummy data only. Firebase, authentication, Firestore, real maps,
 - `connectivity_plus`
 - `cupertino_icons`
 
-Not added yet: `firebase_auth`, `cloud_firestore`, `firebase_storage`, `firebase_messaging`, and `google_maps_flutter`.
+Not added yet: `firebase_storage`, `firebase_messaging`, and `google_maps_flutter`.
 
 ## Folder Structure
 
@@ -71,7 +72,7 @@ android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 ```
 
-`Firebase.initializeApp()` is already present, but backend features remain TODO.
+`Firebase.initializeApp()` is already present. Firestore and Auth-backed passenger flows are now wired through repositories; remaining backend work is real-time matching, maps, notifications, and payment processing.
 
 ## App Icon
 
@@ -85,4 +86,4 @@ Android launcher PNGs were updated in the `android/app/src/main/res/mipmap-*` fo
 
 ## Next Phase
 
-Passenger Authentication: real registration, login, session handling, and passenger profile creation after Firebase configuration is added.
+Phase 5 / Phase 7: complete driver operations UI and real-time passenger-driver synchronization.

@@ -40,21 +40,7 @@ class LocationController extends StateNotifier<LocationState> {
   LocationController()
     : super(
         const LocationState(
-          currentLocation: AppLocation(
-            address: 'Mvan Carrefour, Yaounde',
-            latitude: 3.8356,
-            longitude: 11.5147,
-          ),
-          assignedDriverLocation: DriverLocation(
-            driverId: 'driver-001',
-            latitude: 3.8422,
-            longitude: 11.5198,
-            heading: 120,
-            speed: 24,
-            isOnline: true,
-            isAvailable: false,
-            activeTripId: 'trip-demo-001',
-          ),
+          currentLocation: AppLocation(address: ''),
         ),
       );
 

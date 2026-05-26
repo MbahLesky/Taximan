@@ -9,11 +9,25 @@ import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../application/providers/booking_state_provider.dart';
 
-class PickupLocationScreen extends ConsumerWidget {
+class PickupLocationScreen extends ConsumerStatefulWidget {
   const PickupLocationScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PickupLocationScreen> createState() =>
+      _PickupLocationScreenState();
+}
+
+class _PickupLocationScreenState extends ConsumerState<PickupLocationScreen> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final booking = ref.watch(bookingStateProvider).booking;
 
     return Scaffold(
@@ -42,7 +56,11 @@ class PickupLocationScreen extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.my_location),
               title: const Text('Current pickup'),
-              subtitle: Text(booking.pickupLocation),
+              subtitle: Text(
+                booking.pickupLocation.isEmpty
+                    ? 'Enter a pickup point'
+                    : booking.pickupLocation,
+              ),
               trailing: const Chip(
                 visualDensity: VisualDensity.compact,
                 backgroundColor: AppColors.primaryLight,
@@ -52,37 +70,28 @@ class PickupLocationScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          const AppTextField(
+          AppTextField(
             label: 'Edit pickup point',
             hint: 'Enter street, quarter, or landmark',
             icon: Icons.edit_location_alt_outlined,
+            controller: _controller,
+            onChanged: (value) =>
+                ref.read(bookingStateProvider.notifier).setPickup(value),
           ),
           const SizedBox(height: AppSpacing.md),
-          AppCard(
-            child: Column(
-              children: const [
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.place_outlined),
-                  title: Text('Use nearby landmark'),
-                  subtitle: Text('Mvan Carrefour, Yaounde'),
-                  trailing: Icon(Icons.chevron_right),
-                ),
-                Divider(height: 1),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.home_outlined),
-                  title: Text('Saved pickup'),
-                  subtitle: Text('Home address'),
-                  trailing: Icon(Icons.chevron_right),
-                ),
-              ],
+          const AppCard(
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.info_outline),
+              title: Text('Pickup points are saved with each booking'),
+              subtitle: Text('Recent database locations appear on the home screen.'),
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
           AppButton(
             label: 'Confirm pickup',
-            onPressed: () => context.push('/destination'),
+            onPressed:
+                booking.pickupLocation.isEmpty ? null : () => context.push('/destination'),
           ),
         ],
       ),

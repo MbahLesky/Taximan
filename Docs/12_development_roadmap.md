@@ -113,9 +113,13 @@ Allow drivers to submit required profile, vehicle, and document information.
 
 # 6. Phase 4 — Passenger Booking UI
 
+Status: Complete in the passenger app. The UI now reads passenger profile,
+recent bookings, available drivers, driver details, fare proposals, and trip
+history from Firebase-backed providers instead of local dummy data.
+
 ## Goal
 
-Build the passenger ride-booking experience using dummy/mock data first.
+Build the passenger ride-booking experience and connect it to persisted data.
 
 ## Tasks
 
@@ -135,7 +139,7 @@ Build the passenger ride-booking experience using dummy/mock data first.
 
 * Complete passenger booking UI flow
 * Navigation between booking screens working
-* Mock data displayed correctly
+* Firebase-backed booking data displayed correctly
 
 ---
 

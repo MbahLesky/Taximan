@@ -1,28 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../application/providers/booking_state_provider.dart';
 
-class PickupTimeScreen extends StatelessWidget {
+class PickupTimeScreen extends ConsumerWidget {
   const PickupTimeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final booking = ref.watch(bookingStateProvider).booking;
+    final controller = ref.read(bookingStateProvider.notifier);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Pickup time')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          const AppCard(
+          AppCard(
             child: ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.flash_on, color: AppColors.warning),
-              title: Text('Ride now'),
-              subtitle: Text('Driver search starts right away.'),
-              trailing: Icon(Icons.check_circle, color: AppColors.success),
+              leading: const Icon(Icons.flash_on, color: AppColors.warning),
+              title: const Text('Ride now'),
+              subtitle: const Text('Driver search starts right away.'),
+              trailing: booking.pickupTimeType == 'now'
+                  ? const Icon(Icons.check_circle, color: AppColors.success)
+                  : null,
+              onTap: () => controller.setPickupTime(pickupTimeType: 'now'),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -30,20 +38,41 @@ class PickupTimeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const ListTile(
+                ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.schedule),
-                  title: Text('Schedule ride'),
-                  subtitle: Text('Prototype selector for a later pickup.'),
+                  leading: const Icon(Icons.schedule),
+                  title: const Text('Schedule ride'),
+                  subtitle: const Text('Select a later pickup time.'),
+                  trailing: booking.pickupTimeType == 'scheduled'
+                      ? const Icon(
+                          Icons.check_circle,
+                          color: AppColors.success,
+                        )
+                      : null,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Wrap(
                   spacing: AppSpacing.sm,
                   runSpacing: AppSpacing.sm,
-                  children: const [
-                    Chip(label: Text('Today 4:30 PM')),
-                    Chip(label: Text('Today 6:00 PM')),
-                    Chip(label: Text('Tomorrow 8:00 AM')),
+                  children: [
+                    ActionChip(
+                      label: const Text('In 30 minutes'),
+                      onPressed: () => controller.setPickupTime(
+                        pickupTimeType: 'scheduled',
+                        scheduledPickupTime: DateTime.now().add(
+                          const Duration(minutes: 30),
+                        ),
+                      ),
+                    ),
+                    ActionChip(
+                      label: const Text('In 1 hour'),
+                      onPressed: () => controller.setPickupTime(
+                        pickupTimeType: 'scheduled',
+                        scheduledPickupTime: DateTime.now().add(
+                          const Duration(hours: 1),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ],

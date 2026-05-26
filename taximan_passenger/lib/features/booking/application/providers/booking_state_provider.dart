@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/ride_statuses.dart';
 import '../../../../shared/models/booking.dart';
 
-const _defaultPickupLocation = 'Mvan Carrefour, Yaounde';
-const _unsetDestination = 'Select destination';
+const _unsetDestination = '';
 
 class BookingState {
   const BookingState({
@@ -20,6 +19,7 @@ class BookingState {
   final String? errorMessage;
 
   bool get canConfirmRide =>
+      booking.pickupLocation.isNotEmpty &&
       booking.destination.isNotEmpty &&
       booking.destination != _unsetDestination &&
       !isLoading;
@@ -45,19 +45,15 @@ class BookingController extends StateNotifier<BookingState> {
         const BookingState(
           booking: Booking(
             id: '',
-            pickupLocation: _defaultPickupLocation,
+            pickupLocation: '',
             destination: _unsetDestination,
             estimatedFare: 0,
-            distance: '--',
-            eta: '--',
+            distance: '',
+            eta: '',
             paymentMethod: 'Cash',
             status: BookingStatus.draft,
           ),
-          recentDestinations: [
-            'Bastos Roundabout',
-            'Douala Grand Mall',
-            'Marche Central, Yaounde',
-          ],
+          recentDestinations: [],
         ),
       );
 
@@ -65,11 +61,11 @@ class BookingController extends StateNotifier<BookingState> {
     state = state.copyWith(
       booking: const Booking(
         id: '',
-        pickupLocation: _defaultPickupLocation,
+        pickupLocation: '',
         destination: _unsetDestination,
         estimatedFare: 0,
-        distance: '--',
-        eta: '--',
+        distance: '',
+        eta: '',
         paymentMethod: 'Cash',
         status: BookingStatus.draft,
       ),
@@ -95,13 +91,25 @@ class BookingController extends StateNotifier<BookingState> {
     state = state.copyWith(
       booking: state.booking.copyWith(
         destination: destination,
-        estimatedFare: destination.contains('Douala') ? 4500 : 2800,
-        distance: destination.contains('Douala') ? '14.8 km' : '8.4 km',
-        eta: destination.contains('Douala') ? '18 min' : '12 min',
+        estimatedFare: 0,
+        distance: '',
+        eta: '',
         status: BookingStatus.draft,
         updatedAt: DateTime.now(),
       ),
       recentDestinations: updatedRecent,
+    );
+  }
+
+  void setDestinationFromBooking(Booking booking) {
+    setDestination(booking.destination);
+    state = state.copyWith(
+      booking: state.booking.copyWith(
+        estimatedFare: booking.estimatedFare,
+        distance: booking.distance,
+        eta: booking.eta,
+        paymentMethod: booking.paymentMethod,
+      ),
     );
   }
 

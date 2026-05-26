@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../application/providers/user_provider.dart';
 import '../../../auth/application/providers/auth_state_provider.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
@@ -15,6 +15,8 @@ class PassengerProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider).valueOrNull;
+
     return BottomNavShell(
       currentIndex: 4,
       title: 'Profile',
@@ -36,26 +38,26 @@ class PassengerProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    DummyData.passengerName,
+                    user?.fullName ?? 'Passenger profile',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  const _ProfileLine(
+                  _ProfileLine(
                     icon: Icons.phone_outlined,
                     label: 'Phone',
-                    value: DummyData.passengerPhone,
+                    value: user?.phone ?? '',
                   ),
-                  const _ProfileLine(
+                  _ProfileLine(
                     icon: Icons.email_outlined,
                     label: 'Email',
-                    value: DummyData.passengerEmail,
+                    value: user?.email ?? '',
                   ),
-                  const _ProfileLine(
+                  _ProfileLine(
                     icon: Icons.payments_outlined,
                     label: 'Preferred payment',
-                    value: DummyData.paymentMethod,
+                    value: user?.defaultPaymentMethod ?? '',
                   ),
                   const SizedBox(height: AppSpacing.md),
                   AppButton(

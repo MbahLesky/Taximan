@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../auth/application/providers/auth_state_provider.dart';
 import '../../../booking/application/providers/booking_state_provider.dart';
-import '../../../../shared/dummy/dummy_data.dart';
+import '../../../trip/application/providers/trip_providers.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
@@ -19,6 +20,11 @@ class TripHistoryScreen extends ConsumerWidget {
       ref.read(bookingStateProvider.notifier).startNewTrip();
       context.push('/pickup');
     }
+
+    final passengerId = ref.watch(authStateProvider).userId;
+    final trips = passengerId == null
+        ? null
+        : ref.watch(recentTripsProvider(passengerId)).valueOrNull;
 
     return BottomNavShell(
       currentIndex: 1,
@@ -81,7 +87,7 @@ class TripHistoryScreen extends ConsumerWidget {
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: AppSpacing.sm),
-            if (DummyData.tripHistory.isEmpty)
+            if ((trips ?? const []).isEmpty)
               AppEmptyState(
                 icon: Icons.history,
                 title: 'No trips yet',
@@ -90,16 +96,18 @@ class TripHistoryScreen extends ConsumerWidget {
                 onAction: startNewTrip,
               )
             else
-              ...DummyData.tripHistory.map(
+              ...trips!.map(
                 (trip) => AppCard(
                   margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.local_taxi),
-                    title: Text('${trip['pickup']} to ${trip['destination']}'),
-                    subtitle: Text('${trip['date']} - ${trip['status']}'),
+                    title: Text(
+                      '${trip.pickupLocation} to ${trip.destination}',
+                    ),
+                    subtitle: Text('${trip.date} - ${trip.status}'),
                     trailing: Text(
-                      trip['fare'] ?? '',
+                      trip.formattedFinalFare,
                       style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         color: AppColors.primaryDark,

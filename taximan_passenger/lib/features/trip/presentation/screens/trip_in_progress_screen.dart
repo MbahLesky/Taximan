@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../booking/application/providers/booking_state_provider.dart';
 
-class TripInProgressScreen extends StatelessWidget {
+class TripInProgressScreen extends ConsumerWidget {
   const TripInProgressScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final booking = ref.watch(bookingStateProvider).booking;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Trip in progress')),
       body: Column(
@@ -50,11 +53,11 @@ class TripInProgressScreen extends StatelessWidget {
                     label: Text('Trip active'),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  const ListTile(
+                  ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.location_on),
-                    title: Text('Destination'),
-                    subtitle: Text(DummyData.destination),
+                    leading: const Icon(Icons.location_on),
+                    title: const Text('Destination'),
+                    subtitle: Text(booking.destination),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   ClipRRect(
@@ -67,12 +70,12 @@ class TripInProgressScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  const Row(
+                  Row(
                     children: [
-                      Expanded(child: Text('Estimated remaining time')),
+                      const Expanded(child: Text('Estimated remaining time')),
                       Text(
-                        DummyData.remainingTime,
-                        style: TextStyle(fontWeight: FontWeight.w900),
+                        booking.eta.isEmpty ? 'Pending' : booking.eta,
+                        style: const TextStyle(fontWeight: FontWeight.w900),
                       ),
                     ],
                   ),
@@ -85,7 +88,7 @@ class TripInProgressScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.compact),
                   AppButton(
-                    label: 'Simulate trip completed',
+                    label: 'Continue to payment',
                     onPressed: () => context.push('/payment'),
                   ),
                 ],

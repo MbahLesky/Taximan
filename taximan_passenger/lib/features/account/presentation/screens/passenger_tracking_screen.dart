@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
+import '../../../booking/application/providers/booking_state_provider.dart';
+import '../../../matching/application/providers/driver_providers.dart';
 
-class PassengerTrackingScreen extends StatelessWidget {
+class PassengerTrackingScreen extends ConsumerWidget {
   const PassengerTrackingScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final booking = ref.watch(bookingStateProvider).booking;
+    final driverId = booking.driverId ?? '';
+    final driver = driverId.isEmpty
+        ? null
+        : ref.watch(driverStreamProvider(driverId)).valueOrNull;
+
     return BottomNavShell(
       currentIndex: 3,
       title: 'Tracking',
@@ -85,21 +93,24 @@ class PassengerTrackingScreen extends StatelessWidget {
                         visualDensity: VisualDensity.compact,
                         backgroundColor: AppColors.primaryLight,
                         side: BorderSide.none,
-                        label: Text('Arriving'),
+                        label: Text('Live'),
                       ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  const _TimelineStep(
+                  _TimelineStep(
                     icon: Icons.check_circle,
                     title: 'Ride accepted',
-                    subtitle: '${DummyData.driverName} confirmed your request.',
+                    subtitle:
+                        '${driver?.fullName ?? 'Your driver'} confirmed your request.',
                     active: true,
                   ),
-                  const _TimelineStep(
+                  _TimelineStep(
                     icon: Icons.local_taxi,
                     title: 'Driver on the way',
-                    subtitle: 'ETA ${DummyData.eta} to your pickup point.',
+                    subtitle: booking.eta.isEmpty
+                        ? 'ETA pending to your pickup point.'
+                        : 'ETA ${booking.eta} to your pickup point.',
                     active: true,
                   ),
                   const _TimelineStep(
@@ -114,17 +125,20 @@ class PassengerTrackingScreen extends StatelessWidget {
             AppCard(
               child: Column(
                 children: [
-                  const ListTile(
+                  ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: CircleAvatar(
+                    leading: const CircleAvatar(
                       backgroundColor: AppColors.primaryLight,
                       child: Icon(Icons.person, color: AppColors.primaryDark),
                     ),
-                    title: Text(DummyData.driverName),
+                    title: Text(driver?.fullName ?? 'Driver assigned'),
                     subtitle: Text(
-                      '${DummyData.vehicleName} - ${DummyData.vehiclePlate}',
+                      [
+                        driver?.vehicle,
+                        driver?.plateNumber,
+                      ].whereType<String>().where((value) => value.isNotEmpty).join(' - '),
                     ),
-                    trailing: Icon(Icons.star, color: AppColors.warning),
+                    trailing: const Icon(Icons.star, color: AppColors.warning),
                   ),
                   const Divider(height: 24),
                   Row(

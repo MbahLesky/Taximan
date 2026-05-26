@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../matching/application/providers/driver_providers.dart';
 import '../../../booking/application/providers/booking_state_provider.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
@@ -15,6 +15,8 @@ class PassengerDriversScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final drivers = ref.watch(availableDriversProvider);
+
     return BottomNavShell(
       currentIndex: 2,
       title: 'Drivers',
@@ -59,7 +61,8 @@ class PassengerDriversScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            ...DummyData.nearbyDrivers.map(
+            ...drivers.when(
+              data: (items) => items.map(
               (driver) => AppCard(
                 margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: Column(
@@ -69,7 +72,9 @@ class PassengerDriversScreen extends ConsumerWidget {
                       leading: CircleAvatar(
                         backgroundColor: AppColors.primaryLight,
                         child: Text(
-                          driver['name']!.characters.first,
+                          driver.fullName.isEmpty
+                              ? '?'
+                              : driver.fullName.characters.first,
                           style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             color: AppColors.primaryDark,
@@ -77,13 +82,17 @@ class PassengerDriversScreen extends ConsumerWidget {
                         ),
                       ),
                       title: Text(
-                        driver['name']!,
+                        driver.fullName,
                         style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
                       subtitle: Text(
-                        '${driver['vehicle']} - ${driver['plate']}',
+                        '${driver.vehicle} - ${driver.plateNumber}',
                       ),
-                      trailing: _DriverStatusChip(value: driver['eta']!),
+                      trailing: _DriverStatusChip(
+                        value: driver.arrivalEta.isEmpty
+                            ? 'Available'
+                            : driver.arrivalEta,
+                      ),
                     ),
                     const Divider(height: 24),
                     Row(
@@ -92,15 +101,15 @@ class PassengerDriversScreen extends ConsumerWidget {
                           child: _DriverMetric(
                             icon: Icons.star,
                             label: 'Rating',
-                            value: driver['rating']!,
+                            value: driver.rating.toStringAsFixed(1),
                           ),
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: _DriverMetric(
                             icon: Icons.location_on_outlined,
-                            label: 'Distance',
-                            value: driver['distance']!,
+                            label: 'Status',
+                            value: driver.availabilityStatus,
                           ),
                         ),
                       ],
@@ -108,6 +117,25 @@ class PassengerDriversScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              ),
+              loading: () => [
+                const AppCard(
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircularProgressIndicator(),
+                    title: Text('Loading available drivers'),
+                  ),
+                ),
+              ],
+              error: (_, _) => [
+                const AppCard(
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.error_outline),
+                    title: Text('Could not load available drivers'),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(

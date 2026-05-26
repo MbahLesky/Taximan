@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../booking/application/providers/booking_state_provider.dart';
+import '../../../matching/application/providers/driver_providers.dart';
 
-class TripDetailsScreen extends StatelessWidget {
+class TripDetailsScreen extends ConsumerWidget {
   const TripDetailsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final booking = ref.watch(bookingStateProvider).booking;
+    final driverId = booking.driverId ?? '';
+    final driver = driverId.isEmpty
+        ? null
+        : ref.watch(driverProvider(driverId)).valueOrNull;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Trip details')),
       body: ListView(
@@ -27,21 +35,27 @@ class TripDetailsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          const AppCard(
+          AppCard(
             child: Column(
               children: [
-                _DetailsLine(label: 'Pickup', value: DummyData.pickupLocation),
+                _DetailsLine(label: 'Pickup', value: booking.pickupLocation),
                 _DetailsLine(
                   label: 'Destination',
-                  value: DummyData.destination,
+                  value: booking.destination,
                 ),
-                _DetailsLine(label: 'Driver', value: DummyData.driverName),
-                _DetailsLine(label: 'Fare', value: DummyData.estimatedFare),
+                _DetailsLine(
+                  label: 'Driver',
+                  value: driver?.fullName ?? 'Driver pending',
+                ),
+                _DetailsLine(
+                  label: 'Fare',
+                  value: booking.formattedFinalFare,
+                ),
                 _DetailsLine(
                   label: 'Payment method',
-                  value: DummyData.paymentMethod,
+                  value: booking.paymentMethod,
                 ),
-                _DetailsLine(label: 'Trip status', value: 'Completed'),
+                _DetailsLine(label: 'Trip status', value: booking.status),
               ],
             ),
           ),

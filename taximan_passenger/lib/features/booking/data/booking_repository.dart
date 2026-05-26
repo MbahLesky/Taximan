@@ -14,9 +14,7 @@ class BookingRepository {
   /// Create a new booking
   Future<Booking> createBooking(Booking booking) async {
     try {
-      final shouldGenerateId =
-          booking.id.isEmpty || booking.id.startsWith('booking-demo-');
-      final docRef = shouldGenerateId
+      final docRef = booking.id.isEmpty
           ? _firestore.collection(_collection).doc()
           : _firestore.collection(_collection).doc(booking.id);
       final bookingToCreate = booking.copyWith(

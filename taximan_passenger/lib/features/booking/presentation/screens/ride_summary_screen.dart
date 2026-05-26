@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/providers/network_status_provider.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
@@ -22,6 +23,14 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
 
   Future<void> _confirmRide() async {
     final authState = ref.read(authStateProvider);
+    final networkStatus = ref.read(networkStatusProvider);
+    if (networkStatus.isOffline) {
+      ref
+          .read(bookingStateProvider.notifier)
+          .setError('Internet connection required to request a ride.');
+      return;
+    }
+
     final passengerId = authState.userId;
     if (passengerId == null) {
       context.go('/login');
@@ -51,6 +60,7 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
   @override
   Widget build(BuildContext context) {
     final bookingState = ref.watch(bookingStateProvider);
+    final networkStatus = ref.watch(networkStatusProvider);
     final booking = bookingState.booking;
 
     return Scaffold(
@@ -113,7 +123,9 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  booking.formattedFare,
+                  booking.estimatedFare > 0
+                      ? booking.formattedFare
+                      : 'Pending driver proposal',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     color: AppColors.primaryDark,
                     fontWeight: FontWeight.w900,
@@ -159,6 +171,39 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Payment method',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(
+                      value: 'Cash',
+                      icon: Icon(Icons.payments_outlined),
+                      label: Text('Cash'),
+                    ),
+                    ButtonSegment(
+                      value: 'Escrow',
+                      icon: Icon(Icons.account_balance_wallet_outlined),
+                      label: Text('Escrow'),
+                    ),
+                  ],
+                  selected: {booking.paymentMethod},
+                  onSelectionChanged: (selection) {
+                    ref
+                        .read(bookingStateProvider.notifier)
+                        .setPaymentMethod(selection.first);
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
           const AppCard(
             child: ListTile(
               contentPadding: EdgeInsets.zero,
@@ -176,6 +221,17 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ],
+          if (networkStatus.isOffline) ...[
+            const SizedBox(height: AppSpacing.md),
+            const AppCard(
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.wifi_off, color: AppColors.error),
+                title: Text('No internet connection'),
+                subtitle: Text('Reconnect before requesting a ride.'),
+              ),
+            ),
+          ],
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -184,7 +240,9 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
           label: 'Confirm Ride',
           icon: Icons.local_taxi_outlined,
           isLoading: bookingState.isLoading,
-          onPressed: bookingState.canConfirmRide ? _confirmRide : null,
+          onPressed: bookingState.canConfirmRide && networkStatus.isOnline
+              ? _confirmRide
+              : null,
         ),
       ),
     );

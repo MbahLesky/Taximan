@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/models/user.dart';
+import '../../../auth/application/providers/auth_state_provider.dart';
+import '../../data/user_repository.dart';
 
 class UserState {
   const UserState({
@@ -27,12 +29,11 @@ class UserController extends StateNotifier<UserState> {
     : super(
         const UserState(
           user: User(
-            id: 'passenger-001',
-            fullName: 'Mireille Ngono',
-            email: 'mireille.ngono@example.com',
-            phone: '+237 6 77 45 22 18',
-            homeLocation: 'Mvan Carrefour, Yaounde',
-            defaultPaymentMethod: 'cash',
+            id: '',
+            fullName: '',
+            email: '',
+            phone: '',
+            homeLocation: '',
           ),
         ),
       );
@@ -80,3 +81,15 @@ final userStateProvider = StateNotifierProvider<UserController, UserState>(
 );
 
 final userProvider = Provider<User>((ref) => ref.watch(userStateProvider).user);
+
+final userRepositoryProvider = Provider<UserRepository>((ref) {
+  return UserRepository();
+});
+
+final currentUserProvider = StreamProvider<User?>((ref) {
+  final userId = ref.watch(authStateProvider).userId;
+  if (userId == null || userId.isEmpty) {
+    return const Stream<User?>.empty();
+  }
+  return ref.watch(userRepositoryProvider).streamUser(userId);
+});

@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../booking/application/providers/booking_state_provider.dart';
+import '../../../matching/application/providers/driver_providers.dart';
 
-class DriverArrivedScreen extends StatelessWidget {
+class DriverArrivedScreen extends ConsumerWidget {
   const DriverArrivedScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final booking = ref.watch(bookingStateProvider).booking;
+    final driverId = booking.driverId ?? '';
+    final driver = driverId.isEmpty
+        ? null
+        : ref.watch(driverStreamProvider(driverId)).valueOrNull;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Driver arrived')),
       body: Padding(
@@ -29,22 +37,23 @@ class DriverArrivedScreen extends StatelessWidget {
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: AppSpacing.md),
-            const AppCard(
+            AppCard(
               child: Column(
                 children: [
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.my_location),
-                    title: Text('Pickup point'),
-                    subtitle: Text(DummyData.pickupLocation),
+                    leading: const Icon(Icons.my_location),
+                    title: const Text('Pickup point'),
+                    subtitle: Text(booking.pickupLocation),
                   ),
-                  Divider(height: 1),
+                  const Divider(height: 1),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.local_taxi),
-                    title: Text(DummyData.vehicleName),
-                    subtitle: Text(DummyData.vehiclePlate),
-                    trailing: Icon(Icons.verified, color: AppColors.success),
+                    leading: const Icon(Icons.local_taxi),
+                    title: Text(driver?.vehicle ?? 'Vehicle pending'),
+                    subtitle: Text(driver?.plateNumber ?? 'Plate pending'),
+                    trailing:
+                        const Icon(Icons.verified, color: AppColors.success),
                   ),
                 ],
               ),

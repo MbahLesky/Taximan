@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/models/rating.dart';
 
+const _unset = Object();
+
 class RatingState {
   const RatingState({
     this.selectedRating = 5,
@@ -25,19 +27,22 @@ class RatingState {
     int? selectedRating,
     String? comment,
     bool? reportIssue,
-    String? issueType,
-    Rating? submittedRating,
+    Object? issueType = _unset,
+    Object? submittedRating = _unset,
     bool? isSubmitting,
-    String? errorMessage,
+    Object? errorMessage = _unset,
   }) {
     return RatingState(
       selectedRating: selectedRating ?? this.selectedRating,
       comment: comment ?? this.comment,
       reportIssue: reportIssue ?? this.reportIssue,
-      issueType: issueType ?? this.issueType,
-      submittedRating: submittedRating ?? this.submittedRating,
+      issueType: issueType == _unset ? this.issueType : issueType as String?,
+      submittedRating: submittedRating == _unset
+          ? this.submittedRating
+          : submittedRating as Rating?,
       isSubmitting: isSubmitting ?? this.isSubmitting,
-      errorMessage: errorMessage,
+      errorMessage:
+          errorMessage == _unset ? this.errorMessage : errorMessage as String?,
     );
   }
 }
@@ -54,7 +59,10 @@ class RatingController extends StateNotifier<RatingState> {
   }
 
   void setIssueReport({required bool reportIssue, String? issueType}) {
-    state = state.copyWith(reportIssue: reportIssue, issueType: issueType);
+    state = state.copyWith(
+      reportIssue: reportIssue,
+      issueType: reportIssue ? issueType : null,
+    );
   }
 
   Rating submit({
@@ -97,6 +105,10 @@ class RatingController extends StateNotifier<RatingState> {
 
   void setError(String message) {
     state = state.copyWith(isSubmitting: false, errorMessage: message);
+  }
+
+  void reset() {
+    state = const RatingState();
   }
 }
 

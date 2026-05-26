@@ -47,7 +47,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xl),
             AppButton(
-              label: 'Logout placeholder',
+              label: 'Logout',
               variant: AppButtonVariant.danger,
               onPressed: () => context.go('/login'),
             ),

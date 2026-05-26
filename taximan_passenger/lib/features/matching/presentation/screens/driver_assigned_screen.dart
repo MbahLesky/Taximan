@@ -6,14 +6,19 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
-import '../../../trip/application/providers/trip_state_provider.dart';
+import '../../../booking/application/providers/booking_state_provider.dart';
+import '../../application/providers/driver_providers.dart';
 
 class DriverAssignedScreen extends ConsumerWidget {
   const DriverAssignedScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final driver = ref.watch(tripStateProvider).assignedDriver;
+    final booking = ref.watch(bookingStateProvider).booking;
+    final driverId = booking.driverId ?? '';
+    final driver = driverId.isEmpty
+        ? null
+        : ref.watch(driverStreamProvider(driverId)).valueOrNull;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Driver assigned')),
@@ -67,7 +72,9 @@ class DriverAssignedScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
-                      '${driver?.rating.toStringAsFixed(1) ?? '4.8'} rating',
+                      driver == null
+                          ? 'Loading rating'
+                          : '${driver.rating.toStringAsFixed(1)} rating',
                     ),
                   ],
                 ),

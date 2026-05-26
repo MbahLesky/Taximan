@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../booking/application/providers/booking_state_provider.dart';
+import '../../../matching/application/providers/driver_providers.dart';
 
-class DriverEnRouteScreen extends StatelessWidget {
+class DriverEnRouteScreen extends ConsumerWidget {
   const DriverEnRouteScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final booking = ref.watch(bookingStateProvider).booking;
+    final driverId = booking.driverId ?? '';
+    final driver = driverId.isEmpty
+        ? null
+        : ref.watch(driverStreamProvider(driverId)).valueOrNull;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Driver en route')),
       body: Column(
@@ -62,25 +70,32 @@ class DriverEnRouteScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  const Text('ETA ${DummyData.eta}'),
-                  const Divider(height: 28),
-                  const ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: CircleAvatar(child: Icon(Icons.person)),
-                    title: Text(DummyData.driverName),
-                    subtitle: Text(
-                      '${DummyData.vehicleName} - ${DummyData.vehiclePlate}',
-                    ),
-                    trailing: Icon(Icons.call_outlined),
+                  Text(
+                    booking.eta.isEmpty
+                        ? 'ETA pending'
+                        : 'ETA ${booking.eta}',
                   ),
-                  const ListTile(
+                  const Divider(height: 28),
+                  ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.my_location),
-                    title: Text('Pickup point'),
-                    subtitle: Text(DummyData.pickupLocation),
+                    leading: const CircleAvatar(child: Icon(Icons.person)),
+                    title: Text(driver?.fullName ?? 'Driver assigned'),
+                    subtitle: Text(
+                      [
+                        driver?.vehicle,
+                        driver?.plateNumber,
+                      ].whereType<String>().where((value) => value.isNotEmpty).join(' - '),
+                    ),
+                    trailing: const Icon(Icons.call_outlined),
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.my_location),
+                    title: const Text('Pickup point'),
+                    subtitle: Text(booking.pickupLocation),
                   ),
                   AppButton(
-                    label: 'Simulate driver arrived',
+                    label: 'Driver arrived',
                     onPressed: () => context.push('/driver-arrived'),
                   ),
                 ],

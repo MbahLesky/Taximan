@@ -113,6 +113,7 @@ class RatingScreen extends ConsumerWidget {
                         controller.setSubmitted(saved);
                         if (context.mounted) {
                           context.push('/feedback');
+                          controller.reset();
                         }
                       } catch (e) {
                         controller.setError(

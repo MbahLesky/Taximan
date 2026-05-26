@@ -37,29 +37,19 @@ class TripState {
 }
 
 class TripController extends StateNotifier<TripState> {
-  TripController()
-    : super(
-        const TripState(
-          assignedDriver: Driver(
-            id: 'driver-001',
-            fullName: 'Jean Talla',
-            rating: 4.8,
-            vehicle: 'Toyota Corolla',
-            plateNumber: 'LT 4821 AB',
-            arrivalEta: '6 min',
-          ),
-          activeTrip: Trip(
-            id: 'trip-demo-001',
-            pickupLocation: 'Mvan Carrefour, Yaounde',
-            destination: 'Bonamoussadi, Douala',
-            fare: 4500,
-            distance: '14.8 km',
-            duration: '18 min',
-            status: TripStatus.driverArriving,
-            date: 'Apr 30, 2026',
-          ),
-        ),
-      );
+  TripController() : super(const TripState());
+
+  void setActiveTrip(Trip? trip) {
+    state = state.copyWith(
+      activeTrip: trip,
+      status: trip?.status ?? state.status,
+      isLoading: false,
+    );
+  }
+
+  void setAssignedDriver(Driver? driver) {
+    state = state.copyWith(assignedDriver: driver, isLoading: false);
+  }
 
   void setStatus(String status) {
     state = state.copyWith(

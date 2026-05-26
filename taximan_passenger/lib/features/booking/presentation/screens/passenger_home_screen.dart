@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../auth/application/providers/auth_state_provider.dart';
 import '../../../account/application/providers/user_provider.dart';
+import '../../../matching/application/providers/driver_providers.dart';
+import '../../application/providers/booking_providers.dart';
 import '../../application/providers/booking_state_provider.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
@@ -16,9 +18,15 @@ class PassengerHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userProvider);
+    final currentUser = ref.watch(currentUserProvider).valueOrNull;
+    final passengerId = ref.watch(authStateProvider).userId;
+    final availableDriverCount = ref.watch(availableDriverCountProvider);
+    final recentBookings = passengerId == null
+        ? null
+        : ref.watch(recentBookingsProvider(passengerId)).valueOrNull;
     final bookingState = ref.watch(bookingStateProvider);
     final booking = bookingState.booking;
+    final firstName = currentUser?.fullName.split(' ').first;
 
     return BottomNavShell(
       currentIndex: 0,
@@ -34,7 +42,9 @@ class PassengerHomeScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Good morning, ${user.fullName.split(' ').first}',
+                        firstName == null || firstName.isEmpty
+                            ? 'Good morning'
+                            : 'Good morning, $firstName',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: AppSpacing.xs),
@@ -78,10 +88,20 @@ class PassengerHomeScreen extends ConsumerWidget {
                           style: TextStyle(fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          '${DummyData.nearbyDrivers.length} drivers nearby around your pickup area',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                        availableDriverCount.when(
+                          data: (count) => Text(
+                            '$count online drivers available',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          loading: () => const Text(
+                            'Checking driver availability...',
+                            style: TextStyle(color: AppColors.textSecondary),
+                          ),
+                          error: (_, _) => const Text(
+                            'Driver availability unavailable',
+                            style: TextStyle(color: AppColors.textSecondary),
                           ),
                         ),
                       ],
@@ -99,7 +119,9 @@ class PassengerHomeScreen extends ConsumerWidget {
               child: _LocationTile(
                 icon: Icons.my_location,
                 title: 'Current Location',
-                value: booking.pickupLocation,
+                value: booking.pickupLocation.isEmpty
+                    ? 'Set pickup location'
+                    : booking.pickupLocation,
                 onTap: () => context.push('/pickup'),
               ),
             ),
@@ -184,12 +206,14 @@ class PassengerHomeScreen extends ConsumerWidget {
                   _LocationTile(
                     icon: Icons.search,
                     title: 'Where are you going?',
-                    value: booking.destination,
+                    value: booking.destination.isEmpty
+                        ? 'Select destination'
+                        : booking.destination,
                     onTap: () => context.push('/destination'),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   AppButton(
-                    label: booking.destination == 'Select destination'
+                    label: booking.destination.isEmpty
                         ? 'Choose destination'
                         : 'Change destination',
                     icon: Icons.arrow_forward,
@@ -228,12 +252,12 @@ class PassengerHomeScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  const Row(
+                  Row(
                     children: [
                       Expanded(
                         child: _ActionPill(
                           icon: Icons.payments_outlined,
-                          label: DummyData.paymentMethod,
+                          label: booking.paymentMethod,
                         ),
                       ),
                       SizedBox(width: AppSpacing.sm),
@@ -274,23 +298,36 @@ class PassengerHomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
-            ...bookingState.recentDestinations.map(
-              (destination) => AppCard(
+            ...(recentBookings ?? const []).map(
+              (recentBooking) => AppCard(
                 margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.history),
-                  title: Text(destination),
+                  title: Text(recentBooking.destination),
+                  subtitle: Text(recentBooking.pickupLocation),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     ref
                         .read(bookingStateProvider.notifier)
-                        .setDestination(destination);
+                        .setDestinationFromBooking(recentBooking);
                     context.push('/pickup-time');
                   },
                 ),
               ),
             ),
+            if ((recentBookings ?? const []).isEmpty)
+              AppCard(
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.history_toggle_off),
+                  title: const Text('No recent destinations yet'),
+                  subtitle: const Text(
+                    'Completed bookings from the database will appear here.',
+                  ),
+                  onTap: () => context.push('/destination'),
+                ),
+              ),
           ],
         ),
       ),

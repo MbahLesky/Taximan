@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/ride_statuses.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/models/fare_proposal.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../booking/application/providers/booking_providers.dart';
@@ -19,8 +18,7 @@ class SearchingDriverScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bookingId = ref.watch(bookingStateProvider).booking.id;
-    final hasRealBooking =
-        bookingId.isNotEmpty && !bookingId.startsWith('booking-demo-');
+    final hasRealBooking = bookingId.isNotEmpty;
 
     if (hasRealBooking) {
       ref.listen(bookingStreamProvider(bookingId), (_, next) {
@@ -99,32 +97,6 @@ class SearchingDriverScreen extends ConsumerWidget {
                     label: 'Confirming best match',
                   ),
                   const Divider(height: 28),
-                  if (!hasRealBooking) ...[
-                    AppButton(
-                      label: 'Show demo fare proposal',
-                      icon: Icons.request_quote_outlined,
-                      variant: AppButtonVariant.secondary,
-                      onPressed: () {
-                        ref
-                            .read(matchingStateProvider.notifier)
-                            .showFareProposal(
-                              FareProposal(
-                                id: 'proposal-demo-001',
-                                bookingId: 'booking-demo-001',
-                                driverId: 'driver-001',
-                                vehicleId: 'vehicle-demo-001',
-                                originalFare: 4500,
-                                proposedFare: 5200,
-                                message:
-                                    'Traffic is heavy around this pickup area.',
-                                createdAt: DateTime.now(),
-                              ),
-                            );
-                        context.push('/fare-proposal');
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.compact),
-                  ],
                   AppButton(
                     label: 'Cancel search',
                     variant: AppButtonVariant.danger,
