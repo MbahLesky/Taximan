@@ -4,6 +4,7 @@ class AppLocation {
   const AppLocation({
     required this.address,
     this.name,
+    this.landmarkType = 'landmark',
     this.city = 'Bamenda',
     this.state = 'North West',
     this.country = 'Cameroon',
@@ -16,6 +17,7 @@ class AppLocation {
 
   final String? name;
   final String address;
+  final String landmarkType;
   final String city;
   final String state;
   final String country;
@@ -41,9 +43,12 @@ class AppLocation {
     return parts.join(', ');
   }
 
+  String getFullAddress() => fullAddress;
+
   AppLocation copyWith({
     String? name,
     String? address,
+    String? landmarkType,
     String? city,
     String? state,
     String? country,
@@ -56,6 +61,7 @@ class AppLocation {
     return AppLocation(
       name: name ?? this.name,
       address: address ?? this.address,
+      landmarkType: landmarkType ?? this.landmarkType,
       city: city ?? this.city,
       state: state ?? this.state,
       country: country ?? this.country,
@@ -71,6 +77,7 @@ class AppLocation {
     return {
       'name': name,
       'address': address,
+      'landmarkType': landmarkType,
       'city': city,
       'state': state,
       'country': country,
@@ -86,6 +93,7 @@ class AppLocation {
     return AppLocation(
       name: map['name'] as String?,
       address: map['address'] as String? ?? '',
+      landmarkType: map['landmarkType'] as String? ?? 'landmark',
       city: map['city'] as String? ?? 'Bamenda',
       state: map['state'] as String? ?? 'North West',
       country: map['country'] as String? ?? 'Cameroon',

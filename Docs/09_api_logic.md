@@ -180,11 +180,14 @@ estimatedFare = 500 + (4 * 250) = 1500
 
 Flow:
 
-1. Passenger enters pickup location, destination, pickup time, ride sharing option, and payment method.
-2. System calculates estimated fare.
-3. Booking document is created in `bookings`.
-4. Booking status is set to `searching`.
-5. Driver matching begins.
+1. Passenger selects pickup, destination, and pickup time on the Route & Time screen.
+2. Passenger enters ride sharing preference, passenger count, luggage, payment method, proposed fare, and notes on the Ride Details screen.
+3. Passenger optionally selects a preferred driver on the Driver Preference screen.
+4. Passenger reviews the Summary screen and confirms.
+5. System calculates estimated fare, distance, and ETA from the selected hardcoded Bamenda coordinates.
+6. Booking document is created in `bookings`.
+7. Booking status is set to `searching`.
+8. Driver matching begins.
 
 Required booking fields:
 
@@ -194,11 +197,18 @@ Required booking fields:
 * `pickupTimeType`
 * `scheduledPickupTime`
 * `isRideSharing`
+* `passengerCount`
+* `hasLuggage`
+* `luggageCount`
+* `proposedFareAmount`
+* `additionalInfo`
 * `distanceKm`
 * `estimatedDurationMinutes`
 * `estimatedFare`
 * `paymentMethod`
 * `paymentStatus: pending`
+* `preferredDriverId` when selected
+* `preferredDriverName` when selected
 * `status: searching`
 
 ---

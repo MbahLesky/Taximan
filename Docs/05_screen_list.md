@@ -322,7 +322,9 @@ These screens may appear in both apps.
 * Register Screen
 * Login Screen
 * Passenger Home Screen
-* Destination Search Screen
+* Route & Time Screen
+* Ride Details Screen
+* Driver Preference Screen
 * Ride Summary Screen
 * Searching for Driver Screen
 * Driver Assigned Screen

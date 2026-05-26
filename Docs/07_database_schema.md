@@ -53,6 +53,7 @@ Store locations as both readable text and coordinates.
 {
   "name": "Mile 4 Junction",
   "address": "Mile 4 Junction, Bamenda, Cameroon",
+  "landmarkType": "junction",
   "city": "Bamenda",
   "state": "North West",
   "country": "Cameroon",
@@ -263,17 +264,29 @@ Stores ride booking requests and matching state.
   "vehicleId": null,
 
   "pickupLocation": {
+    "name": "Commercial Avenue",
     "address": "Passenger pickup address",
+    "city": "Bamenda",
+    "state": "North West",
+    "country": "Cameroon",
     "latitude": 5.9876,
     "longitude": 10.1598,
-    "placeId": "google_place_id_optional"
+    "placeId": "bamenda_commercial_avenue",
+    "source": "preset"
   },
+  "pickupLocationText": "Commercial Avenue, Bamenda, Cameroon",
   "destinationLocation": {
+    "name": "Mile 4 Junction",
     "address": "Destination address",
+    "city": "Bamenda",
+    "state": "North West",
+    "country": "Cameroon",
     "latitude": 5.9750,
     "longitude": 10.1500,
-    "placeId": "google_place_id_optional"
+    "placeId": "bamenda_mile_4_junction",
+    "source": "preset"
   },
+  "destination": "Mile 4 Junction, Bamenda, Cameroon",
 
   "pickupTimeType": "now",
   "scheduledPickupTime": null,

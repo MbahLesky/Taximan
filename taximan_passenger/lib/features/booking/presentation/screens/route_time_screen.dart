@@ -10,8 +10,8 @@ import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../application/providers/booking_state_provider.dart';
 
-class PickupLocationScreen extends ConsumerWidget {
-  const PickupLocationScreen({super.key});
+class RouteTimeScreen extends ConsumerWidget {
+  const RouteTimeScreen({super.key});
 
   Future<void> _pickSchedule(
     BuildContext context,
@@ -55,7 +55,7 @@ class PickupLocationScreen extends ConsumerWidget {
     final controller = ref.read(bookingStateProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Route & time')),
+      appBar: AppBar(title: const Text('Plan route')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
@@ -145,10 +145,10 @@ class PickupLocationScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.xl),
           AppButton(
-            label: 'Continue to details',
+            label: 'Continue to ride details',
             icon: Icons.arrow_forward,
             onPressed: ref.watch(bookingStateProvider).canConfirmRide
-                ? () => context.push('/destination')
+                ? () => context.push('/ride-details')
                 : null,
           ),
         ],

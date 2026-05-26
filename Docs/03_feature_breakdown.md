@@ -39,18 +39,24 @@ Allow passengers to select their pickup point and destination, then request a ri
 ### Functionalities
 
 * Detect passenger’s current location
-* Allow manual pickup entry
-* Allow destination search
+* Allow pickup selection from the supported Bamenda location list
+* Allow destination selection from the same supported Bamenda location list
+* Support current location, autocomplete selection, and map pin selection for
+  both pickup and destination
 * Show pickup and destination on map
 * Display route preview
-* Show fare estimate, with option for drivers to propose their own price
+* Show fare estimate, distance, ETA, and proposed passenger fare
 * Request ride
-* Schedule ride
+* Schedule ride for now or a current/future date and time
 * Select ride sharing option
+* Optionally select a preferred driver before reviewing the summary
 
 ### Notes
 
-Google Maps Platform will handle maps, places, directions, and route display.
+The MVP hardcodes the Bamenda service locations in the passenger app as
+`AppLocation` models with coordinates, address, city, state, country,
+landmark type, and full-address helpers. Future map and places integrations
+can replace the placeholder map picker while preserving the same model shape.
 
 ---
 

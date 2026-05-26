@@ -108,7 +108,7 @@ class PassengerHomeScreen extends ConsumerWidget {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => context.go('/drivers'),
+                    onPressed: () => context.go('/saved-drivers'),
                     child: const Text('View'),
                   ),
                 ],
@@ -311,7 +311,7 @@ class PassengerHomeScreen extends ConsumerWidget {
                     ref
                         .read(bookingStateProvider.notifier)
                         .setDestinationFromBooking(recentBooking);
-                    context.push('/destination');
+                    context.push('/pickup');
                   },
                 ),
               ),

@@ -10,16 +10,14 @@ import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../application/providers/booking_state_provider.dart';
 
-class DestinationSearchScreen extends ConsumerStatefulWidget {
-  const DestinationSearchScreen({super.key});
+class RideDetailsScreen extends ConsumerStatefulWidget {
+  const RideDetailsScreen({super.key});
 
   @override
-  ConsumerState<DestinationSearchScreen> createState() =>
-      _DestinationSearchScreenState();
+  ConsumerState<RideDetailsScreen> createState() => _RideDetailsScreenState();
 }
 
-class _DestinationSearchScreenState
-    extends ConsumerState<DestinationSearchScreen> {
+class _RideDetailsScreenState extends ConsumerState<RideDetailsScreen> {
   late bool _rideSharing;
   late bool _hasLuggage;
   late int _passengerCount;
@@ -39,7 +37,7 @@ class _DestinationSearchScreenState
     _paymentMethod = booking.paymentMethod;
     _fareController = TextEditingController(
       text: booking.proposedFareAmount == 0
-          ? booking.estimatedFare.toString()
+          ? (booking.estimatedFare == 0 ? '' : booking.estimatedFare.toString())
           : booking.proposedFareAmount.toString(),
     );
     _notesController = TextEditingController(text: booking.additionalInfo);
@@ -65,7 +63,7 @@ class _DestinationSearchScreenState
           proposedFareAmount: proposedFare,
           additionalInfo: _notesController.text.trim(),
         );
-    context.push('/pickup-time');
+    context.push('/drivers');
   }
 
   @override

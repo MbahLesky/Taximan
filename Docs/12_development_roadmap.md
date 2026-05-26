@@ -124,11 +124,11 @@ Build the passenger ride-booking experience and connect it to persisted data.
 ## Tasks
 
 * Build passenger home map screen
-* Add pickup location field
-* Add destination search screen
-* Add pickup time screen
+* Add Route & Time screen for pickup, destination, and pickup time
+* Add Ride Details screen for sharing, passengers, luggage, payment, fare, and notes
+* Add Driver Preference screen for optional driver selection
 * Add ride summary screen
-* Show estimated fare
+* Show estimated fare, distance, ETA, and route preview
 * Add ride sharing option
 * Add payment method selection
 * Build searching for driver screen

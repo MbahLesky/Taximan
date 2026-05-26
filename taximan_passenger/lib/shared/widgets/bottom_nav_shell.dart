@@ -44,7 +44,7 @@ class BottomNavShell extends StatelessWidget {
               context.go('/trips');
               break;
             case 2:
-              context.go('/drivers');
+              context.go('/saved-drivers');
               break;
             case 3:
               context.go('/tracking');

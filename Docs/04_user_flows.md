@@ -23,13 +23,13 @@ It describes how users interact with the system from start to finish, including 
 * App loads map
 * Detect current location
 
-**Step 2: Set Route & Time**
+**Screen 1: Plan Route**
 
 * Select pickup using current location, Bamenda autocomplete, or map pin
 * Select destination using the same three methods
 * Choose pickup time: now or a scheduled current/future date and time
 
-**Step 3: Set Ride Details**
+**Screen 2: Ride Details**
 
 * Choose whether ride sharing is allowed
 * Enter passenger count and luggage details
@@ -37,20 +37,16 @@ It describes how users interact with the system from start to finish, including 
 * Propose an amount of pay
 * Add optional notes for the driver
 
-**Step 4: Driver Preference**
+**Screen 3: Driver Preference**
 
 * Search and select an available driver to propose the trip to
 * Or skip driver selection and allow automatic matching
 
-**Step 5: View Trip Summary**
+**Screen 4: Trip Summary**
 
 * Display route on map
 * Show pickup, destination, date/time, ride sharing, passengers, luggage,
   payment method, proposed fare, selected driver, distance, and ETA
-* Show distance and ETA
-
-**Step 6: Request Ride**
-
 * Passenger confirms booking request
 * Booking is uploaded to Firestore in the `bookings` collection
 

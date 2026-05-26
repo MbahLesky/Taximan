@@ -10,14 +10,16 @@ import '../../../../shared/widgets/app_card.dart';
 import '../../../matching/application/providers/driver_providers.dart';
 import '../../application/providers/booking_state_provider.dart';
 
-class PickupTimeScreen extends ConsumerStatefulWidget {
-  const PickupTimeScreen({super.key});
+class DriverPreferenceScreen extends ConsumerStatefulWidget {
+  const DriverPreferenceScreen({super.key});
 
   @override
-  ConsumerState<PickupTimeScreen> createState() => _PickupTimeScreenState();
+  ConsumerState<DriverPreferenceScreen> createState() =>
+      _DriverPreferenceScreenState();
 }
 
-class _PickupTimeScreenState extends ConsumerState<PickupTimeScreen> {
+class _DriverPreferenceScreenState
+    extends ConsumerState<DriverPreferenceScreen> {
   String _query = '';
 
   void _selectDriver(Driver driver) {

@@ -10,11 +10,11 @@ import '../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../features/auth/presentation/screens/onboarding_screen.dart';
 import '../features/auth/presentation/screens/register_screen.dart';
 import '../features/auth/presentation/screens/splash_screen.dart';
-import '../features/booking/presentation/screens/destination_search_screen.dart';
+import '../features/booking/presentation/screens/driver_preference_screen.dart';
 import '../features/booking/presentation/screens/passenger_home_screen.dart';
-import '../features/booking/presentation/screens/pickup_location_screen.dart';
-import '../features/booking/presentation/screens/pickup_time_screen.dart';
+import '../features/booking/presentation/screens/ride_details_screen.dart';
 import '../features/booking/presentation/screens/ride_summary_screen.dart';
+import '../features/booking/presentation/screens/route_time_screen.dart';
 import '../features/matching/presentation/screens/driver_assigned_screen.dart';
 import '../features/matching/presentation/screens/fare_proposal_screen.dart';
 import '../features/matching/presentation/screens/searching_driver_screen.dart';
@@ -49,15 +49,23 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/pickup',
-      builder: (context, state) => const PickupLocationScreen(),
+      builder: (context, state) => const RouteTimeScreen(),
     ),
     GoRoute(
       path: '/destination',
-      builder: (context, state) => const DestinationSearchScreen(),
+      redirect: (context, state) => '/ride-details',
+    ),
+    GoRoute(
+      path: '/ride-details',
+      builder: (context, state) => const RideDetailsScreen(),
     ),
     GoRoute(
       path: '/pickup-time',
-      builder: (context, state) => const PickupTimeScreen(),
+      redirect: (context, state) => '/drivers',
+    ),
+    GoRoute(
+      path: '/drivers',
+      builder: (context, state) => const DriverPreferenceScreen(),
     ),
     GoRoute(
       path: '/ride-summary',
@@ -113,7 +121,7 @@ final appRouter = GoRouter(
       builder: (context, state) => const TripHistoryScreen(),
     ),
     GoRoute(
-      path: '/drivers',
+      path: '/saved-drivers',
       builder: (context, state) => const PassengerDriversScreen(),
     ),
     GoRoute(

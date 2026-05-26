@@ -96,6 +96,7 @@ class Booking {
     String? vehicleId,
     String? pickupTimeType,
     DateTime? scheduledPickupTime,
+    bool clearScheduledPickupTime = false,
     bool? isRideSharing,
     int? passengerCount,
     bool? hasLuggage,
@@ -130,7 +131,9 @@ class Booking {
       preferredDriverName: preferredDriverName ?? this.preferredDriverName,
       vehicleId: vehicleId ?? this.vehicleId,
       pickupTimeType: pickupTimeType ?? this.pickupTimeType,
-      scheduledPickupTime: scheduledPickupTime ?? this.scheduledPickupTime,
+      scheduledPickupTime: clearScheduledPickupTime
+          ? null
+          : scheduledPickupTime ?? this.scheduledPickupTime,
       isRideSharing: isRideSharing ?? this.isRideSharing,
       passengerCount: passengerCount ?? this.passengerCount,
       hasLuggage: hasLuggage ?? this.hasLuggage,

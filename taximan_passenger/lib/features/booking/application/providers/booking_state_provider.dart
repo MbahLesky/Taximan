@@ -26,6 +26,8 @@ class BookingState {
       booking.pickupLocation.isNotEmpty &&
       booking.destination.isNotEmpty &&
       booking.destination != _unsetDestination &&
+      booking.pickup.hasCoordinates &&
+      booking.destinationLocation.hasCoordinates &&
       !isLoading;
 
   BookingState copyWith({
@@ -81,15 +83,11 @@ class BookingController extends StateNotifier<BookingState> {
 
   void setPickup(String pickupLocation) {
     final matchedLocation = _findLocation(pickupLocation);
-    final location =
-        matchedLocation ??
-        AppLocation(
-          name: pickupLocation,
-          address: pickupLocation,
-          source: 'typed',
-          updatedAt: DateTime.now(),
-        );
-    setPickupLocation(location);
+    if (matchedLocation == null) {
+      setError('Choose one of the supported Bamenda pickup locations.');
+      return;
+    }
+    setPickupLocation(matchedLocation);
   }
 
   void setPickupLocation(AppLocation location) {
@@ -101,6 +99,7 @@ class BookingController extends StateNotifier<BookingState> {
           updatedAt: DateTime.now(),
         ),
       ),
+      errorMessage: null,
     );
   }
 
@@ -122,6 +121,7 @@ class BookingController extends StateNotifier<BookingState> {
         ),
       ),
       recentDestinations: updatedRecent,
+      errorMessage: null,
     );
   }
 
@@ -131,29 +131,7 @@ class BookingController extends StateNotifier<BookingState> {
       setDestinationLocation(matchedLocation);
       return;
     }
-
-    final location = AppLocation(
-      name: destination,
-      address: destination,
-      source: 'typed',
-      updatedAt: DateTime.now(),
-    );
-    final updatedRecent = [
-      destination,
-      ...state.recentDestinations.where((item) => item != destination),
-    ].take(4).toList();
-
-    state = state.copyWith(
-      booking: _withRouteEstimate(
-        state.booking.copyWith(
-          destination: destination,
-          destinationLocationDetails: location,
-          status: BookingStatus.draft,
-          updatedAt: DateTime.now(),
-        ),
-      ),
-      recentDestinations: updatedRecent,
-    );
+    setError('Choose one of the supported Bamenda destination locations.');
   }
 
   void setPickupTime({
@@ -164,6 +142,7 @@ class BookingController extends StateNotifier<BookingState> {
       booking: state.booking.copyWith(
         pickupTimeType: pickupTimeType,
         scheduledPickupTime: scheduledPickupTime,
+        clearScheduledPickupTime: pickupTimeType == 'now',
         updatedAt: DateTime.now(),
       ),
     );
@@ -218,7 +197,13 @@ class BookingController extends StateNotifier<BookingState> {
   }
 
   void clearPreferredDriver() {
-    setPreferredDriver(driverId: '', driverName: '');
+    state = state.copyWith(
+      booking: state.booking.copyWith(
+        preferredDriverId: '',
+        preferredDriverName: '',
+        updatedAt: DateTime.now(),
+      ),
+    );
   }
 
   void setRideSharing(bool isRideSharing) {

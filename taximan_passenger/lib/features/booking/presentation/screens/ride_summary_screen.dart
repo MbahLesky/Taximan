@@ -194,7 +194,9 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
                 ),
                 _MetricRow(
                   label: 'Driver',
-                  value: booking.preferredDriverName ?? 'Auto-match',
+                  value: booking.preferredDriverName?.isNotEmpty == true
+                      ? booking.preferredDriverName!
+                      : 'Auto-match',
                 ),
                 if (booking.additionalInfo.isNotEmpty) ...[
                   const Divider(height: 28),
