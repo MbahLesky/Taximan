@@ -51,6 +51,7 @@ class AuthRepository {
     return firebaseUser;
   }
 
+  /// Login a user
   Future<firebase_auth.User> login({
     required String email,
     required String password,

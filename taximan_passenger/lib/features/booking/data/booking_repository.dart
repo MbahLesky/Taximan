@@ -69,6 +69,8 @@ class BookingRepository {
       return query.docs
           .map((doc) => Booking.fromMap(doc.data()))
           .toList();
+
+    print("============\n\n\n======\nPassenger Id: $passengerId, Number ${query.docs.length}");
     } catch (e) {
       throw Exception('Failed to fetch passenger bookings: $e');
     }
@@ -83,6 +85,7 @@ class BookingRepository {
       await _firestore.collection(_collection).doc(booking.id).update(
             updatedBooking.toMap(),
           );
+          
       return updatedBooking;
     } catch (e) {
       throw Exception('Failed to update booking: $e');
@@ -163,8 +166,34 @@ class BookingRepository {
       return query.docs
           .map((doc) => Booking.fromMap(doc.data()))
           .toList();
+
+     print("============\n\n\n======\nPassenger Id: $passengerId, Recent Number ${query.docs.length}");
     } catch (e) {
       throw Exception('Failed to fetch recent bookings: $e');
+    }
+  }
+
+  /// Get the nearest upcoming booking for a passenger.
+  Future<Booking?> getUpcomingBooking(String passengerId) async {
+    try {
+      final now = DateTime.now();
+      final query = await _firestore
+          .collection(_collection)
+          .where('passengerId', isEqualTo: passengerId)
+          // .where('status', whereIn: BookingStatus.active)
+          .where('scheduledPickupTime', isGreaterThanOrEqualTo: now)
+          .orderBy('scheduledPickupTime', descending: false)
+          .limit(1)
+          .get();
+
+       print("============\n\n\n======\nPassenger Id: $passengerId, Upcoming Number ${query.docs.length}");
+
+      if (query.docs.isEmpty) {
+        return null;
+      }
+      return Booking.fromMap(query.docs.first.data());
+    } catch (e) {
+      throw Exception('Failed to fetch upcoming booking: $e');
     }
   }
 }

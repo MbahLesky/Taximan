@@ -21,9 +21,15 @@ class PassengerHomeScreen extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
     final passengerId = ref.watch(authStateProvider).userId;
     final availableDriverCount = ref.watch(availableDriverCountProvider);
+    final upcomingBooking = passengerId == null
+        ? null
+        : ref.watch(upcomingBookingProvider(passengerId)).valueOrNull;
     final recentBookings = passengerId == null
         ? null
         : ref.watch(recentBookingsProvider(passengerId)).valueOrNull;
+    final otherBookings = (recentBookings ?? const [])
+        .where((booking) => booking.id != upcomingBooking?.id)
+        .toList();
     final bookingState = ref.watch(bookingStateProvider);
     final booking = bookingState.booking;
     final firstName = currentUser?.fullName.split(' ').first;
@@ -63,6 +69,40 @@ class PassengerHomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.md),
+            // 
+            if (upcomingBooking != null)
+              AppCard(
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.schedule,
+                    color: AppColors.primary,
+                    size: 30,
+                  ),
+                  title: Text(
+                    'Upcoming trip',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  subtitle: Text(
+                    '${upcomingBooking.pickupLocation} → ${upcomingBooking.destination}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Text(
+                    upcomingBooking.pickupTimeType == 'now'
+                        ? 'Now'
+                        : upcomingBooking.scheduledPickupTime == null
+                            ? 'Scheduled'
+                            : '${upcomingBooking.scheduledPickupTime!.day}/${upcomingBooking.scheduledPickupTime!.month} ${upcomingBooking.scheduledPickupTime!.hour.toString().padLeft(2, '0')}:${upcomingBooking.scheduledPickupTime!.minute.toString().padLeft(2, '0')}',
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  onTap: () => context.push('/pickup'),
+                ),
+              ),
+            if (upcomingBooking != null)
+              const SizedBox(height: AppSpacing.md),
             AppCard(
               child: Row(
                 children: [
@@ -326,6 +366,52 @@ class PassengerHomeScreen extends ConsumerWidget {
                     'Completed bookings from the database will appear here.',
                   ),
                   onTap: () => context.push('/pickup'),
+                ),
+              ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Other bookings',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            if (otherBookings.isEmpty)
+              AppCard(
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.event_available),
+                  title: const Text('No other bookings'),
+                  subtitle: const Text(
+                    'Your next upcoming or recent bookings will show here.',
+                  ),
+                  onTap: () => context.push('/pickup'),
+                ),
+              )
+            else
+              ...otherBookings.map(
+                (recentBooking) => AppCard(
+                  margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.book_online),
+                    title: Text(recentBooking.destination),
+                    subtitle: Text(recentBooking.pickupLocation),
+                    trailing: Text(
+                      recentBooking.pickupTimeType == 'now'
+                          ? 'Now'
+                          : recentBooking.scheduledPickupTime == null
+                              ? 'Scheduled'
+                              : '${recentBooking.scheduledPickupTime!.day}/${recentBooking.scheduledPickupTime!.month} ${recentBooking.scheduledPickupTime!.hour.toString().padLeft(2, '0')}:${recentBooking.scheduledPickupTime!.minute.toString().padLeft(2, '0')}',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    onTap: () {
+                      ref
+                          .read(bookingStateProvider.notifier)
+                          .setDestinationFromBooking(recentBooking);
+                      context.push('/pickup');
+                    },
+                  ),
                 ),
               ),
           ],

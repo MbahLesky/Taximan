@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../auth/application/providers/auth_state_provider.dart';
+import '../../../booking/application/providers/booking_providers.dart';
 import '../../../booking/application/providers/booking_state_provider.dart';
 import '../../../trip/application/providers/trip_providers.dart';
 import '../../../../shared/widgets/app_card.dart';
@@ -25,6 +26,9 @@ class TripHistoryScreen extends ConsumerWidget {
     final trips = passengerId == null
         ? null
         : ref.watch(recentTripsProvider(passengerId)).valueOrNull;
+    final bookings = passengerId == null
+        ? null
+        : ref.watch(recentBookingsProvider(passengerId)).valueOrNull;
 
     return BottomNavShell(
       currentIndex: 1,
@@ -80,6 +84,37 @@ class TripHistoryScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
+            if ((bookings ?? const []).isNotEmpty) ...[
+              Text(
+                'Recent bookings',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              ...bookings!.map(
+                (booking) => AppCard(
+                  margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.book_online),
+                    title: Text(booking.destination),
+                    subtitle: Text(booking.pickupLocation),
+                    trailing: Text(
+                      booking.pickupTimeType == 'now'
+                          ? 'Now'
+                          : booking.scheduledPickupTime == null
+                              ? 'Scheduled'
+                              : '${booking.scheduledPickupTime!.day}/${booking.scheduledPickupTime!.month} ${booking.scheduledPickupTime!.hour.toString().padLeft(2, '0')}:${booking.scheduledPickupTime!.minute.toString().padLeft(2, '0')}',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    onTap: () => context.push('/pickup'),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
             Text(
               'Trip history',
               style: Theme.of(

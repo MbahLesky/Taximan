@@ -156,8 +156,9 @@ String _friendlyAuthMessage(firebase_auth.FirebaseAuthException exception) {
   return switch (exception.code) {
     'invalid-email' => 'Enter a valid email address.',
     'user-disabled' => 'This account has been disabled.',
-    'user-not-found' || 'wrong-password' || 'invalid-credential' =>
-      'Email or password is incorrect.',
+    'user-not-found' => 'Account does not exist', 
+    'wrong-password' => 'Password is incorrect',
+    'invalid-credential' => 'Email or password is incorrect.',
     'email-already-in-use' => 'An account already exists for this email.',
     'weak-password' => 'Use a stronger password.',
     'network-request-failed' => 'Check your internet connection and try again.',

@@ -31,6 +31,13 @@ final activeBookingsStreamProvider =
   return repository.streamActiveBookings(passengerId);
 });
 
+/// Get the nearest upcoming booking for a passenger
+final upcomingBookingProvider =
+    FutureProvider.family<Booking?, String>((ref, passengerId) async {
+  final repository = ref.watch(bookingRepositoryProvider);
+  return repository.getUpcomingBooking(passengerId);
+});
+
 /// Get all bookings for a passenger
 final passengerBookingsProvider =
     FutureProvider.family<List<Booking>, String>((ref, passengerId) async {
