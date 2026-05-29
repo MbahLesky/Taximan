@@ -6,6 +6,7 @@ import '../features/account/presentation/screens/passenger_tracking_screen.dart'
 import '../features/account/presentation/screens/trip_details_screen.dart';
 import '../features/account/presentation/screens/trip_history_screen.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
+import '../features/notifications/presentation/screens/notification_center_screen.dart';
 import '../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../features/auth/presentation/screens/onboarding_screen.dart';
 import '../features/auth/presentation/screens/register_screen.dart';
@@ -135,6 +136,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const PassengerProfileScreen(),
+    ),
+    GoRoute(
+      path: '/notifications',
+      builder: (context, state) => const NotificationCenterScreen(),
     ),
   ],
 );
