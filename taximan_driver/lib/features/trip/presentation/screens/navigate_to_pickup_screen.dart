@@ -24,7 +24,13 @@ class NavigateToPickupScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: AppColors.border),
               ),
-              child: const Center(child: Icon(Icons.alt_route, size: 86, color: AppColors.primaryDark)),
+              child: const Center(
+                child: Icon(
+                  Icons.alt_route,
+                  size: 86,
+                  color: AppColors.primaryDark,
+                ),
+              ),
             ),
           ),
           Padding(
@@ -45,7 +51,10 @@ class NavigateToPickupScreen extends StatelessWidget {
                     title: Text(DummyData.passengerName),
                     subtitle: Text('ETA ${DummyData.tripEta}'),
                   ),
-                  AppButton(label: 'Mark arrival', onPressed: () => context.push('/mark-arrival')),
+                  AppButton(
+                    label: 'Mark arrival',
+                    onPressed: () => context.push('/mark-arrival'),
+                  ),
                 ],
               ),
             ),

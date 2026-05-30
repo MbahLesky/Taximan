@@ -43,7 +43,9 @@ class Driver {
       city: map['city'] as String? ?? '',
       rating: (map['rating'] as num?)?.toDouble() ?? 0,
       verificationStatus: map['verificationStatus'] as String? ?? '',
-      vehicle: Vehicle.fromMap((map['vehicle'] as Map<String, dynamic>?) ?? const {}),
+      vehicle: Vehicle.fromMap(
+        (map['vehicle'] as Map<String, dynamic>?) ?? const {},
+      ),
     );
   }
 }

@@ -17,32 +17,29 @@ class DocumentStatusScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          ...DummyData.documents.map(
-            (document) {
-              final status = document['status'] ?? '';
-              final color = status == 'Approved'
-                  ? AppColors.success
-                  : status == 'Rejected'
-                      ? AppColors.error
-                      : AppColors.warning;
-              return AppCard(
-                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.description_outlined, color: color),
-                  title: Text(document['name'] ?? ''),
-                  subtitle: Text(status == 'Rejected' ? DummyData.rejectionReason : status),
-                  trailing: Text(status, style: TextStyle(color: color, fontWeight: FontWeight.w800)),
+          ...DummyData.documents.map((document) {
+            final status = document['status'] ?? '';
+            final color = status == 'Approved'
+                ? AppColors.success
+                : status == 'Rejected'
+                ? AppColors.error
+                : AppColors.warning;
+            return AppCard(
+              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.description_outlined, color: color),
+                title: Text(document['name'] ?? ''),
+                subtitle: Text(status == 'Rejected' ? DummyData.rejectionReason : status),
+                trailing: Text(
+                  status,
+                  style: TextStyle(color: color, fontWeight: FontWeight.w800),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          }),
           const SizedBox(height: AppSpacing.md),
-          AppButton(
-            label: 'View rejected example',
-            variant: AppButtonVariant.secondary,
-            onPressed: () => context.go('/verification-rejected'),
-          ),
+          AppButton(label: 'View rejected example', variant: AppButtonVariant.secondary, onPressed: () => context.go('/verification-rejected')),
         ],
       ),
     );

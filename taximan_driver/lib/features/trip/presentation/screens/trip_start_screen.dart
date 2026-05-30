@@ -19,14 +19,32 @@ class TripStartScreen extends StatelessWidget {
           const AppCard(
             child: Column(
               children: [
-                ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.person), title: Text('Passenger'), subtitle: Text(DummyData.passengerName)),
-                ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.location_on), title: Text('Destination'), subtitle: Text(DummyData.incomingDestination)),
-                ListTile(contentPadding: EdgeInsets.zero, leading: Icon(Icons.payments_outlined), title: Text('Fare'), subtitle: Text(DummyData.estimatedFare)),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.person),
+                  title: Text('Passenger'),
+                  subtitle: Text(DummyData.passengerName),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.location_on),
+                  title: Text('Destination'),
+                  subtitle: Text(DummyData.incomingDestination),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.payments_outlined),
+                  title: Text('Fare'),
+                  subtitle: Text(DummyData.estimatedFare),
+                ),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Start trip', onPressed: () => context.push('/trip-in-progress')),
+          AppButton(
+            label: 'Start trip',
+            onPressed: () => context.push('/trip-in-progress'),
+          ),
         ],
       ),
     );

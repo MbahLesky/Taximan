@@ -26,11 +26,7 @@ class AppTheme {
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
-        titleTextStyle: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-        ),
+        titleTextStyle: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w700),
       ),
       cardTheme: CardThemeData(
         color: AppColors.surface,
@@ -63,13 +59,9 @@ class AppTheme {
         indicatorColor: AppColors.primaryLight,
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
-            color: states.contains(WidgetState.selected)
-                ? AppColors.primaryDark
-                : AppColors.textSecondary,
+            color: states.contains(WidgetState.selected) ? AppColors.primaryDark : AppColors.textSecondary,
             fontSize: 12,
-            fontWeight: states.contains(WidgetState.selected)
-                ? FontWeight.w700
-                : FontWeight.w500,
+            fontWeight: states.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
       ),

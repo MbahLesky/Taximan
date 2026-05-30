@@ -26,11 +26,23 @@ class FareProposalScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          const AppTextField(label: 'Proposed fare', hint: 'Example: 3,500 FCFA', icon: Icons.edit),
+          const AppTextField(
+            label: 'Proposed fare',
+            hint: 'Example: 3,500 FCFA',
+            icon: Icons.edit,
+          ),
           const SizedBox(height: AppSpacing.md),
-          const AppTextField(label: 'Optional message', hint: 'Short note to passenger', icon: Icons.message_outlined, maxLines: 3),
+          const AppTextField(
+            label: 'Optional message',
+            hint: 'Short note to passenger',
+            icon: Icons.message_outlined,
+            maxLines: 3,
+          ),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Submit proposal', onPressed: () => context.go('/dashboard')),
+          AppButton(
+            label: 'Submit proposal',
+            onPressed: () => context.go('/dashboard'),
+          ),
         ],
       ),
     );

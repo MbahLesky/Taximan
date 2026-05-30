@@ -5,8 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../earnings/application/providers/earnings_provider.dart';
+import '../../../booking_management/application/providers/booking_provider.dart';
+import '../../../onboarding/application/providers/driver_providers.dart';
 import '../../application/providers/driver_state_provider.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
@@ -19,7 +20,16 @@ class DriverDashboardScreen extends ConsumerWidget {
     final driverState = ref.watch(driverStateProvider);
     final earnings = ref.watch(earningsProvider);
     final driver = driverState.driver;
+    final currentDriver = ref.watch(currentDriverProvider).valueOrNull;
+    final incomingRequests = ref
+        .watch(availableBookingsStreamProvider)
+        .valueOrNull;
     final online = driverState.isOnline;
+    final driverName = currentDriver?.fullName.isNotEmpty == true
+        ? currentDriver!.fullName
+        : driver.fullName;
+    final verificationStatus =
+        currentDriver?.verificationStatus ?? driver.verificationStatus;
 
     return BottomNavShell(
       currentIndex: 0,
@@ -34,10 +44,14 @@ class DriverDashboardScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Good morning, ${driver.fullName.split(' ').first}', style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                        'Good morning, ${driverName.split(' ').first}',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       Text(
                         'Driver dashboard',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ],
                   ),
@@ -53,13 +67,19 @@ class DriverDashboardScreen extends ConsumerWidget {
                   Row(
                     children: [
                       Icon(
-                        online ? Icons.radio_button_checked : Icons.radio_button_off,
-                        color: online ? AppColors.success : AppColors.textSecondary,
+                        online
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: online
+                            ? AppColors.success
+                            : AppColors.textSecondary,
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Text(
-                          online ? 'ONLINE - available for requests' : 'OFFLINE - not receiving requests',
+                          online
+                              ? 'ONLINE - available for requests'
+                              : 'OFFLINE - not receiving requests',
                           style: const TextStyle(fontWeight: FontWeight.w900),
                         ),
                       ),
@@ -69,27 +89,62 @@ class DriverDashboardScreen extends ConsumerWidget {
                   AppButton(
                     label: online ? 'Go Offline' : 'Go Online',
                     icon: online ? Icons.power_settings_new : Icons.bolt,
-                    variant: online ? AppButtonVariant.secondary : AppButtonVariant.primary,
-                    onPressed: () => ref.read(driverStateProvider.notifier).toggleAvailability(),
+                    variant: online
+                        ? AppButtonVariant.secondary
+                        : AppButtonVariant.primary,
+                    onPressed: () => ref
+                        .read(driverStateProvider.notifier)
+                        .toggleAvailability(),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            const AppCard(
+            AppCard(
               child: ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.verified_user_outlined, color: AppColors.warning),
-                title: Text(DummyData.verificationStatus),
+                leading: Icon(
+                  Icons.verified_user_outlined,
+                  color: AppColors.warning,
+                ),
+                title: Text(verificationStatus),
                 subtitle: Text('Approval is required before live operations.'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            AppCard(
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(
+                  Icons.notifications_active_outlined,
+                  color: AppColors.primaryDark,
+                ),
+                title: Text(
+                  '${incomingRequests?.length ?? 0} incoming ride request${incomingRequests?.length == 1 ? '' : 's'}',
+                ),
+                subtitle: const Text('Review available bookings in real time.'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/incoming-request'),
               ),
             ),
             const SizedBox(height: AppSpacing.md),
             Row(
               children: [
-                Expanded(child: _MetricCard(title: 'Today', value: earnings.todayFormatted, icon: Icons.payments_outlined)),
+                Expanded(
+                  child: _MetricCard(
+                    title: 'Today',
+                    value: earnings.todayFormatted,
+                    icon: Icons.payments_outlined,
+                  ),
+                ),
                 const SizedBox(width: AppSpacing.sm),
-                Expanded(child: _MetricCard(title: 'Trips', value: '${earnings.completedTrips}', icon: Icons.route)),
+                Expanded(
+                  child: _MetricCard(
+                    title: 'Trips',
+                    value: '${earnings.completedTrips}',
+                    icon: Icons.route,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
@@ -100,16 +155,34 @@ class DriverDashboardScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: AppColors.border),
               ),
-              child: const Center(child: Icon(Icons.map_outlined, size: 82, color: AppColors.primaryDark)),
+              child: const Center(
+                child: Icon(
+                  Icons.map_outlined,
+                  size: 82,
+                  color: AppColors.primaryDark,
+                ),
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             Wrap(
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
               children: [
-                _QuickAction(label: 'Schedule', icon: Icons.schedule, onTap: () => context.push('/availability-schedule')),
-                _QuickAction(label: 'Demo request', icon: Icons.notifications_active_outlined, onTap: () => context.push('/incoming-request')),
-                _QuickAction(label: 'Documents', icon: Icons.folder_copy_outlined, onTap: () => context.push('/document-status')),
+                _QuickAction(
+                  label: 'Schedule',
+                  icon: Icons.schedule,
+                  onTap: () => context.push('/availability-schedule'),
+                ),
+                _QuickAction(
+                  label: 'Ride requests',
+                  icon: Icons.notifications_active_outlined,
+                  onTap: () => context.push('/incoming-request'),
+                ),
+                _QuickAction(
+                  label: 'Documents',
+                  icon: Icons.folder_copy_outlined,
+                  onTap: () => context.push('/document-status'),
+                ),
               ],
             ),
           ],
@@ -128,7 +201,10 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: online ? AppColors.primaryLight : AppColors.border,
         borderRadius: BorderRadius.circular(999),
@@ -145,7 +221,11 @@ class _StatusBadge extends StatelessWidget {
 }
 
 class _MetricCard extends StatelessWidget {
-  const _MetricCard({required this.title, required this.value, required this.icon});
+  const _MetricCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+  });
 
   final String title;
   final String value;
@@ -160,7 +240,10 @@ class _MetricCard extends StatelessWidget {
           Icon(icon, color: AppColors.primaryDark),
           const SizedBox(height: AppSpacing.sm),
           Text(title, style: const TextStyle(color: AppColors.textSecondary)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+          ),
         ],
       ),
     );
@@ -168,7 +251,11 @@ class _MetricCard extends StatelessWidget {
 }
 
 class _QuickAction extends StatelessWidget {
-  const _QuickAction({required this.label, required this.icon, required this.onTap});
+  const _QuickAction({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
 
   final String label;
   final IconData icon;

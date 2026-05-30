@@ -22,21 +22,35 @@ class TripCompletedScreen extends StatelessWidget {
           Text(
             'Trip summary',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: AppSpacing.md),
           const AppCard(
             child: Column(
               children: [
-                _SummaryLine(label: 'Fare earned', value: DummyData.estimatedFare),
-                _SummaryLine(label: 'Payment method', value: DummyData.paymentMethod),
-                _SummaryLine(label: 'Commission placeholder', value: DummyData.commission),
+                _SummaryLine(
+                  label: 'Fare earned',
+                  value: DummyData.estimatedFare,
+                ),
+                _SummaryLine(
+                  label: 'Payment method',
+                  value: DummyData.paymentMethod,
+                ),
+                _SummaryLine(
+                  label: 'Commission placeholder',
+                  value: DummyData.commission,
+                ),
                 _SummaryLine(label: 'Net earning', value: DummyData.netEarning),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          AppButton(label: 'Return to dashboard', onPressed: () => context.go('/dashboard')),
+          AppButton(
+            label: 'Return to dashboard',
+            onPressed: () => context.go('/dashboard'),
+          ),
         ],
       ),
     );
@@ -55,7 +69,12 @@ class _SummaryLine extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
         children: [
-          Expanded(child: Text(label, style: const TextStyle(color: AppColors.textSecondary))),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
         ],
       ),

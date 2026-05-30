@@ -16,6 +16,7 @@ import '../features/booking/presentation/screens/passenger_home_screen.dart';
 import '../features/booking/presentation/screens/ride_details_screen.dart';
 import '../features/booking/presentation/screens/ride_summary_screen.dart';
 import '../features/booking/presentation/screens/route_time_screen.dart';
+import '../features/booking/presentation/screens/booking_details_screen.dart';
 import '../features/matching/presentation/screens/driver_assigned_screen.dart';
 import '../features/matching/presentation/screens/fare_proposal_screen.dart';
 import '../features/matching/presentation/screens/searching_driver_screen.dart';
@@ -60,10 +61,7 @@ final appRouter = GoRouter(
       path: '/ride-details',
       builder: (context, state) => const RideDetailsScreen(),
     ),
-    GoRoute(
-      path: '/pickup-time',
-      redirect: (context, state) => '/drivers',
-    ),
+    GoRoute(path: '/pickup-time', redirect: (context, state) => '/drivers'),
     GoRoute(
       path: '/drivers',
       builder: (context, state) => const DriverPreferenceScreen(),
@@ -140,6 +138,12 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationCenterScreen(),
+    ),
+    GoRoute(
+      path: '/booking/:bookingId',
+      builder: (context, state) => BookingDetailsScreen(
+        bookingId: state.pathParameters['bookingId'] ?? '',
+      ),
     ),
   ],
 );

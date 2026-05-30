@@ -28,26 +28,27 @@ class DriverTripState {
 
 class DriverTripController extends StateNotifier<DriverTripState> {
   DriverTripController()
-      : super(
-          const DriverTripState(
-            activeTrip: Trip(
-              id: 'driver-trip-demo-001',
-              passengerName: 'Mireille Ngono',
-              pickupLocation: 'Mvan Carrefour, Yaounde',
-              destination: 'Bastos Roundabout',
-              fare: 3000,
-              distance: '8.4 km',
-              eta: '16 min',
-              status: 'incoming',
-            ),
+    : super(
+        const DriverTripState(
+          activeTrip: Trip(
+            id: 'driver-trip-demo-001',
+            passengerName: 'Mireille Ngono',
+            pickupLocation: 'Mvan Carrefour, Yaounde',
+            destination: 'Bastos Roundabout',
+            fare: 3000,
+            distance: '8.4 km',
+            eta: '16 min',
+            status: 'incoming',
           ),
-        );
+        ),
+      );
 
   void setStatus(String status) {
     state = state.copyWith(status: status);
   }
 }
 
-final tripStateProvider = StateNotifierProvider<DriverTripController, DriverTripState>(
-  (ref) => DriverTripController(),
-);
+final tripStateProvider =
+    StateNotifierProvider<DriverTripController, DriverTripState>(
+      (ref) => DriverTripController(),
+    );

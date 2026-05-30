@@ -18,12 +18,27 @@ class VehicleInformationScreen extends StatelessWidget {
           AppCard(
             child: Column(
               children: [
-                _VehicleLine(label: 'Vehicle type', value: DummyData.vehicleType),
-                _VehicleLine(label: 'Make/model', value: DummyData.vehicleModel),
-                _VehicleLine(label: 'Plate number', value: DummyData.vehiclePlate),
+                _VehicleLine(
+                  label: 'Vehicle type',
+                  value: DummyData.vehicleType,
+                ),
+                _VehicleLine(
+                  label: 'Make/model',
+                  value: DummyData.vehicleModel,
+                ),
+                _VehicleLine(
+                  label: 'Plate number',
+                  value: DummyData.vehiclePlate,
+                ),
                 _VehicleLine(label: 'Color', value: DummyData.vehicleColor),
-                _VehicleLine(label: 'Capacity', value: DummyData.vehicleCapacity),
-                _VehicleLine(label: 'Document status', value: DummyData.verificationStatus),
+                _VehicleLine(
+                  label: 'Capacity',
+                  value: DummyData.vehicleCapacity,
+                ),
+                _VehicleLine(
+                  label: 'Document status',
+                  value: DummyData.verificationStatus,
+                ),
               ],
             ),
           ),
@@ -43,8 +58,14 @@ class _VehicleLine extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(label, style: const TextStyle(color: AppColors.textSecondary)),
-      trailing: Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
+      title: Text(
+        label,
+        style: const TextStyle(color: AppColors.textSecondary),
+      ),
+      trailing: Text(
+        value,
+        style: const TextStyle(fontWeight: FontWeight.w800),
+      ),
     );
   }
 }

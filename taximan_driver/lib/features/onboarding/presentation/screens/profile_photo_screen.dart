@@ -24,7 +24,11 @@ class ProfilePhotoScreen extends StatelessWidget {
                   const CircleAvatar(
                     radius: 58,
                     backgroundColor: AppColors.primaryLight,
-                    child: Icon(Icons.person, size: 64, color: AppColors.primaryDark),
+                    child: Icon(
+                      Icons.person,
+                      size: 64,
+                      color: AppColors.primaryDark,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   AppButton(
@@ -37,7 +41,10 @@ class ProfilePhotoScreen extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            AppButton(label: 'Continue', onPressed: () => context.push('/verification-pending')),
+            AppButton(
+              label: 'Continue',
+              onPressed: () => context.push('/verification-pending'),
+            ),
           ],
         ),
       ),

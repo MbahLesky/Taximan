@@ -69,7 +69,7 @@ class PassengerHomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.md),
-            // 
+            //
             if (upcomingBooking != null)
               AppCard(
                 child: ListTile(
@@ -82,8 +82,8 @@ class PassengerHomeScreen extends ConsumerWidget {
                   title: Text(
                     'Upcoming trip',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   subtitle: Text(
                     '${upcomingBooking.pickupLocation} → ${upcomingBooking.destination}',
@@ -94,15 +94,14 @@ class PassengerHomeScreen extends ConsumerWidget {
                     upcomingBooking.pickupTimeType == 'now'
                         ? 'Now'
                         : upcomingBooking.scheduledPickupTime == null
-                            ? 'Scheduled'
-                            : '${upcomingBooking.scheduledPickupTime!.day}/${upcomingBooking.scheduledPickupTime!.month} ${upcomingBooking.scheduledPickupTime!.hour.toString().padLeft(2, '0')}:${upcomingBooking.scheduledPickupTime!.minute.toString().padLeft(2, '0')}',
+                        ? 'Scheduled'
+                        : '${upcomingBooking.scheduledPickupTime!.day}/${upcomingBooking.scheduledPickupTime!.month} ${upcomingBooking.scheduledPickupTime!.hour.toString().padLeft(2, '0')}:${upcomingBooking.scheduledPickupTime!.minute.toString().padLeft(2, '0')}',
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                   onTap: () => context.push('/pickup'),
                 ),
               ),
-            if (upcomingBooking != null)
-              const SizedBox(height: AppSpacing.md),
+            if (upcomingBooking != null) const SizedBox(height: AppSpacing.md),
             AppCard(
               child: Row(
                 children: [
@@ -347,12 +346,7 @@ class PassengerHomeScreen extends ConsumerWidget {
                   title: Text(recentBooking.destination),
                   subtitle: Text(recentBooking.pickupLocation),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    ref
-                        .read(bookingStateProvider.notifier)
-                        .setDestinationFromBooking(recentBooking);
-                    context.push('/pickup');
-                  },
+                  onTap: () => context.push('/booking/${recentBooking.id}'),
                 ),
               ),
             ),
@@ -371,9 +365,9 @@ class PassengerHomeScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.lg),
             Text(
               'Other bookings',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.sm),
             if (otherBookings.isEmpty)
@@ -401,16 +395,11 @@ class PassengerHomeScreen extends ConsumerWidget {
                       recentBooking.pickupTimeType == 'now'
                           ? 'Now'
                           : recentBooking.scheduledPickupTime == null
-                              ? 'Scheduled'
-                              : '${recentBooking.scheduledPickupTime!.day}/${recentBooking.scheduledPickupTime!.month} ${recentBooking.scheduledPickupTime!.hour.toString().padLeft(2, '0')}:${recentBooking.scheduledPickupTime!.minute.toString().padLeft(2, '0')}',
+                          ? 'Scheduled'
+                          : '${recentBooking.scheduledPickupTime!.day}/${recentBooking.scheduledPickupTime!.month} ${recentBooking.scheduledPickupTime!.hour.toString().padLeft(2, '0')}:${recentBooking.scheduledPickupTime!.minute.toString().padLeft(2, '0')}',
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
-                    onTap: () {
-                      ref
-                          .read(bookingStateProvider.notifier)
-                          .setDestinationFromBooking(recentBooking);
-                      context.push('/pickup');
-                    },
+                    onTap: () => context.push('/booking/${recentBooking.id}'),
                   ),
                 ),
               ),

@@ -31,12 +31,20 @@ class OnboardingScreen extends StatelessWidget {
                     Positioned(
                       left: 28,
                       bottom: 42,
-                      child: Icon(Icons.local_taxi, size: 96, color: AppColors.primaryDark),
+                      child: Icon(
+                        Icons.local_taxi,
+                        size: 96,
+                        color: AppColors.primaryDark,
+                      ),
                     ),
                     Positioned(
                       right: 32,
                       top: 36,
-                      child: Icon(Icons.payments_outlined, size: 66, color: AppColors.primaryDark),
+                      child: Icon(
+                        Icons.payments_outlined,
+                        size: 66,
+                        color: AppColors.primaryDark,
+                      ),
                     ),
                   ],
                 ),
@@ -44,15 +52,23 @@ class OnboardingScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.xxl),
               Text(
                 'Earn with Taximan on your schedule.',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
                 'Receive ride requests, manage availability, and track trips from one focused driver dashboard.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary, height: 1.4),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
               ),
               const Spacer(),
-              AppButton(label: 'Get Started', onPressed: () => context.push('/register')),
+              AppButton(
+                label: 'Get Started',
+                onPressed: () => context.push('/register'),
+              ),
               const SizedBox(height: AppSpacing.compact),
               AppButton(
                 label: 'Login',

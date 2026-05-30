@@ -40,26 +40,26 @@ class DriverState {
 
 class DriverController extends StateNotifier<DriverState> {
   DriverController()
-      : super(
-          const DriverState(
-            driver: Driver(
-              id: 'driver-001',
-              fullName: 'Samuel Fotso',
-              email: 'samuel.fotso@example.com',
-              phone: '+237 6 91 24 77 05',
-              city: 'Yaounde',
-              rating: 4.9,
-              verificationStatus: 'Pending verification',
-              vehicle: Vehicle(
-                type: 'Taxi',
-                model: 'Toyota Corolla',
-                plateNumber: 'LT 4821 AB',
-                color: 'Yellow',
-                capacity: 4,
-              ),
+    : super(
+        const DriverState(
+          driver: Driver(
+            id: 'driver-001',
+            fullName: 'Samuel Fotso',
+            email: 'samuel.fotso@example.com',
+            phone: '+237 6 91 24 77 05',
+            city: 'Yaounde',
+            rating: 4.9,
+            verificationStatus: 'Pending verification',
+            vehicle: Vehicle(
+              type: 'Taxi',
+              model: 'Toyota Corolla',
+              plateNumber: 'LT 4821 AB',
+              color: 'Yellow',
+              capacity: 4,
             ),
           ),
-        );
+        ),
+      );
 
   void toggleAvailability() {
     state = state.copyWith(isOnline: !state.isOnline, isBusy: false);
@@ -70,6 +70,7 @@ class DriverController extends StateNotifier<DriverState> {
   }
 }
 
-final driverStateProvider = StateNotifierProvider<DriverController, DriverState>(
-  (ref) => DriverController(),
-);
+final driverStateProvider =
+    StateNotifierProvider<DriverController, DriverState>(
+      (ref) => DriverController(),
+    );

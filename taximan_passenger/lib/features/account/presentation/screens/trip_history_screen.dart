@@ -87,10 +87,9 @@ class TripHistoryScreen extends ConsumerWidget {
             if ((bookings ?? const []).isNotEmpty) ...[
               Text(
                 'Recent bookings',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w800),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: AppSpacing.sm),
               ...bookings!.map(
@@ -105,11 +104,11 @@ class TripHistoryScreen extends ConsumerWidget {
                       booking.pickupTimeType == 'now'
                           ? 'Now'
                           : booking.scheduledPickupTime == null
-                              ? 'Scheduled'
-                              : '${booking.scheduledPickupTime!.day}/${booking.scheduledPickupTime!.month} ${booking.scheduledPickupTime!.hour.toString().padLeft(2, '0')}:${booking.scheduledPickupTime!.minute.toString().padLeft(2, '0')}',
+                          ? 'Scheduled'
+                          : '${booking.scheduledPickupTime!.day}/${booking.scheduledPickupTime!.month} ${booking.scheduledPickupTime!.hour.toString().padLeft(2, '0')}:${booking.scheduledPickupTime!.minute.toString().padLeft(2, '0')}',
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
-                    onTap: () => context.push('/pickup'),
+                    onTap: () => context.push('/booking/${booking.id}'),
                   ),
                 ),
               ),

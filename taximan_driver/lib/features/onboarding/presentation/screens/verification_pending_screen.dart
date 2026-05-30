@@ -19,11 +19,17 @@ class VerificationPendingScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
-              const Icon(Icons.hourglass_top, size: 94, color: AppColors.warning),
+              const Icon(
+                Icons.hourglass_top,
+                size: 94,
+                color: AppColors.warning,
+              ),
               const SizedBox(height: AppSpacing.xl),
               Text(
                 'Verification pending',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
               const AppCard(
@@ -33,7 +39,10 @@ class VerificationPendingScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              AppButton(label: 'View document status', onPressed: () => context.go('/document-status')),
+              AppButton(
+                label: 'View document status',
+                onPressed: () => context.go('/document-status'),
+              ),
               const SizedBox(height: AppSpacing.compact),
               AppButton(
                 label: 'Open demo dashboard',

@@ -1,19 +1,21 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../application/providers/auth_state_provider.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
   Timer? _timer;
 
   @override
@@ -21,7 +23,8 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     _timer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
-        context.go('/onboarding');
+        final authState = ref.read(authStateProvider);
+        context.go(authState.isAuthenticated ? '/dashboard' : '/onboarding');
       }
     });
   }
@@ -48,17 +51,25 @@ class _SplashScreenState extends State<SplashScreen> {
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(28),
                 ),
-                child: const Icon(Icons.directions_car, size: 48, color: Colors.white),
+                child: const Icon(
+                  Icons.directions_car,
+                  size: 48,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: AppSpacing.xl),
               Text(
                 'Taximan Driver',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 'Drive, earn, and manage trips.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
               ),
             ],
           ),

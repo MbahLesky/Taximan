@@ -19,11 +19,17 @@ class MarkArrivalScreen extends StatelessWidget {
         child: Column(
           children: [
             const Spacer(),
-            const Icon(Icons.check_circle_outline, size: 96, color: AppColors.success),
+            const Icon(
+              Icons.check_circle_outline,
+              size: 96,
+              color: AppColors.success,
+            ),
             const SizedBox(height: AppSpacing.xl),
             Text(
               'You are at pickup',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: AppSpacing.md),
             const AppCard(
@@ -35,7 +41,10 @@ class MarkArrivalScreen extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            AppButton(label: 'Confirm arrival', onPressed: () => context.push('/trip-start')),
+            AppButton(
+              label: 'Confirm arrival',
+              onPressed: () => context.push('/trip-start'),
+            ),
           ],
         ),
       ),

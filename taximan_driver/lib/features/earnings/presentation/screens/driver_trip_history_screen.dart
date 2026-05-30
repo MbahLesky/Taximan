@@ -33,11 +33,16 @@ class DriverTripHistoryScreen extends StatelessWidget {
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.local_taxi),
-                    title: Text('${trip['passenger']} to ${trip['destination']}'),
+                    title: Text(
+                      '${trip['passenger']} to ${trip['destination']}',
+                    ),
                     subtitle: Text('${trip['date']} - ${trip['status']}'),
                     trailing: Text(
                       trip['fare'] ?? '',
-                      style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryDark,
+                      ),
                     ),
                     onTap: () => context.go('/trip-details'),
                   ),

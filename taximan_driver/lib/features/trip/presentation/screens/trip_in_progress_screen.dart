@@ -24,7 +24,13 @@ class TripInProgressScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: AppColors.border),
               ),
-              child: const Center(child: Icon(Icons.route, size: 86, color: AppColors.primaryDark)),
+              child: const Center(
+                child: Icon(
+                  Icons.route,
+                  size: 86,
+                  color: AppColors.primaryDark,
+                ),
+              ),
             ),
           ),
           Padding(
@@ -51,7 +57,10 @@ class TripInProgressScreen extends StatelessWidget {
                     title: Text('Fare'),
                     subtitle: Text(DummyData.estimatedFare),
                   ),
-                  AppButton(label: 'End trip', onPressed: () => context.push('/trip-completed')),
+                  AppButton(
+                    label: 'End trip',
+                    onPressed: () => context.push('/trip-completed'),
+                  ),
                 ],
               ),
             ),

@@ -29,13 +29,29 @@ class EarningsScreen extends ConsumerWidget {
                 message: 'Completed cash trips will update this page.',
               )
             else ...[
-              _EarningCard(label: 'Today', value: earnings.todayFormatted, icon: Icons.today),
+              _EarningCard(
+                label: 'Today',
+                value: earnings.todayFormatted,
+                icon: Icons.today,
+              ),
               const SizedBox(height: AppSpacing.sm),
-              _EarningCard(label: 'This week', value: earnings.weekFormatted, icon: Icons.date_range),
+              _EarningCard(
+                label: 'This week',
+                value: earnings.weekFormatted,
+                icon: Icons.date_range,
+              ),
               const SizedBox(height: AppSpacing.sm),
-              _EarningCard(label: 'Total earnings', value: earnings.totalFormatted, icon: Icons.account_balance_wallet_outlined),
+              _EarningCard(
+                label: 'Total earnings',
+                value: earnings.totalFormatted,
+                icon: Icons.account_balance_wallet_outlined,
+              ),
               const SizedBox(height: AppSpacing.sm),
-              _EarningCard(label: 'Completed trips', value: '${earnings.completedTrips}', icon: Icons.route),
+              _EarningCard(
+                label: 'Completed trips',
+                value: '${earnings.completedTrips}',
+                icon: Icons.route,
+              ),
             ],
           ],
         ),
@@ -45,7 +61,11 @@ class EarningsScreen extends ConsumerWidget {
 }
 
 class _EarningCard extends StatelessWidget {
-  const _EarningCard({required this.label, required this.value, required this.icon});
+  const _EarningCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
 
   final String label;
   final String value;
@@ -58,7 +78,10 @@ class _EarningCard extends StatelessWidget {
         contentPadding: EdgeInsets.zero,
         leading: Icon(icon, color: AppColors.primaryDark),
         title: Text(label),
-        trailing: Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+        trailing: Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.w900),
+        ),
       ),
     );
   }

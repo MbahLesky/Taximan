@@ -18,11 +18,20 @@ class DriverTripDetailsScreen extends StatelessWidget {
           AppCard(
             child: Column(
               children: [
-                _DetailsLine(label: 'Passenger', value: DummyData.passengerName),
+                _DetailsLine(
+                  label: 'Passenger',
+                  value: DummyData.passengerName,
+                ),
                 _DetailsLine(label: 'Pickup', value: DummyData.incomingPickup),
-                _DetailsLine(label: 'Destination', value: DummyData.incomingDestination),
+                _DetailsLine(
+                  label: 'Destination',
+                  value: DummyData.incomingDestination,
+                ),
                 _DetailsLine(label: 'Fare', value: DummyData.estimatedFare),
-                _DetailsLine(label: 'Payment method', value: DummyData.paymentMethod),
+                _DetailsLine(
+                  label: 'Payment method',
+                  value: DummyData.paymentMethod,
+                ),
                 _DetailsLine(label: 'Trip status', value: 'Completed'),
                 Divider(height: 28),
                 _DetailsLine(label: 'Commission', value: DummyData.commission),
@@ -49,7 +58,12 @@ class _DetailsLine extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: Text(label, style: const TextStyle(color: AppColors.textSecondary))),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
           Expanded(
             child: Text(
               value,

@@ -23,12 +23,17 @@ class VerificationRejectedScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.xl),
             Text(
               'Update required',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: AppSpacing.md),
             const AppCard(child: Text(DummyData.rejectionReason)),
             const Spacer(),
-            AppButton(label: 'Update documents', onPressed: () => context.push('/document-upload')),
+            AppButton(
+              label: 'Update documents',
+              onPressed: () => context.push('/document-upload'),
+            ),
           ],
         ),
       ),
