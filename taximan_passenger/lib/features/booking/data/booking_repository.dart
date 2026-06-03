@@ -7,7 +7,7 @@ class BookingRepository {
   final FirebaseFirestore _firestore;
 
   BookingRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   static const String _collection = 'bookings';
 
@@ -34,10 +34,12 @@ class BookingRepository {
   /// Get a booking by ID
   Future<Booking?> getBooking(String bookingId) async {
     try {
-      final doc =
-          await _firestore.collection(_collection).doc(bookingId).get();
+      final doc = await _firestore.collection(_collection).doc(bookingId).get();
       if (doc.exists) {
-        return Booking.fromMap(doc.data() as Map<String, dynamic>);
+        return Booking.fromMap({
+          ...(doc.data() as Map<String, dynamic>),
+          'id': doc.id,
+        });
       }
       return null;
     } catch (e) {
@@ -47,14 +49,17 @@ class BookingRepository {
 
   /// Stream a booking by ID
   Stream<Booking?> streamBooking(String bookingId) {
-    return _firestore.collection(_collection).doc(bookingId).snapshots().map(
-      (doc) {
-        if (!doc.exists) {
-          return null;
-        }
-        return Booking.fromMap(doc.data() as Map<String, dynamic>);
-      },
-    );
+    return _firestore.collection(_collection).doc(bookingId).snapshots().map((
+      doc,
+    ) {
+      if (!doc.exists) {
+        return null;
+      }
+      return Booking.fromMap({
+        ...(doc.data() as Map<String, dynamic>),
+        'id': doc.id,
+      });
+    });
   }
 
   /// Get all bookings for a passenger
@@ -67,10 +72,8 @@ class BookingRepository {
           .get();
 
       return query.docs
-          .map((doc) => Booking.fromMap(doc.data()))
+          .map((doc) => Booking.fromMap({...doc.data(), 'id': doc.id}))
           .toList();
-
-    print("============\n\n\n======\nPassenger Id: $passengerId, Number ${query.docs.length}");
     } catch (e) {
       throw Exception('Failed to fetch passenger bookings: $e');
     }
@@ -79,13 +82,12 @@ class BookingRepository {
   /// Update a booking
   Future<Booking> updateBooking(Booking booking) async {
     try {
-      final updatedBooking = booking.copyWith(
-        updatedAt: DateTime.now(),
-      );
-      await _firestore.collection(_collection).doc(booking.id).update(
-            updatedBooking.toMap(),
-          );
-          
+      final updatedBooking = booking.copyWith(updatedAt: DateTime.now());
+      await _firestore
+          .collection(_collection)
+          .doc(booking.id)
+          .update(updatedBooking.toMap());
+
       return updatedBooking;
     } catch (e) {
       throw Exception('Failed to update booking: $e');
@@ -146,15 +148,17 @@ class BookingRepository {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Booking.fromMap(doc.data()))
-          .toList();
-    });
+          return snapshot.docs
+              .map((doc) => Booking.fromMap({...doc.data(), 'id': doc.id}))
+              .toList();
+        });
   }
 
   /// Get recent bookings for dashboard
-  Future<List<Booking>> getRecentBookings(String passengerId,
-      {int limit = 5}) async {
+  Future<List<Booking>> getRecentBookings(
+    String passengerId, {
+    int limit = 3,
+  }) async {
     try {
       final query = await _firestore
           .collection(_collection)
@@ -164,10 +168,8 @@ class BookingRepository {
           .get();
 
       return query.docs
-          .map((doc) => Booking.fromMap(doc.data()))
+          .map((doc) => Booking.fromMap({...doc.data(), 'id': doc.id}))
           .toList();
-
-     print("============\n\n\n======\nPassenger Id: $passengerId, Recent Number ${query.docs.length}");
     } catch (e) {
       throw Exception('Failed to fetch recent bookings: $e');
     }
@@ -186,12 +188,11 @@ class BookingRepository {
           .limit(1)
           .get();
 
-       print("============\n\n\n======\nPassenger Id: $passengerId, Upcoming Number ${query.docs.length}");
-
       if (query.docs.isEmpty) {
         return null;
       }
-      return Booking.fromMap(query.docs.first.data());
+      final doc = query.docs.first;
+      return Booking.fromMap({...doc.data(), 'id': doc.id});
     } catch (e) {
       throw Exception('Failed to fetch upcoming booking: $e');
     }

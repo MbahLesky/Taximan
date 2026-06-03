@@ -4,29 +4,40 @@ import '../../../../shared/models/trip.dart';
 import '../../../booking/application/providers/repositories.dart';
 
 /// Get recent trips for a passenger
-final recentTripsProvider =
-    FutureProvider.family<List<Trip>, String>((ref, passengerId) async {
+final recentTripsProvider = FutureProvider.family<List<Trip>, String>((
+  ref,
+  passengerId,
+) async {
   final repository = ref.watch(tripRepositoryProvider);
   return repository.getRecentTrips(passengerId);
 });
 
 /// Get a specific trip
-final tripProvider =
-    FutureProvider.family<Trip?, String>((ref, tripId) async {
+final tripProvider = FutureProvider.family<Trip?, String>((ref, tripId) async {
   final repository = ref.watch(tripRepositoryProvider);
   return repository.getTrip(tripId);
 });
 
+/// Stream a specific trip
+final tripStreamProvider = StreamProvider.family<Trip?, String>((ref, tripId) {
+  final repository = ref.watch(tripRepositoryProvider);
+  return repository.streamTrip(tripId);
+});
+
 /// Stream active trip for a passenger
-final activeTripsStreamProvider =
-    StreamProvider.family<Trip?, String>((ref, passengerId) {
+final activeTripsStreamProvider = StreamProvider.family<Trip?, String>((
+  ref,
+  passengerId,
+) {
   final repository = ref.watch(tripRepositoryProvider);
   return repository.streamActiveTrip(passengerId);
 });
 
 /// Get all trips for a passenger
-final passengerTripsProvider =
-    FutureProvider.family<List<Trip>, String>((ref, passengerId) async {
+final passengerTripsProvider = FutureProvider.family<List<Trip>, String>((
+  ref,
+  passengerId,
+) async {
   final repository = ref.watch(tripRepositoryProvider);
   return repository.getPassengerTrips(passengerId);
 });
@@ -34,6 +45,6 @@ final passengerTripsProvider =
 /// Get trips with pending ratings
 final tripsWithPendingRatingsProvider =
     FutureProvider.family<List<Trip>, String>((ref, passengerId) async {
-  final repository = ref.watch(tripRepositoryProvider);
-  return repository.getTripsWithPendingRatings(passengerId);
-});
+      final repository = ref.watch(tripRepositoryProvider);
+      return repository.getTripsWithPendingRatings(passengerId);
+    });

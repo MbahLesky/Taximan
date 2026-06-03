@@ -271,7 +271,7 @@ Flow:
 3. Booking `finalFare` is updated.
 4. Driver is assigned.
 5. Booking status changes to `accepted`.
-6. Trip is created.
+6. A trip document is created in `trips` with the proposing driver.
 
 ---
 

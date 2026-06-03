@@ -18,6 +18,7 @@ Main collections:
 * `drivers`
 * `vehicles`
 * `bookings`
+* `fare_proposals`
 * `trips`
 * `payments`
 * `ratings`
@@ -637,6 +638,11 @@ Firestore indexes may be needed for:
 * `passengerId + createdAt`
 * `driverId + createdAt`
 * `status + createdAt`
+
+## Fare Proposals
+
+* `bookingId + createdAt`
+* `bookingId + status + createdAt`
 
 ## Earnings
 

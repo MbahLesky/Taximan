@@ -9,6 +9,12 @@ final fareProposalRepositoryProvider = Provider<FareProposalRepository>((ref) {
 
 final pendingFareProposalProvider =
     StreamProvider.family<FareProposal?, String>((ref, bookingId) {
-  final repository = ref.watch(fareProposalRepositoryProvider);
-  return repository.streamPendingProposal(bookingId);
-});
+      final repository = ref.watch(fareProposalRepositoryProvider);
+      return repository.streamPendingProposal(bookingId);
+    });
+
+final bookingFareProposalsProvider =
+    StreamProvider.family<List<FareProposal>, String>((ref, bookingId) {
+      final repository = ref.watch(fareProposalRepositoryProvider);
+      return repository.streamBookingProposals(bookingId);
+    });

@@ -4,14 +4,17 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../auth/application/providers/auth_state_provider.dart';
-import '../../../account/application/providers/user_provider.dart';
-import '../../../matching/application/providers/driver_providers.dart';
-import '../../application/providers/booking_providers.dart';
-import '../../application/providers/booking_state_provider.dart';
+import '../../../../shared/models/booking.dart';
+import '../../../../shared/models/trip.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
+import '../../../account/application/providers/user_provider.dart';
+import '../../../auth/application/providers/auth_state_provider.dart';
+import '../../../matching/application/providers/driver_providers.dart';
+import '../../../trip/application/providers/trip_providers.dart';
+import '../../application/providers/booking_providers.dart';
+import '../../application/providers/booking_state_provider.dart';
 
 class PassengerHomeScreen extends ConsumerWidget {
   const PassengerHomeScreen({super.key});
@@ -21,15 +24,17 @@ class PassengerHomeScreen extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
     final passengerId = ref.watch(authStateProvider).userId;
     final availableDriverCount = ref.watch(availableDriverCountProvider);
-    final upcomingBooking = passengerId == null
+    final activeTrip = passengerId == null
         ? null
-        : ref.watch(upcomingBookingProvider(passengerId)).valueOrNull;
+        : ref.watch(activeTripsStreamProvider(passengerId)).valueOrNull;
     final recentBookings = passengerId == null
-        ? null
-        : ref.watch(recentBookingsProvider(passengerId)).valueOrNull;
-    final otherBookings = (recentBookings ?? const [])
-        .where((booking) => booking.id != upcomingBooking?.id)
-        .toList();
+        ? const <Booking>[]
+        : ref.watch(recentBookingsProvider(passengerId)).valueOrNull ??
+              const <Booking>[];
+    final recentTrips = passengerId == null
+        ? const <Trip>[]
+        : ref.watch(recentTripsProvider(passengerId)).valueOrNull ??
+              const <Trip>[];
     final bookingState = ref.watch(bookingStateProvider);
     final booking = bookingState.booking;
     final firstName = currentUser?.fullName.split(' ').first;
@@ -69,8 +74,7 @@ class PassengerHomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.md),
-            //
-            if (upcomingBooking != null)
+            if (activeTrip != null) ...[
               AppCard(
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -86,22 +90,19 @@ class PassengerHomeScreen extends ConsumerWidget {
                     ),
                   ),
                   subtitle: Text(
-                    '${upcomingBooking.pickupLocation} → ${upcomingBooking.destination}',
+                    '${activeTrip.pickupLocation} -> ${activeTrip.destination}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   trailing: Text(
-                    upcomingBooking.pickupTimeType == 'now'
-                        ? 'Now'
-                        : upcomingBooking.scheduledPickupTime == null
-                        ? 'Scheduled'
-                        : '${upcomingBooking.scheduledPickupTime!.day}/${upcomingBooking.scheduledPickupTime!.month} ${upcomingBooking.scheduledPickupTime!.hour.toString().padLeft(2, '0')}:${upcomingBooking.scheduledPickupTime!.minute.toString().padLeft(2, '0')}',
+                    activeTrip.status,
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
-                  onTap: () => context.push('/pickup'),
+                  onTap: () => context.push('/trip/${activeTrip.id}'),
                 ),
               ),
-            if (upcomingBooking != null) const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.md),
+            ],
             AppCard(
               child: Row(
                 children: [
@@ -253,159 +254,127 @@ class PassengerHomeScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.md),
                   AppButton(
                     label: booking.destination.isEmpty
-                        ? 'Plan route'
-                        : 'Change route',
+                        ? 'Book a ride'
+                        : 'Continue booking',
                     icon: Icons.arrow_forward,
                     onPressed: () => context.push('/pickup'),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            AppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Ride action',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  const Row(
-                    children: [
-                      Expanded(
-                        child: _ActionPill(
-                          icon: Icons.flash_on,
-                          label: 'Ride now',
-                        ),
-                      ),
-                      SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: _ActionPill(
-                          icon: Icons.schedule,
-                          label: 'Schedule',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _ActionPill(
-                          icon: Icons.payments_outlined,
-                          label: booking.paymentMethod,
-                        ),
-                      ),
-                      SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: _ActionPill(
-                          icon: Icons.group_outlined,
-                          label: 'Ride share',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  AppButton(
-                    label: 'Review ride summary',
-                    icon: Icons.receipt_long_outlined,
-                    onPressed: bookingState.canConfirmRide
-                        ? () => context.push('/ride-summary')
-                        : null,
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Recent destinations',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => context.go('/trips'),
-                  child: const Text('Trips'),
-                ),
-              ],
+            _SectionHeader(
+              title: 'Recent bookings',
+              onViewAll: () => context.go('/trips'),
             ),
             const SizedBox(height: AppSpacing.sm),
-            ...(recentBookings ?? const []).map(
-              (recentBooking) => AppCard(
-                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.history),
-                  title: Text(recentBooking.destination),
-                  subtitle: Text(recentBooking.pickupLocation),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/booking/${recentBooking.id}'),
-                ),
-              ),
-            ),
-            if ((recentBookings ?? const []).isEmpty)
+            if (recentBookings.isEmpty)
               AppCard(
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.history_toggle_off),
-                  title: const Text('No recent destinations yet'),
+                  leading: const Icon(Icons.book_online_outlined),
+                  title: const Text('No recent bookings yet'),
                   subtitle: const Text(
-                    'Completed bookings from the database will appear here.',
-                  ),
-                  onTap: () => context.push('/pickup'),
-                ),
-              ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              'Other bookings',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            if (otherBookings.isEmpty)
-              AppCard(
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.event_available),
-                  title: const Text('No other bookings'),
-                  subtitle: const Text(
-                    'Your next upcoming or recent bookings will show here.',
+                    'Booking requests and pending approvals will appear here.',
                   ),
                   onTap: () => context.push('/pickup'),
                 ),
               )
             else
-              ...otherBookings.map(
+              ...recentBookings.map(
                 (recentBooking) => AppCard(
                   margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.book_online),
-                    title: Text(recentBooking.destination),
-                    subtitle: Text(recentBooking.pickupLocation),
+                    title: Text(
+                      recentBooking.destination,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      '${recentBooking.pickupLocation}\n${recentBooking.status}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     trailing: Text(
-                      recentBooking.pickupTimeType == 'now'
-                          ? 'Now'
-                          : recentBooking.scheduledPickupTime == null
-                          ? 'Scheduled'
-                          : '${recentBooking.scheduledPickupTime!.day}/${recentBooking.scheduledPickupTime!.month} ${recentBooking.scheduledPickupTime!.hour.toString().padLeft(2, '0')}:${recentBooking.scheduledPickupTime!.minute.toString().padLeft(2, '0')}',
+                      recentBooking.formattedFinalFare,
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                     onTap: () => context.push('/booking/${recentBooking.id}'),
                   ),
                 ),
               ),
+            const SizedBox(height: AppSpacing.lg),
+            _SectionHeader(
+              title: 'Recent trips',
+              onViewAll: () => context.go('/trips'),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            if (recentTrips.isEmpty)
+              AppCard(
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.alt_route_outlined),
+                  title: const Text('No recent trips yet'),
+                  subtitle: const Text(
+                    'Approved, active, and completed trips will appear here.',
+                  ),
+                  onTap: () => context.push('/pickup'),
+                ),
+              )
+            else
+              ...recentTrips.map(
+                (recentTrip) => AppCard(
+                  margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.local_taxi),
+                    title: Text(
+                      recentTrip.destination,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      '${recentTrip.pickupLocation}\n${recentTrip.status}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: Text(
+                      recentTrip.formattedFinalFare,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    onTap: () => context.push('/trip/${recentTrip.id}'),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title, required this.onViewAll});
+
+  final String title;
+  final VoidCallback onViewAll;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+        TextButton(onPressed: onViewAll, child: const Text('View all')),
+      ],
     );
   }
 }

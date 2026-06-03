@@ -128,9 +128,11 @@ final appRouter = GoRouter(
       builder: (context, state) => const PassengerTrackingScreen(),
     ),
     GoRoute(
-      path: '/trip-details',
-      builder: (context, state) => const TripDetailsScreen(),
+      path: '/trip/:tripId',
+      builder: (context, state) =>
+          TripDetailsScreen(tripId: state.pathParameters['tripId'] ?? ''),
     ),
+    GoRoute(path: '/trip-details', redirect: (context, state) => '/trips'),
     GoRoute(
       path: '/settings',
       builder: (context, state) => const PassengerProfileScreen(),

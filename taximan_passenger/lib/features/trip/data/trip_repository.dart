@@ -7,7 +7,7 @@ class TripRepository {
   final FirebaseFirestore _firestore;
 
   TripRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   static const String _collection = 'trips';
 
@@ -34,12 +34,30 @@ class TripRepository {
     try {
       final doc = await _firestore.collection(_collection).doc(tripId).get();
       if (doc.exists) {
-        return Trip.fromMap(doc.data() as Map<String, dynamic>);
+        return Trip.fromMap({
+          ...(doc.data() as Map<String, dynamic>),
+          'id': doc.id,
+        });
       }
       return null;
     } catch (e) {
       throw Exception('Failed to fetch trip: $e');
     }
+  }
+
+  /// Stream a trip by ID
+  Stream<Trip?> streamTrip(String tripId) {
+    return _firestore.collection(_collection).doc(tripId).snapshots().map((
+      doc,
+    ) {
+      if (!doc.exists) {
+        return null;
+      }
+      return Trip.fromMap({
+        ...(doc.data() as Map<String, dynamic>),
+        'id': doc.id,
+      });
+    });
   }
 
   /// Get all trips for a passenger
@@ -52,7 +70,7 @@ class TripRepository {
           .get();
 
       return query.docs
-          .map((doc) => Trip.fromMap(doc.data()))
+          .map((doc) => Trip.fromMap({...doc.data(), 'id': doc.id}))
           .toList();
     } catch (e) {
       throw Exception('Failed to fetch passenger trips: $e');
@@ -62,12 +80,11 @@ class TripRepository {
   /// Update a trip
   Future<Trip> updateTrip(Trip trip) async {
     try {
-      final updatedTrip = trip.copyWith(
-        updatedAt: DateTime.now(),
-      );
-      await _firestore.collection(_collection).doc(trip.id).update(
-            updatedTrip.toMap(),
-          );
+      final updatedTrip = trip.copyWith(updatedAt: DateTime.now());
+      await _firestore
+          .collection(_collection)
+          .doc(trip.id)
+          .update(updatedTrip.toMap());
       return updatedTrip;
     } catch (e) {
       throw Exception('Failed to update trip: $e');
@@ -102,14 +119,49 @@ class TripRepository {
   /// Complete a trip
   Future<void> completeTrip(String tripId, int finalFare) async {
     try {
-      await _firestore.collection(_collection).doc(tripId).update({
-        'status': 'completed',
-        'finalFare': finalFare,
-        'completedAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
+      final tripRef = _firestore.collection(_collection).doc(tripId);
+
+      await _firestore.runTransaction((transaction) async {
+        final tripSnapshot = await transaction.get(tripRef);
+        final tripData = tripSnapshot.data();
+        if (tripData == null) {
+          throw Exception('Trip no longer exists.');
+        }
+
+        final bookingId = tripData['bookingId'] as String?;
+        DocumentReference<Map<String, dynamic>>? bookingRef;
+        DocumentSnapshot<Map<String, dynamic>>? bookingSnapshot;
+        if (bookingId != null && bookingId.isNotEmpty) {
+          bookingRef = _firestore.collection('bookings').doc(bookingId);
+          bookingSnapshot = await transaction.get(bookingRef);
+        }
+
+        transaction.update(tripRef, {
+          'status': TripStatus.completed,
+          'finalFare': finalFare,
+          'completedAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+
+        if (bookingRef != null && bookingSnapshot?.exists == true) {
+          transaction.update(bookingRef, {
+            'status': BookingStatus.completed,
+            'finalFare': finalFare,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
       });
     } catch (e) {
       throw Exception('Failed to complete trip: $e');
+    }
+  }
+
+  /// Delete a trip record
+  Future<void> deleteTrip(String tripId) async {
+    try {
+      await _firestore.collection(_collection).doc(tripId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete trip: $e');
     }
   }
 
@@ -136,15 +188,19 @@ class TripRepository {
         .limit(1)
         .snapshots()
         .map((snapshot) {
-      if (snapshot.docs.isNotEmpty) {
-        return Trip.fromMap(snapshot.docs.first.data());
-      }
-      return null;
-    });
+          if (snapshot.docs.isNotEmpty) {
+            final doc = snapshot.docs.first;
+            return Trip.fromMap({...doc.data(), 'id': doc.id});
+          }
+          return null;
+        });
   }
 
   /// Get recent trips for dashboard
-  Future<List<Trip>> getRecentTrips(String passengerId, {int limit = 10}) async {
+  Future<List<Trip>> getRecentTrips(
+    String passengerId, {
+    int limit = 3,
+  }) async {
     try {
       final query = await _firestore
           .collection(_collection)
@@ -154,7 +210,7 @@ class TripRepository {
           .get();
 
       return query.docs
-          .map((doc) => Trip.fromMap(doc.data()))
+          .map((doc) => Trip.fromMap({...doc.data(), 'id': doc.id}))
           .toList();
     } catch (e) {
       throw Exception('Failed to fetch recent trips: $e');
@@ -172,7 +228,7 @@ class TripRepository {
           .get();
 
       return query.docs
-          .map((doc) => Trip.fromMap(doc.data()))
+          .map((doc) => Trip.fromMap({...doc.data(), 'id': doc.id}))
           .toList();
     } catch (e) {
       throw Exception('Failed to fetch trips with pending ratings: $e');

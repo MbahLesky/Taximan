@@ -102,7 +102,7 @@ Taximan uses:
 {
   "title": "New Fare Proposal",
   "body": "Driver proposed a new fare",
-  "type": "fare_proposal",
+  "type": "fare_proposals",
   "bookingId": "booking_id"
 }
 ```

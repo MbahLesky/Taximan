@@ -126,15 +126,24 @@ Firestore upload action.
 
 **Purpose:** View and edit basic passenger profile.
 
-### 22. Trip History Screen
+### 22. Trips & Bookings Screen
 
-**Purpose:** Show list of previous trips.
+**Purpose:** Show passenger bookings and trips in separate tabs. The bookings
+tab lists booking requests and pending fare approvals from `bookings`; the
+trips tab lists approved, active, and completed trip records from `trips`.
 
-### 23. Trip Details Screen
+### 23. Booking Details Screen
 
-**Purpose:** Show detailed information about a selected trip.
+**Purpose:** Show the selected booking, route details, payment state, and all
+fare proposals from `fare_proposals`. Pending proposals can be accepted or
+rejected; accepting creates the corresponding upcoming trip.
 
-### 24. Settings Screen
+### 24. Trip Details Screen
+
+**Purpose:** Show detailed information about a selected trip with actions to
+track, mark completed, or delete the trip record.
+
+### 25. Settings Screen
 
 **Purpose:** Manage preferences and basic app settings.
 

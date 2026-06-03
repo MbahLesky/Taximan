@@ -10,7 +10,7 @@ import '../features/auth/presentation/screens/register_screen.dart';
 import '../features/auth/presentation/screens/splash_screen.dart';
 import '../features/availability/presentation/screens/availability_schedule_screen.dart';
 import '../features/availability/presentation/screens/driver_dashboard_screen.dart';
-import '../features/booking_management/presentation/screens/fare_proposal_screen.dart';
+import '../features/booking_management/presentation/screens/fare_proposals_screen.dart';
 import '../features/booking_management/presentation/screens/incoming_ride_request_screen.dart';
 import '../features/booking_management/presentation/screens/request_timeout_screen.dart';
 import '../features/earnings/presentation/screens/driver_trip_details_screen.dart';

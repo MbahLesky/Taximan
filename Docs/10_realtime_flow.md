@@ -77,7 +77,7 @@ Passenger creates booking → Firestore updates → Drivers receive via listener
 
 ### Driver
 
-* Creates proposal → stored in `fare_proposals`
+* Creates proposal -> stored in `fare_proposals`
 
 ### Passenger
 

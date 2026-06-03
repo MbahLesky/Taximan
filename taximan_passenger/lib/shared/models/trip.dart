@@ -139,7 +139,12 @@ class Trip {
       map['destinationLocation'] ?? map['destination'],
     );
     final distanceKm = (map['distanceKm'] as num?)?.toDouble();
-    final durationMinutes = map['estimatedDurationMinutes'] as int?;
+    final durationMinutes = (map['estimatedDurationMinutes'] as num?)?.toInt();
+    final startedAt = readDateTime(map['startedAt']);
+    final completedAt = readDateTime(map['completedAt']);
+    final cancelledAt = readDateTime(map['cancelledAt']);
+    final createdAt = readDateTime(map['createdAt']);
+    final updatedAt = readDateTime(map['updatedAt']);
 
     return Trip(
       id: map['id'] as String? ?? '',
@@ -156,7 +161,9 @@ class Trip {
           map['duration'] as String? ??
           (durationMinutes == null ? '' : '$durationMinutes min'),
       status: map['status'] as String? ?? '',
-      date: map['date'] as String? ?? '',
+      date:
+          map['date'] as String? ??
+          _formatDisplayDate(completedAt ?? createdAt ?? startedAt),
       bookingId: map['bookingId'] as String? ?? '',
       passengerId: map['passengerId'] as String? ?? '',
       driverId: map['driverId'] as String? ?? '',
@@ -165,11 +172,20 @@ class Trip {
       finalFare: (map['finalFare'] as num?)?.toInt(),
       paymentMethod: map['paymentMethod'] as String? ?? 'cash',
       paymentStatus: map['paymentStatus'] as String? ?? 'pending',
-      startedAt: readDateTime(map['startedAt']),
-      completedAt: readDateTime(map['completedAt']),
-      cancelledAt: readDateTime(map['cancelledAt']),
-      createdAt: readDateTime(map['createdAt']),
-      updatedAt: readDateTime(map['updatedAt']),
+      startedAt: startedAt,
+      completedAt: completedAt,
+      cancelledAt: cancelledAt,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
     );
   }
+}
+
+String _formatDisplayDate(DateTime? value) {
+  if (value == null) {
+    return '';
+  }
+  return '${value.day.toString().padLeft(2, '0')}/'
+      '${value.month.toString().padLeft(2, '0')}/'
+      '${value.year}';
 }
