@@ -80,7 +80,7 @@ class _RideDetailsScreenState extends ConsumerState<RideDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Trip preferences',
+                  'Ride preferences',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 SwitchListTile(
@@ -176,7 +176,7 @@ class _RideDetailsScreenState extends ConsumerState<RideDetailsScreen> {
           ),
           const SizedBox(height: AppSpacing.xl),
           AppButton(
-            label: 'Continue to drivers',
+            label: 'Choose driver preference',
             icon: Icons.arrow_forward,
             onPressed: _continue,
           ),

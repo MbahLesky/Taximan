@@ -106,10 +106,51 @@ class TripRepository {
   /// Start a trip
   Future<void> startTrip(String tripId) async {
     try {
-      await _firestore.collection(_collection).doc(tripId).update({
-        'status': 'in_progress',
-        'startedAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
+      final tripRef = _firestore.collection(_collection).doc(tripId);
+      final notificationRef = _firestore.collection('notifications').doc();
+
+      await _firestore.runTransaction((transaction) async {
+        final tripSnapshot = await transaction.get(tripRef);
+        final tripData = tripSnapshot.data();
+        if (tripData == null) {
+          throw Exception('Trip no longer exists.');
+        }
+
+        final bookingId = tripData['bookingId'] as String?;
+        DocumentReference<Map<String, dynamic>>? bookingRef;
+        DocumentSnapshot<Map<String, dynamic>>? bookingSnapshot;
+        if (bookingId != null && bookingId.isNotEmpty) {
+          bookingRef = _firestore.collection('bookings').doc(bookingId);
+          bookingSnapshot = await transaction.get(bookingRef);
+        }
+
+        transaction.update(tripRef, {
+          'status': TripStatus.inProgress,
+          'startedAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+
+        if (bookingRef != null && bookingSnapshot?.exists == true) {
+          transaction.update(bookingRef, {
+            'status': BookingStatus.inProgress,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+
+        final passengerId = tripData['passengerId'] as String?;
+        if (passengerId != null && passengerId.isNotEmpty) {
+          transaction.set(notificationRef, {
+            'id': notificationRef.id,
+            'userId': passengerId,
+            'userRole': 'passenger',
+            'title': 'Trip started',
+            'body': 'Your trip has just begun.',
+            'type': 'trip_started',
+            'isRead': false,
+            'relatedId': tripId,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
       });
     } catch (e) {
       throw Exception('Failed to start trip: $e');
@@ -180,6 +221,24 @@ class TripRepository {
 
   /// Stream of active trip for a passenger
   Stream<Trip?> streamActiveTrip(String passengerId) {
+    return _firestore
+        .collection(_collection)
+        .where('passengerId', isEqualTo: passengerId)
+        .where('status', whereIn: TripStatus.active)
+        .orderBy('createdAt', descending: true)
+        .limit(1)
+        .snapshots()
+        .map((snapshot) {
+          if (snapshot.docs.isNotEmpty) {
+            final doc = snapshot.docs.first;
+            return Trip.fromMap({...doc.data(), 'id': doc.id});
+          }
+          return null;
+        });
+  }
+
+  /// Stream of the nearest pre-trip ride for a passenger.
+  Stream<Trip?> streamUpcomingTrip(String passengerId) {
     return _firestore
         .collection(_collection)
         .where('passengerId', isEqualTo: passengerId)

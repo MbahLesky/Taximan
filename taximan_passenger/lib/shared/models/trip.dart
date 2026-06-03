@@ -15,6 +15,7 @@ class Trip {
     this.passengerId = '',
     this.driverId = '',
     this.vehicleId = '',
+    this.scheduledPickupTime,
     this.actualDurationMinutes,
     this.finalFare,
     this.paymentMethod = 'cash',
@@ -38,6 +39,7 @@ class Trip {
   final String passengerId;
   final String driverId;
   final String vehicleId;
+  final DateTime? scheduledPickupTime;
   final int? actualDurationMinutes;
   final int? finalFare;
   final String paymentMethod;
@@ -66,6 +68,7 @@ class Trip {
     String? passengerId,
     String? driverId,
     String? vehicleId,
+    DateTime? scheduledPickupTime,
     int? actualDurationMinutes,
     int? finalFare,
     String? paymentMethod,
@@ -89,6 +92,7 @@ class Trip {
       passengerId: passengerId ?? this.passengerId,
       driverId: driverId ?? this.driverId,
       vehicleId: vehicleId ?? this.vehicleId,
+      scheduledPickupTime: scheduledPickupTime ?? this.scheduledPickupTime,
       actualDurationMinutes:
           actualDurationMinutes ?? this.actualDurationMinutes,
       finalFare: finalFare ?? this.finalFare,
@@ -113,6 +117,7 @@ class Trip {
       'pickupLocationText': pickupLocation,
       'destinationLocation': destinationLocation.toMap(),
       'destination': destination,
+      'scheduledPickupTime': writeDateTime(scheduledPickupTime),
       'fare': fare,
       'estimatedFare': fare,
       'finalFare': finalFare,
@@ -145,6 +150,7 @@ class Trip {
     final cancelledAt = readDateTime(map['cancelledAt']);
     final createdAt = readDateTime(map['createdAt']);
     final updatedAt = readDateTime(map['updatedAt']);
+    final scheduledPickupTime = readDateTime(map['scheduledPickupTime']);
 
     return Trip(
       id: map['id'] as String? ?? '',
@@ -163,11 +169,14 @@ class Trip {
       status: map['status'] as String? ?? '',
       date:
           map['date'] as String? ??
-          _formatDisplayDate(completedAt ?? createdAt ?? startedAt),
+          _formatDisplayDate(
+            scheduledPickupTime ?? completedAt ?? createdAt ?? startedAt,
+          ),
       bookingId: map['bookingId'] as String? ?? '',
       passengerId: map['passengerId'] as String? ?? '',
       driverId: map['driverId'] as String? ?? '',
       vehicleId: map['vehicleId'] as String? ?? '',
+      scheduledPickupTime: scheduledPickupTime,
       actualDurationMinutes: (map['actualDurationMinutes'] as num?)?.toInt(),
       finalFare: (map['finalFare'] as num?)?.toInt(),
       paymentMethod: map['paymentMethod'] as String? ?? 'cash',

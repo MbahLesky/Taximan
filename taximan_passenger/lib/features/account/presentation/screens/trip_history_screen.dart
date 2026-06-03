@@ -19,8 +19,8 @@ class TripHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    void startNewTrip() {
-      ref.read(bookingStateProvider.notifier).startNewTrip();
+    void bookNewRide() {
+      ref.read(bookingStateProvider.notifier).startNewRide();
       context.push('/pickup');
     }
 
@@ -63,7 +63,7 @@ class TripHistoryScreen extends ConsumerWidget {
                   AppSpacing.md,
                   AppSpacing.sm,
                 ),
-                child: _NewTripCard(onStartNewTrip: startNewTrip),
+                child: _NewRideCard(onBookNewRide: bookNewRide),
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -79,9 +79,9 @@ class TripHistoryScreen extends ConsumerWidget {
                   children: [
                     _BookingsTab(
                       bookings: bookings,
-                      onStartNewTrip: startNewTrip,
+                      onBookNewRide: bookNewRide,
                     ),
-                    _TripsTab(trips: trips, onStartNewTrip: startNewTrip),
+                    _TripsTab(trips: trips, onBookNewRide: bookNewRide),
                   ],
                 ),
               ),
@@ -93,62 +93,66 @@ class TripHistoryScreen extends ConsumerWidget {
   }
 }
 
-class _NewTripCard extends StatelessWidget {
-  const _NewTripCard({required this.onStartNewTrip});
+class _NewRideCard extends StatelessWidget {
+  const _NewRideCard({required this.onBookNewRide});
 
-  final VoidCallback onStartNewTrip;
+  final VoidCallback onBookNewRide;
 
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onBookNewRide,
+        borderRadius: BorderRadius.circular(12),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.add_road_outlined,
+                color: AppColors.primaryDark,
+              ),
             ),
-            child: const Icon(
-              Icons.add_road_outlined,
-              color: AppColors.primaryDark,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Book a new trip',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Book a new ride',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                const Text(
-                  'Create a booking request and review driver proposals.',
-                ),
-              ],
+                  const SizedBox(height: AppSpacing.xs),
+                  const Text(
+                    'Create a booking request and review driver proposals.',
+                  ),
+                ],
+              ),
             ),
-          ),
-          IconButton.filled(
-            tooltip: 'New trip',
-            onPressed: onStartNewTrip,
-            icon: const Icon(Icons.local_taxi_outlined),
-          ),
-        ],
+            const Icon(
+              Icons.local_taxi_outlined,
+              color: AppColors.primaryDark,
+              size: 28,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _BookingsTab extends StatelessWidget {
-  const _BookingsTab({required this.bookings, required this.onStartNewTrip});
+  const _BookingsTab({required this.bookings, required this.onBookNewRide});
 
   final AsyncValue<List<Booking>> bookings;
-  final VoidCallback onStartNewTrip;
+  final VoidCallback onBookNewRide;
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +168,7 @@ class _BookingsTab extends StatelessWidget {
                 message:
                     'Booking requests and pending fare approvals will appear here.',
                 actionLabel: 'Book a ride',
-                onAction: onStartNewTrip,
+                onAction: onBookNewRide,
               ),
             ],
           );
@@ -222,10 +226,10 @@ class _BookingsTab extends StatelessWidget {
 }
 
 class _TripsTab extends StatelessWidget {
-  const _TripsTab({required this.trips, required this.onStartNewTrip});
+  const _TripsTab({required this.trips, required this.onBookNewRide});
 
   final AsyncValue<List<Trip>> trips;
-  final VoidCallback onStartNewTrip;
+  final VoidCallback onBookNewRide;
 
   @override
   Widget build(BuildContext context) {
@@ -241,7 +245,7 @@ class _TripsTab extends StatelessWidget {
                 message:
                     'Approved, active, and completed trips from the trips collection will appear here.',
                 actionLabel: 'Book a ride',
-                onAction: onStartNewTrip,
+                onAction: onBookNewRide,
               ),
             ],
           );
@@ -276,7 +280,8 @@ class _TripsTab extends StatelessWidget {
                       runSpacing: AppSpacing.xs,
                       children: [
                         _StatusChip(label: trip.status),
-                        if (trip.date.isNotEmpty) _StatusChip(label: trip.date),
+                        if (_formatTripPickupTime(trip).isNotEmpty)
+                          _StatusChip(label: _formatTripPickupTime(trip)),
                       ],
                     ),
                   ],
@@ -349,6 +354,17 @@ String _formatPickupTime(Booking booking) {
     return 'Scheduled';
   }
   return '${value.day}/${value.month} '
+      '${value.hour.toString().padLeft(2, '0')}:'
+      '${value.minute.toString().padLeft(2, '0')}';
+}
+
+String _formatTripPickupTime(Trip trip) {
+  final value = trip.scheduledPickupTime;
+  print("\n\n\nTrip Scheduled Date: ${trip.scheduledPickupTime}\n\n\n");
+  if (value == null) {
+    return trip.date;
+  }
+  return '${value.day}/${value.month}/${value.year} '
       '${value.hour.toString().padLeft(2, '0')}:'
       '${value.minute.toString().padLeft(2, '0')}';
 }

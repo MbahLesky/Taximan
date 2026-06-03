@@ -54,9 +54,9 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
         AppToast.success(
           context,
           title: 'Ride request sent',
-          description: 'Drivers can now respond to your booking.',
+          description: 'Drivers can now respond to your ride request.',
         );
-        context.push('/searching-driver');
+        context.go('/home');
       }
     } catch (e) {
       bookingController.setError('Could not create booking. Try again.');
@@ -81,7 +81,7 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
     final booking = bookingState.booking;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Trip summary')),
+      appBar: AppBar(title: const Text('Ride summary')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
@@ -245,7 +245,7 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.all(AppSpacing.md),
         child: AppButton(
-          label: 'Confirm Ride',
+          label: 'Request ride',
           icon: Icons.local_taxi_outlined,
           isLoading: bookingState.isLoading,
           onPressed: bookingState.canConfirmRide && networkStatus.isOnline

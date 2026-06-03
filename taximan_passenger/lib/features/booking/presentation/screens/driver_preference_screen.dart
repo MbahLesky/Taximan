@@ -23,10 +23,11 @@ class _DriverPreferenceScreenState
     extends ConsumerState<DriverPreferenceScreen> {
   String _query = '';
 
-  void _selectDriver(Driver driver) {
+  void _selectDriver(BuildContext context, Driver driver) {
     ref
         .read(bookingStateProvider.notifier)
         .setPreferredDriver(driverId: driver.id, driverName: driver.fullName);
+    context.push('/ride-summary');
   }
 
   @override
@@ -51,20 +52,57 @@ class _DriverPreferenceScreenState
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
           AppCard(
-            child: ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.shuffle, color: AppColors.info),
-              title: const Text('Any available driver'),
-              subtitle: const Text(
-                'Skip driver selection and let Taximan match the ride.',
-              ),
-              trailing: hasPreferredDriver
-                  ? null
-                  : const Icon(Icons.check_circle, color: AppColors.success),
-              onTap: () {
-                ref.read(bookingStateProvider.notifier).clearPreferredDriver();
-                context.push('/ride-summary');
-              },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.sensors,
+                    color: AppColors.primaryDark,
+                  ),
+                  title: const Text('Nearby driver search'),
+                  subtitle: driversAsync.when(
+                    data: (drivers) => Text(
+                      drivers.isEmpty
+                          ? 'No nearby drivers found yet.'
+                          : '${drivers.length} nearby driver(s) available.',
+                    ),
+                    loading: () =>
+                        const Text('Searching around your pickup point.'),
+                    error: (_, _) => const Text(
+                      'Nearby search is unavailable right now.',
+                    ),
+                  ),
+                  trailing: driversAsync.isLoading
+                      ? const SizedBox.square(
+                          dimension: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.radar),
+                ),
+                const Divider(height: 24),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.shuffle, color: AppColors.info),
+                  title: const Text('Any available driver'),
+                  subtitle: const Text(
+                    'Skip driver selection and let Taximan match the ride.',
+                  ),
+                  trailing: hasPreferredDriver
+                      ? null
+                      : const Icon(
+                          Icons.check_circle,
+                          color: AppColors.success,
+                        ),
+                  onTap: () {
+                    ref
+                        .read(bookingStateProvider.notifier)
+                        .clearPreferredDriver();
+                    context.push('/ride-summary');
+                  },
+                ),
+              ],
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -119,7 +157,7 @@ class _DriverPreferenceScreenState
                               color: AppColors.success,
                             )
                           : const Icon(Icons.arrow_forward),
-                      onTap: () => _selectDriver(driver),
+                      onTap: () => _selectDriver(context, driver),
                     ),
                   );
                 }).toList(),
@@ -145,9 +183,7 @@ class _DriverPreferenceScreenState
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.all(AppSpacing.md),
         child: AppButton(
-          label: hasPreferredDriver
-              ? 'Propose to selected driver'
-              : 'Skip to summary',
+          label: hasPreferredDriver ? 'Continue to summary' : 'Skip to summary',
           icon: Icons.receipt_long_outlined,
           onPressed: () => context.push('/ride-summary'),
         ),

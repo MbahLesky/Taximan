@@ -24,9 +24,9 @@ class PassengerHomeScreen extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
     final passengerId = ref.watch(authStateProvider).userId;
     final availableDriverCount = ref.watch(availableDriverCountProvider);
-    final activeTrip = passengerId == null
+    final upcomingTrip = passengerId == null
         ? null
-        : ref.watch(activeTripsStreamProvider(passengerId)).valueOrNull;
+        : ref.watch(upcomingTripStreamProvider(passengerId)).valueOrNull;
     final recentBookings = passengerId == null
         ? const <Booking>[]
         : ref.watch(recentBookingsProvider(passengerId)).valueOrNull ??
@@ -74,7 +74,7 @@ class PassengerHomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.md),
-            if (activeTrip != null) ...[
+            if (upcomingTrip != null) ...[
               AppCard(
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -90,15 +90,18 @@ class PassengerHomeScreen extends ConsumerWidget {
                     ),
                   ),
                   subtitle: Text(
-                    '${activeTrip.pickupLocation} -> ${activeTrip.destination}',
+                    [
+                      '${upcomingTrip.pickupLocation} -> ${upcomingTrip.destination}',
+                      _formatTripPickupTime(upcomingTrip),
+                    ].where((value) => value.isNotEmpty).join('\n'),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   trailing: Text(
-                    activeTrip.status,
+                    upcomingTrip.status,
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
-                  onTap: () => context.push('/trip/${activeTrip.id}'),
+                  onTap: () => context.push('/trip/${upcomingTrip.id}'),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -355,6 +358,16 @@ class PassengerHomeScreen extends ConsumerWidget {
   }
 }
 
+String _formatTripPickupTime(Trip trip) {
+  final value = trip.scheduledPickupTime;
+  if (value == null) {
+    return trip.date.isEmpty ? '' : trip.date;
+  }
+  final hour = value.hour.toString().padLeft(2, '0');
+  final minute = value.minute.toString().padLeft(2, '0');
+  return '${value.day}/${value.month}/${value.year} at $hour:$minute';
+}
+
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.title, required this.onViewAll});
 
@@ -375,41 +388,6 @@ class _SectionHeader extends StatelessWidget {
         ),
         TextButton(onPressed: onViewAll, child: const Text('View all')),
       ],
-    );
-  }
-}
-
-class _ActionPill extends StatelessWidget {
-  const _ActionPill({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.compact,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 18, color: AppColors.primaryDark),
-          const SizedBox(width: AppSpacing.xs),
-          Flexible(
-            child: Text(
-              label,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

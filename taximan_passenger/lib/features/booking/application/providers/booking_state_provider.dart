@@ -64,7 +64,7 @@ class BookingController extends StateNotifier<BookingState> {
         ),
       );
 
-  void startNewTrip() {
+  void startNewRide() {
     state = state.copyWith(
       booking: Booking(
         id: '',

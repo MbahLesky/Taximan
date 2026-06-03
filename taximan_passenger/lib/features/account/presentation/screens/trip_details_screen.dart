@@ -27,9 +27,45 @@ class TripDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _TripDetailsScreenState extends ConsumerState<TripDetailsScreen> {
+  bool _isStarting = false;
   bool _isCompleting = false;
   bool _isDeleting = false;
   bool _isTracking = false;
+
+  Future<void> _startTrip(Trip trip) async {
+    setState(() => _isStarting = true);
+    try {
+      await ref.read(tripRepositoryProvider).startTrip(trip.id);
+      ref.read(tripStateProvider.notifier).setActiveTrip(
+            trip.copyWith(
+              status: TripStatus.inProgress,
+              startedAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+          );
+      _invalidatePassengerLists(trip.passengerId);
+
+      if (mounted) {
+        AppToast.success(
+          context,
+          title: 'Trip started',
+          description: 'The trip is now in progress.',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        AppToast.error(
+          context,
+          title: 'Could not start trip',
+          description: 'Check your connection and try again.',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isStarting = false);
+      }
+    }
+  }
 
   Future<void> _markCompleted(Trip trip) async {
     setState(() => _isCompleting = true);
@@ -179,6 +215,7 @@ class _TripDetailsScreenState extends ConsumerState<TripDetailsScreen> {
         final isFinished =
             trip.status == TripStatus.completed ||
             trip.status == TripStatus.cancelled;
+        final canStart = !isFinished && trip.status != TripStatus.inProgress;
 
         return Scaffold(
           appBar: AppBar(title: const Text('Trip details')),
@@ -234,8 +271,14 @@ class _TripDetailsScreenState extends ConsumerState<TripDetailsScreen> {
                       _DetailsLine(label: 'Distance', value: trip.distance),
                     if (trip.duration.isNotEmpty)
                       _DetailsLine(label: 'Duration', value: trip.duration),
-                    if (trip.date.isNotEmpty)
-                      _DetailsLine(label: 'Date', value: trip.date),
+                    if (_formatScheduledPickupTime(trip).isNotEmpty)
+                      _DetailsLine(
+                        label: 'Scheduled pickup',
+                        value: _formatScheduledPickupTime(trip),
+                      ),
+                    if (trip.scheduledPickupTime == null &&
+                        trip.date.isNotEmpty)
+                      _DetailsLine(label: 'Date Created', value: trip.date),
                   ],
                 ),
               ),
@@ -256,16 +299,31 @@ class _TripDetailsScreenState extends ConsumerState<TripDetailsScreen> {
                       icon: Icons.near_me_outlined,
                       variant: AppButtonVariant.secondary,
                       isLoading: _isTracking,
-                      onPressed: isFinished || _isDeleting || _isCompleting
+                      onPressed:
+                          isFinished || _isDeleting || _isCompleting || _isStarting
                           ? null
                           : () => _trackTrip(trip),
+                    ),
+                    const SizedBox(height: AppSpacing.compact),
+                    AppButton(
+                      label: 'Start trip',
+                      icon: Icons.play_arrow_outlined,
+                      isLoading: _isStarting,
+                      onPressed:
+                          canStart &&
+                              !_isDeleting &&
+                              !_isTracking &&
+                              !_isCompleting
+                          ? () => _startTrip(trip)
+                          : null,
                     ),
                     const SizedBox(height: AppSpacing.compact),
                     AppButton(
                       label: 'Mark as completed',
                       icon: Icons.check_circle_outline,
                       isLoading: _isCompleting,
-                      onPressed: isFinished || _isDeleting || _isTracking
+                      onPressed:
+                          isFinished || _isDeleting || _isTracking || _isStarting
                           ? null
                           : () => _markCompleted(trip),
                     ),
@@ -275,7 +333,7 @@ class _TripDetailsScreenState extends ConsumerState<TripDetailsScreen> {
                       icon: Icons.delete_outline,
                       variant: AppButtonVariant.danger,
                       isLoading: _isDeleting,
-                      onPressed: _isCompleting || _isTracking
+                      onPressed: _isCompleting || _isTracking || _isStarting
                           ? null
                           : () => _deleteTrip(trip),
                     ),
@@ -337,7 +395,25 @@ Booking _bookingFromTrip(Trip trip) {
     passengerId: trip.passengerId,
     driverId: trip.driverId,
     vehicleId: trip.vehicleId,
+    pickupTimeType: trip.scheduledPickupTime == null ? 'now' : 'scheduled',
+    scheduledPickupTime: trip.scheduledPickupTime,
     finalFare: trip.finalFare,
     paymentStatus: trip.paymentStatus,
   );
+}
+
+String _formatScheduledPickupTime(Trip trip) {
+
+  print("Trip: ${trip.toMap()}");
+  print("\n\n\n==================\nFormatting scheduled pickup time for trip ${trip.id}: ${trip.scheduledPickupTime}\n\n\n");
+
+  final value = trip.scheduledPickupTime;
+  if (value == null) {
+    return '';
+  }
+  return '${value.day.toString().padLeft(2, '0')}/'
+      '${value.month.toString().padLeft(2, '0')}/'
+      '${value.year} '
+      '${value.hour.toString().padLeft(2, '0')}:'
+      '${value.minute.toString().padLeft(2, '0')}';
 }

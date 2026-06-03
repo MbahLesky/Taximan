@@ -39,6 +39,7 @@ class BookingRepository {
   }) async {
     final bookingRef = _firestore.collection('bookings').doc(bookingId);
     final tripRef = _firestore.collection('trips').doc();
+    final notificationRef = _firestore.collection('notifications').doc();
 
     await _firestore.runTransaction((transaction) async {
       final snapshot = await transaction.get(bookingRef);
@@ -67,6 +68,7 @@ class BookingRepository {
         'vehicleId': vehicleId,
         'pickupLocation': data['pickupLocation'],
         'destinationLocation': data['destinationLocation'],
+        'scheduledPickupTime': data['scheduledPickupTime'],
         'status': TripStatus.driverArriving,
         'distanceKm': data['distanceKm'],
         'estimatedDurationMinutes': data['estimatedDurationMinutes'],
@@ -76,6 +78,17 @@ class BookingRepository {
         'paymentStatus': data['paymentStatus'] ?? 'pending',
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+      });
+      transaction.set(notificationRef, {
+        'id': notificationRef.id,
+        'userId': data['passengerId'],
+        'userRole': 'passenger',
+        'title': 'Ride approved',
+        'body': 'A driver has accepted your ride request.',
+        'type': 'ride_approved',
+        'isRead': false,
+        'relatedId': tripRef.id,
+        'createdAt': FieldValue.serverTimestamp(),
       });
     });
   }
@@ -99,6 +112,7 @@ class BookingRepository {
   }) async {
     final proposalRef = _firestore.collection('fare_proposals').doc();
     final bookingRef = _firestore.collection('bookings').doc(booking.id);
+    final notificationRef = _firestore.collection('notifications').doc();
 
     await _firestore.runTransaction((transaction) async {
       final snapshot = await transaction.get(bookingRef);
@@ -125,6 +139,19 @@ class BookingRepository {
       transaction.update(bookingRef, {
         'status': BookingStatus.proposal,
         'updatedAt': FieldValue.serverTimestamp(),
+      });
+      transaction.set(notificationRef, {
+        'id': notificationRef.id,
+        'userId': data['passengerId'],
+        'userRole': 'passenger',
+        'title': 'New fare proposal',
+        'body': message.trim().isEmpty
+            ? 'A driver proposed $proposedFare FCFA for your ride.'
+            : message.trim(),
+        'type': 'fare_proposal',
+        'isRead': false,
+        'relatedId': booking.id,
+        'createdAt': FieldValue.serverTimestamp(),
       });
     });
   }

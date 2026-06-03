@@ -47,6 +47,7 @@ class FareProposalRepository {
         .collection('bookings')
         .doc(proposal.bookingId);
     final tripRef = _firestore.collection('trips').doc();
+    final notificationRef = _firestore.collection('notifications').doc();
 
     await _firestore.runTransaction((transaction) async {
       final proposalSnapshot = await transaction.get(proposalRef);
@@ -90,7 +91,8 @@ class FareProposalRepository {
         'pickupLocationText': bookingData['pickupLocationText'],
         'destinationLocation': bookingData['destinationLocation'],
         'destination': bookingData['destination'],
-        'status': TripStatus.driverArriving,
+        'scheduledPickupTime': bookingData['scheduledPickupTime'],
+        'status': TripStatus.pending,
         'distance': bookingData['distance'],
         'eta': bookingData['eta'],
         'distanceKm': bookingData['distanceKm'],
@@ -102,6 +104,17 @@ class FareProposalRepository {
         'paymentStatus': bookingData['paymentStatus'] ?? 'pending',
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+      });
+      transaction.set(notificationRef, {
+        'id': notificationRef.id,
+        'userId': bookingData['passengerId'],
+        'userRole': 'passenger',
+        'title': 'Ride approved',
+        'body': 'Your selected driver has been assigned to the ride.',
+        'type': 'ride_approved',
+        'isRead': false,
+        'relatedId': tripRef.id,
+        'createdAt': FieldValue.serverTimestamp(),
       });
     });
 

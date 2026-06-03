@@ -240,15 +240,21 @@ class PassengerProfileScreen extends ConsumerWidget {
                         phone: updatedPhone,
                       );
 
+                  if (!context.mounted) {
+                    return;
+                  }
+
                   AppToast.success(
                     context,
                     title: 'Profile updated',
                     description: 'Your name and phone number were saved.',
                   );
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
+                  Navigator.of(context).pop();
                 } catch (error) {
+                  if (!context.mounted) {
+                    return;
+                  }
+
                   AppToast.error(
                     context,
                     title: 'Update failed',

@@ -139,10 +139,10 @@ class PassengerDriversScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(
-              label: 'Start a new trip',
+              label: 'Book a new ride',
               icon: Icons.add_location_alt_outlined,
               onPressed: () {
-                ref.read(bookingStateProvider.notifier).startNewTrip();
+                ref.read(bookingStateProvider.notifier).startNewRide();
                 context.push('/pickup');
               },
             ),
