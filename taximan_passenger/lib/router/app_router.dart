@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../features/account/presentation/screens/passenger_profile_screen.dart';
 import '../features/account/presentation/screens/passenger_drivers_screen.dart';
 import '../features/account/presentation/screens/passenger_tracking_screen.dart';
+import '../features/account/presentation/screens/passenger_tracking_map_screen.dart';
 import '../features/account/presentation/screens/trip_details_screen.dart';
 import '../features/account/presentation/screens/trip_history_screen.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
@@ -126,6 +127,12 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/tracking',
       builder: (context, state) => const PassengerTrackingScreen(),
+      routes: [
+        GoRoute(
+          path: 'map',
+          builder: (context, state) => const PassengerTrackingMapScreen(),
+        ),
+      ],
     ),
     GoRoute(
       path: '/trip/:tripId',

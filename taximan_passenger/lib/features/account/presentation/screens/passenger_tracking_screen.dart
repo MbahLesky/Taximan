@@ -10,7 +10,7 @@ import '../../../../shared/widgets/bottom_nav_shell.dart';
 import '../../../booking/application/providers/booking_state_provider.dart';
 import '../../../location/application/providers/location_state_provider.dart';
 import '../../../location/presentation/widgets/live_map_view.dart';
-import '../../../matching/application/providers/driver_providers.dart';
+import '../../../../core/constants/ride_statuses.dart';
 
 class PassengerTrackingScreen extends ConsumerWidget {
   const PassengerTrackingScreen({super.key});
@@ -19,16 +19,11 @@ class PassengerTrackingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final booking = ref.watch(bookingStateProvider).booking;
     final driverId = booking.driverId ?? '';
-    final driver = driverId.isEmpty
-        ? null
-        : ref.watch(driverStreamProvider(driverId)).valueOrNull;
     if (driverId.isNotEmpty) {
       ref.listen(assignedDriverLocationProvider(driverId), (previous, next) {
         final location = next.valueOrNull;
         if (location != null) {
-          ref
-              .read(locationStateProvider.notifier)
-              .updateAssignedDriverLocation(location);
+          ref.read(locationStateProvider.notifier).updateAssignedDriverLocation(location);
         }
       });
     }
@@ -37,6 +32,7 @@ class PassengerTrackingScreen extends ConsumerWidget {
         ? null
         : ref.watch(assignedDriverLocationProvider(driverId)).valueOrNull;
 
+    // Only show list of live trips (driver_arriving, arrived, in_progress)
     return BottomNavShell(
       currentIndex: 2,
       title: 'Tracking',
@@ -72,7 +68,7 @@ class PassengerTrackingScreen extends ConsumerWidget {
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
-                          'Current trip status',
+                          'Live trips',
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
@@ -86,60 +82,23 @@ class PassengerTrackingScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  _TimelineStep(
-                    icon: Icons.check_circle,
-                    title: 'Ride accepted',
-                    subtitle:
-                        '${driver?.fullName ?? 'Your driver'} confirmed your request.',
-                    active: true,
-                  ),
-                  _TimelineStep(
-                    icon: Icons.local_taxi,
-                    title: 'Driver on the way',
-                    subtitle: booking.eta.isEmpty
-                        ? 'ETA pending to your pickup point.'
-                        : 'ETA ${booking.eta} to your pickup point.',
-                    active: true,
-                  ),
-                  const _TimelineStep(
-                    icon: Icons.flag_outlined,
-                    title: 'Pickup pending',
-                    subtitle: 'You will be notified when the driver arrives.',
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            AppCard(
-              child: Column(
-                children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const CircleAvatar(
-                      backgroundColor: AppColors.primaryLight,
-                      child: Icon(Icons.person, color: AppColors.primaryDark),
-                    ),
-                    title: Text(driver?.fullName ?? 'Driver assigned'),
-                    subtitle: Text(
-                      [driver?.vehicle, driver?.plateNumber]
-                          .whereType<String>()
-                          .where((value) => value.isNotEmpty)
-                          .join(' - '),
-                    ),
-                    trailing: const Icon(Icons.star, color: AppColors.warning),
-                  ),
-                  const Divider(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppButton(
-                          label: 'Open live trip',
-                          icon: Icons.map_outlined,
-                          onPressed: () => context.push('/driver-en-route'),
-                        ),
+                  // If current booking is in a live trip state, show it as selectable
+                  if (TripStatus.active.contains(booking.status)) ...[
+                    ListTile(
+                      title: Text('Trip: ${booking.id.isEmpty ? 'current' : booking.id}'),
+                      subtitle: Text('Status: ${booking.status}'),
+                      trailing: AppButton(
+                        label: 'View',
+                        icon: Icons.map,
+                        onPressed: () => context.push('/tracking/map'),
                       ),
-                    ],
-                  ),
+                    ),
+                  ] else ...[
+                    const ListTile(
+                      title: Text('No live trips to track'),
+                      subtitle: Text('Only active trips are shown here.'),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -150,49 +109,4 @@ class PassengerTrackingScreen extends ConsumerWidget {
   }
 }
 
-class _TimelineStep extends StatelessWidget {
-  const _TimelineStep({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    this.active = false,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            icon,
-            color: active ? AppColors.success : AppColors.textSecondary,
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: AppColors.textSecondary),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// Timeline widget removed; tracking screen now lists live trips and opens full map.

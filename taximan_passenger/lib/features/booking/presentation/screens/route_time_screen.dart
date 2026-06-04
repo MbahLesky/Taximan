@@ -244,12 +244,62 @@ class _LocationSelector extends StatelessWidget {
           displayStringForOption: (location) => location.fullAddress,
           optionsBuilder: (value) {
             final query = value.text.trim().toLowerCase();
-            if (query.isEmpty) {
-              return bamendaLocations;
+            final container = ProviderScope.containerOf(context);
+            final locationState = container.read(locationStateProvider);
+            final bookingState = container.read(bookingStateProvider);
+
+            // Start with current GPS location (if available) and the preset Bamenda locations.
+            final suggestions = <AppLocation>[];
+            if (locationState.currentLocation.hasCoordinates) {
+              suggestions.add(locationState.currentLocation);
             }
-            return bamendaLocations.where((location) {
-              return location.fullAddress.toLowerCase().contains(query) ||
-                  (location.name?.toLowerCase().contains(query) ?? false);
+
+            // Include any recent destinations that match known presets (ensures coords).
+            for (final addr in bookingState.recentDestinations) {
+              final match = bamendaLocations.firstWhere(
+                (l) => l.fullAddress.toLowerCase() == addr.toLowerCase(),
+                orElse: () => AppLocation(address: ''),
+              );
+              if (match.address.isNotEmpty) suggestions.add(match);
+            }
+
+            // Use preset Bamenda locations as fallbacks; all presets include coordinates.
+            final pool = [...suggestions, ...bamendaLocations];
+
+            // If the user typed coordinates like "5.95,10.14", parse and return that location.
+            final coordMatch = RegExp(r"(-?\d+\.?\d*)[, ]+(-?\d+\.?\d*)");
+            final coordResult = coordMatch.firstMatch(value.text);
+            if (coordResult != null) {
+              final lat = double.tryParse(coordResult.group(1)!);
+              final lng = double.tryParse(coordResult.group(2)!);
+              if (lat != null && lng != null) {
+                return [
+                  AppLocation(
+                    name: 'Coordinates',
+                    address: 'Pinned (${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)})',
+                    latitude: lat,
+                    longitude: lng,
+                    source: 'typed_coordinates',
+                  )
+                ];
+              }
+            }
+
+            if (query.isEmpty) {
+              // Deduplicate by address
+              final seen = <String>{};
+              return pool.where((p) {
+                final key = p.fullAddress.toLowerCase();
+                if (key.isEmpty || seen.contains(key)) return false;
+                seen.add(key);
+                return p.hasCoordinates;
+              }).toList();
+            }
+
+            return pool.where((location) {
+              final addr = location.fullAddress.toLowerCase();
+              final name = location.name?.toLowerCase() ?? '';
+              return (addr.contains(query) || name.contains(query)) && location.hasCoordinates;
             });
           },
           onSelected: onSelected,
@@ -259,7 +309,7 @@ class _LocationSelector extends StatelessWidget {
                   controller: textController,
                   focusNode: focusNode,
                   decoration: InputDecoration(
-                    hintText: 'Type to search Bamenda places',
+                    hintText: 'Type to search places',
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: IconButton(
                       tooltip: 'Use current location',
