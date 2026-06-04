@@ -120,6 +120,33 @@ class LocationRepository {
     );
   }
 
+  Future<List<AppLocation>> searchLocations(
+    String query, {
+    int limit = 4,
+  }) async {
+    if (query.trim().isEmpty) {
+      return [];
+    }
+
+    try {
+      final geocodedLocations = await locationFromAddress(query);
+      final results = <AppLocation>[];
+      for (final item in geocodedLocations.take(limit)) {
+        results.add(
+          await reverseGeocode(
+            item.latitude,
+            item.longitude,
+            source: 'search',
+            fallbackName: query,
+          ),
+        );
+      }
+      return results;
+    } catch (_) {
+      return [];
+    }
+  }
+
   Stream<List<DriverLocation>> streamOnlineDriverLocations({int limit = 50}) {
     return _firestore
         .collection(_driverLocationsCollection)

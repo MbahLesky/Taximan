@@ -6,19 +6,30 @@ import '../../../../shared/widgets/app_button.dart';
 import '../../../booking/application/providers/booking_state_provider.dart';
 import '../../../location/application/providers/location_state_provider.dart';
 import '../../../location/presentation/widgets/live_map_view.dart';
+import '../../../trip/application/providers/trip_providers.dart';
 
 class PassengerTrackingMapScreen extends ConsumerWidget {
-  const PassengerTrackingMapScreen({super.key});
+  const PassengerTrackingMapScreen({super.key, this.tripId});
+
+  final String? tripId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final booking = ref.watch(bookingStateProvider).booking;
-    final driverId = booking.driverId ?? '';
     final locationState = ref.watch(locationStateProvider);
+    final tripState = tripId != null ? ref.watch(tripStreamProvider(tripId!)) : null;
+    final trip = tripState?.valueOrNull ?? booking;
+    final driverId = trip.driverId.isNotEmpty ? trip.driverId : booking.driverId ?? '';
 
     final assignedDriverLocation = driverId.isEmpty
         ? null
         : ref.watch(assignedDriverLocationProvider(driverId)).valueOrNull;
+
+    final errorMessage = tripState?.when(
+      data: (_) => null,
+      loading: () => null,
+      error: (error, _) => 'Unable to load tracking details: ${error.toString()}',
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -33,12 +44,12 @@ class PassengerTrackingMapScreen extends ConsumerWidget {
               currentLocation: locationState.currentLocation.hasCoordinates
                   ? locationState.currentLocation
                   : null,
-              pickup: booking.pickup,
-              destination: booking.destinationLocation,
+              pickup: trip.pickup,
+              destination: trip.destinationLocation,
               assignedDriverLocation: assignedDriverLocation,
               permissionStatus: locationState.permissionStatus,
               isLoading: false,
-              errorMessage: null,
+              errorMessage: errorMessage,
               myLocationEnabled: locationState.hasLocationPermission,
             ),
             Positioned(

@@ -132,6 +132,12 @@ final appRouter = GoRouter(
           path: 'map',
           builder: (context, state) => const PassengerTrackingMapScreen(),
         ),
+        GoRoute(
+          path: 'map/:tripId',
+          builder: (context, state) => PassengerTrackingMapScreen(
+            tripId: state.pathParameters['tripId'],
+          ),
+        ),
       ],
     ),
     GoRoute(

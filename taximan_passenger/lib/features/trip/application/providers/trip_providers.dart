@@ -32,7 +32,13 @@ final activeTripsStreamProvider = StreamProvider.family<Trip?, String>((
   final repository = ref.watch(tripRepositoryProvider);
   return repository.streamActiveTrip(passengerId);
 });
-
+/// Stream all active trips for a passenger
+final passengerActiveTripsProvider = StreamProvider.family<List<Trip>, String>(
+  (ref, passengerId) {
+    final repository = ref.watch(tripRepositoryProvider);
+    return repository.streamActiveTrips(passengerId);
+  },
+);
 /// Stream upcoming trip for a passenger
 final upcomingTripStreamProvider = StreamProvider.family<Trip?, String>((
   ref,

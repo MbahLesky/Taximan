@@ -7,9 +7,11 @@ import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
+import '../../../auth/application/providers/auth_state_provider.dart';
 import '../../../booking/application/providers/booking_state_provider.dart';
 import '../../../location/application/providers/location_state_provider.dart';
 import '../../../location/presentation/widgets/live_map_view.dart';
+import '../../../trip/application/providers/trip_providers.dart';
 import '../../../../core/constants/ride_statuses.dart';
 
 class PassengerTrackingScreen extends ConsumerWidget {
@@ -31,8 +33,12 @@ class PassengerTrackingScreen extends ConsumerWidget {
     final assignedDriverLocation = driverId.isEmpty
         ? null
         : ref.watch(assignedDriverLocationProvider(driverId)).valueOrNull;
+    final authState = ref.watch(authStateProvider);
+    final passengerId = authState.userId ?? '';
+    final activeTripsState = passengerId.isNotEmpty
+        ? ref.watch(passengerActiveTripsProvider(passengerId))
+        : const AsyncValue.data([]);
 
-    // Only show list of live trips (driver_arriving, arrived, in_progress)
     return BottomNavShell(
       currentIndex: 2,
       title: 'Tracking',
@@ -82,23 +88,55 @@ class PassengerTrackingScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  // If current booking is in a live trip state, show it as selectable
-                  if (TripStatus.active.contains(booking.status)) ...[
-                    ListTile(
-                      title: Text('Trip: ${booking.id.isEmpty ? 'current' : booking.id}'),
-                      subtitle: Text('Status: ${booking.status}'),
-                      trailing: AppButton(
-                        label: 'View',
-                        icon: Icons.map,
-                        onPressed: () => context.push('/tracking/map'),
-                      ),
+                  activeTripsState.when(
+                    data: (trips) {
+                      if (trips.isEmpty) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (TripStatus.active.contains(booking.status))
+                              ListTile(
+                                title: Text('Trip: ${booking.id.isEmpty ? 'current' : booking.id}'),
+                                subtitle: Text('Status: ${booking.status}'),
+                                trailing: AppButton(
+                                  label: 'View',
+                                  icon: Icons.map,
+                                  onPressed: () => context.push('/tracking/map'),
+                                ),
+                              )
+                            else
+                              const ListTile(
+                                title: Text('No live trips to track'),
+                                subtitle: Text('Only active trips are shown here.'),
+                              ),
+                          ],
+                        );
+                      }
+
+                      return Column(
+                        children: trips.map(
+                          (trip) {
+                            return ListTile(
+                              title: Text('Trip: ${trip.id}'),
+                              subtitle: Text(
+                                'Status: ${trip.status}\n${trip.pickup.displayName} → ${trip.destinationLocation.displayName}',
+                              ),
+                              trailing: AppButton(
+                                label: 'View',
+                                icon: Icons.map,
+                                onPressed: () => context.push('/tracking/map/${trip.id}'),
+                              ),
+                            );
+                          },
+                        ).toList(),
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (error, stack) => ListTile(
+                      title: const Text('Unable to load live trips'),
+                      subtitle: Text(error.toString()),
                     ),
-                  ] else ...[
-                    const ListTile(
-                      title: Text('No live trips to track'),
-                      subtitle: Text('Only active trips are shown here.'),
-                    ),
-                  ],
+                  ),
                 ],
               ),
             ),

@@ -237,6 +237,20 @@ class TripRepository {
         });
   }
 
+  Stream<List<Trip>> streamActiveTrips(String passengerId) {
+    return _firestore
+        .collection(_collection)
+        .where('passengerId', isEqualTo: passengerId)
+        .where('status', whereIn: TripStatus.active)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => Trip.fromMap({...doc.data(), 'id': doc.id}))
+              .toList();
+        });
+  }
+
   /// Stream of the nearest pre-trip ride for a passenger.
   Stream<Trip?> streamUpcomingTrip(String passengerId) {
     return _firestore

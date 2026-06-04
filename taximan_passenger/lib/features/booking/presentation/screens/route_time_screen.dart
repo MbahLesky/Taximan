@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -202,7 +204,7 @@ class _RouteTimeScreenState extends ConsumerState<RouteTimeScreen> {
   }
 }
 
-class _LocationSelector extends StatelessWidget {
+class _LocationSelector extends ConsumerStatefulWidget {
   const _LocationSelector({
     required this.label,
     required this.icon,
@@ -220,20 +222,141 @@ class _LocationSelector extends StatelessWidget {
   final AppLocation destination;
 
   @override
+  ConsumerState<_LocationSelector> createState() => _LocationSelectorState();
+}
+
+class _LocationSelectorState extends ConsumerState<_LocationSelector> {
+  final List<AppLocation> _searchResults = [];
+  bool _isSearching = false;
+  String? _searchError;
+  Timer? _searchDebounce;
+  TextEditingController? _textController;
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _textController?.removeListener(_onSearchChanged);
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    final query = _textController?.text.trim() ?? '';
+    _searchDebounce?.cancel();
+    if (query.isEmpty) {
+      setState(() {
+        _searchResults.clear();
+        _isSearching = false;
+        _searchError = null;
+      });
+      return;
+    }
+
+    final coordMatch = RegExp(r"(-?\d+\.?\d*)[, ]+(-?\d+\.?\d*)").firstMatch(query);
+    if (coordMatch != null) {
+      final lat = double.tryParse(coordMatch.group(1)!);
+      final lng = double.tryParse(coordMatch.group(2)!);
+      if (lat != null && lng != null) {
+        setState(() {
+          _searchResults
+            ..clear()
+            ..add(
+              AppLocation(
+                name: 'Coordinates',
+                address:
+                    'Pinned (${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)})',
+                latitude: lat,
+                longitude: lng,
+                source: 'typed_coordinates',
+              ),
+            );
+          _isSearching = false;
+          _searchError = null;
+        });
+        return;
+      }
+    }
+
+    setState(() {
+      _isSearching = true;
+      _searchError = null;
+    });
+    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
+      _fetchSearchResults(query);
+    });
+  }
+
+  Future<void> _fetchSearchResults(String query) async {
+    try {
+      final results = await ref
+          .read(locationRepositoryProvider)
+          .searchLocations(query);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _searchResults
+          ..clear()
+          ..addAll(results);
+        _isSearching = false;
+        _searchError = results.isEmpty
+            ? 'No matching places found. Use coordinates or pin on the map.'
+            : null;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _searchResults.clear();
+        _isSearching = false;
+        _searchError = 'Search failed. Try a different address or coordinates.';
+      });
+    }
+  }
+
+  Iterable<AppLocation> _defaultSuggestions(
+    LocationState locationState,
+    BookingState bookingState,
+  ) {
+    final suggestions = <AppLocation>[];
+    if (locationState.currentLocation.hasCoordinates) {
+      suggestions.add(locationState.currentLocation.copyWith(
+        name: 'Current location',
+        source: 'gps',
+      ));
+    }
+
+    for (final addr in bookingState.recentDestinations) {
+      final match = bamendaLocations.firstWhere(
+        (location) => location.fullAddress.toLowerCase() == addr.toLowerCase(),
+        orElse: () => AppLocation(address: ''),
+      );
+      if (match.address.isNotEmpty) {
+        suggestions.add(match);
+      }
+    }
+
+    return suggestions;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final locationState = ref.watch(locationStateProvider);
+    final bookingState = ref.watch(bookingStateProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
+        Text(widget.label, style: const TextStyle(fontWeight: FontWeight.w800)),
         const SizedBox(height: AppSpacing.xs),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: AppColors.primaryDark),
+            Icon(widget.icon, color: AppColors.primaryDark),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
-                selectedLocation?.fullAddress ?? 'Select a location',
+                widget.selectedLocation?.fullAddress ?? 'Select a location',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
@@ -243,83 +366,63 @@ class _LocationSelector extends StatelessWidget {
         Autocomplete<AppLocation>(
           displayStringForOption: (location) => location.fullAddress,
           optionsBuilder: (value) {
-            final query = value.text.trim().toLowerCase();
-            final container = ProviderScope.containerOf(context);
-            final locationState = container.read(locationStateProvider);
-            final bookingState = container.read(bookingStateProvider);
-
-            // Start with current GPS location (if available) and the preset Bamenda locations.
-            final suggestions = <AppLocation>[];
-            if (locationState.currentLocation.hasCoordinates) {
-              suggestions.add(locationState.currentLocation);
-            }
-
-            // Include any recent destinations that match known presets (ensures coords).
-            for (final addr in bookingState.recentDestinations) {
-              final match = bamendaLocations.firstWhere(
-                (l) => l.fullAddress.toLowerCase() == addr.toLowerCase(),
-                orElse: () => AppLocation(address: ''),
-              );
-              if (match.address.isNotEmpty) suggestions.add(match);
-            }
-
-            // Use preset Bamenda locations as fallbacks; all presets include coordinates.
-            final pool = [...suggestions, ...bamendaLocations];
-
-            // If the user typed coordinates like "5.95,10.14", parse and return that location.
-            final coordMatch = RegExp(r"(-?\d+\.?\d*)[, ]+(-?\d+\.?\d*)");
-            final coordResult = coordMatch.firstMatch(value.text);
-            if (coordResult != null) {
-              final lat = double.tryParse(coordResult.group(1)!);
-              final lng = double.tryParse(coordResult.group(2)!);
+            final query = value.text.trim();
+            final coordMatch = RegExp(r"(-?\d+\.?\d*)[, ]+(-?\d+\.?\d*)").firstMatch(query);
+            if (coordMatch != null) {
+              final lat = double.tryParse(coordMatch.group(1)!);
+              final lng = double.tryParse(coordMatch.group(2)!);
               if (lat != null && lng != null) {
                 return [
                   AppLocation(
                     name: 'Coordinates',
-                    address: 'Pinned (${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)})',
+                    address:
+                        'Pinned (${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)})',
                     latitude: lat,
                     longitude: lng,
                     source: 'typed_coordinates',
-                  )
+                  ),
                 ];
               }
             }
 
             if (query.isEmpty) {
-              // Deduplicate by address
-              final seen = <String>{};
-              return pool.where((p) {
-                final key = p.fullAddress.toLowerCase();
-                if (key.isEmpty || seen.contains(key)) return false;
-                seen.add(key);
-                return p.hasCoordinates;
-              }).toList();
+              return _defaultSuggestions(locationState, bookingState).where(
+                (location) => location.hasCoordinates,
+              );
             }
 
-            return pool.where((location) {
-              final addr = location.fullAddress.toLowerCase();
-              final name = location.name?.toLowerCase() ?? '';
-              return (addr.contains(query) || name.contains(query)) && location.hasCoordinates;
-            });
+            return _searchResults;
           },
-          onSelected: onSelected,
+          onSelected: widget.onSelected,
           fieldViewBuilder:
               (context, textController, focusNode, onFieldSubmitted) {
-                return TextField(
-                  controller: textController,
-                  focusNode: focusNode,
-                  decoration: InputDecoration(
-                    hintText: 'Type to search places',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: IconButton(
-                      tooltip: 'Use current location',
-                      icon: const Icon(Icons.gps_fixed),
-                      onPressed: () => _useCurrentLocation(context),
-                    ),
-                  ),
-                );
-              },
+            if (_textController != textController) {
+              _textController?.removeListener(_onSearchChanged);
+              _textController = textController;
+              _textController?.addListener(_onSearchChanged);
+            }
+            return TextField(
+              controller: textController,
+              focusNode: focusNode,
+              decoration: InputDecoration(
+                hintText: 'Type to search places',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: IconButton(
+                  tooltip: 'Use current location',
+                  icon: const Icon(Icons.gps_fixed),
+                  onPressed: () => _useCurrentLocation(),
+                ),
+              ),
+              onSubmitted: (_) => onFieldSubmitted(),
+            );
+          },
         ),
+        const SizedBox(height: AppSpacing.xs),
+        if (_isSearching)
+          const Text('Searching nearby map locations...',
+              style: TextStyle(color: AppColors.textSecondary))
+        else if (_searchError != null)
+          Text(_searchError!, style: const TextStyle(color: AppColors.warning)),
         const SizedBox(height: AppSpacing.sm),
         Wrap(
           spacing: AppSpacing.sm,
@@ -328,12 +431,12 @@ class _LocationSelector extends StatelessWidget {
             ActionChip(
               avatar: const Icon(Icons.my_location, size: 18),
               label: const Text('Current location'),
-              onPressed: () => _useCurrentLocation(context),
+              onPressed: _useCurrentLocation,
             ),
             ActionChip(
               avatar: const Icon(Icons.map_outlined, size: 18),
               label: const Text('Pin on map'),
-              onPressed: () => _showMapPicker(context),
+              onPressed: _showMapPicker,
             ),
           ],
         ),
@@ -341,17 +444,16 @@ class _LocationSelector extends StatelessWidget {
     );
   }
 
-  Future<void> _useCurrentLocation(BuildContext context) async {
-    final container = ProviderScope.containerOf(context);
-    final location = await container
+  Future<void> _useCurrentLocation() async {
+    final location = await ref
         .read(locationStateProvider.notifier)
         .requestCurrentLocation();
     if (location != null) {
-      onSelected(location);
+      widget.onSelected(location);
     }
   }
 
-  Future<void> _showMapPicker(BuildContext context) async {
+  Future<void> _showMapPicker() async {
     final selected = await showModalBottomSheet<AppLocation>(
       context: context,
       isScrollControlled: true,
@@ -360,16 +462,18 @@ class _LocationSelector extends StatelessWidget {
         return SizedBox(
           height: MediaQuery.sizeOf(context).height * 0.9,
           child: MapLocationPickerSheet(
-            title: 'Pin $label',
-            initialLocation: selectedLocation,
-            pickup: pickup,
-            destination: destination.address.isEmpty ? null : destination,
+            title: 'Pin ${widget.label}',
+            initialLocation: widget.selectedLocation,
+            pickup: widget.pickup,
+            destination: widget.destination.address.isEmpty
+                ? null
+                : widget.destination,
           ),
         );
       },
     );
     if (selected != null) {
-      onSelected(selected.copyWith(source: 'map_pin'));
+      widget.onSelected(selected.copyWith(source: 'map_pin'));
     }
   }
 }
