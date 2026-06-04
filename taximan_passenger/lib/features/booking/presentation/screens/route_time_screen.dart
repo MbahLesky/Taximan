@@ -233,7 +233,7 @@ class _LocationSelector extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
-                selectedLocation?.fullAddress ?? 'Select a Bamenda location',
+                selectedLocation?.fullAddress ?? 'Select a location',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
