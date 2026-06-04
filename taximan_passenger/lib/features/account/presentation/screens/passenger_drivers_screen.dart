@@ -18,7 +18,7 @@ class PassengerDriversScreen extends ConsumerWidget {
     final drivers = ref.watch(availableDriversProvider);
 
     return BottomNavShell(
-      currentIndex: 2,
+      currentIndex: 4,
       title: 'Drivers',
       child: SafeArea(
         child: ListView(

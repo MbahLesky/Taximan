@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../../shared/widgets/bottom_nav_shell.dart';
 import '../../../notifications/application/providers/notification_state_provider.dart';
 import '../../../../shared/models/notification_record.dart';
 
@@ -16,42 +17,42 @@ class NotificationCenterScreen extends ConsumerWidget {
     final notifications = notificationState.notifications;
     final hasUnread = notificationState.unreadCount > 0;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notifications'),
-        actions: [
-          TextButton(
-            onPressed: hasUnread
-                ? () {
-                    ref
-                        .read(notificationStateProvider.notifier)
-                        .markAllAsRead();
-                  }
-                : null,
-            child: Text(
-              'Mark all read',
-              style: TextStyle(
-                color: !hasUnread
-                    ? Theme.of(context).disabledColor
-                    : Theme.of(context).colorScheme.primary,
+    return BottomNavShell(
+      currentIndex: 3,
+      title: 'Notifications',
+      child: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          children: [
+            if (hasUnread)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      ref
+                          .read(notificationStateProvider.notifier)
+                          .markAllAsRead();
+                    },
+                    child: const Text('Mark all read'),
+                  ),
+                ),
               ),
-            ),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: notificationState.isLoading && notifications.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : notifications.isEmpty
-            ? Center(
+            if (notificationState.isLoading && notifications.isEmpty)
+              const Center(child: CircularProgressIndicator())
+            else if (notifications.isEmpty)
+              Center(
                 child: Text(
                   notificationState.errorMessage ?? 'No notifications yet.',
                   style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
               )
-            : ListView.separated(
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount:
                     notifications.length +
                     (notificationState.errorMessage == null ? 0 : 1),
@@ -102,6 +103,8 @@ class NotificationCenterScreen extends ConsumerWidget {
                   );
                 },
               ),
+          ],
+        ),
       ),
     );
   }

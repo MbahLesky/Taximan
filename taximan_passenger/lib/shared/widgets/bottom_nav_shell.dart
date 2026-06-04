@@ -44,10 +44,10 @@ class BottomNavShell extends StatelessWidget {
               context.go('/trips');
               break;
             case 2:
-              context.go('/saved-drivers');
+              context.go('/tracking');
               break;
             case 3:
-              context.go('/tracking');
+              context.go('/notifications');
               break;
             case 4:
               context.go('/profile');
@@ -66,14 +66,14 @@ class BottomNavShell extends StatelessWidget {
             label: 'Trips',
           ),
           NavigationDestination(
-            icon: Icon(Icons.local_taxi_outlined),
-            selectedIcon: Icon(Icons.local_taxi),
-            label: 'Drivers',
-          ),
-          NavigationDestination(
             icon: Icon(Icons.near_me_outlined),
             selectedIcon: Icon(Icons.near_me),
             label: 'Tracking',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.notifications_outlined),
+            selectedIcon: Icon(Icons.notifications),
+            label: 'Notifications',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),

@@ -13,7 +13,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavShell(
-      currentIndex: 3,
+      currentIndex: 4,
       title: 'Settings',
       child: SafeArea(
         child: ListView(

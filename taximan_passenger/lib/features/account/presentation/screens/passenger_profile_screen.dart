@@ -145,6 +145,20 @@ class PassengerProfileScreen extends ConsumerWidget {
                     title: 'Help and support',
                     subtitle: 'Trip issues and safety support',
                   ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(
+                      Icons.local_taxi_outlined,
+                      color: AppColors.primaryDark,
+                    ),
+                    title: const Text(
+                      'Saved drivers',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    subtitle: const Text('View and manage saved drivers'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.go('/saved-drivers'),
+                  ),
                 ],
               ),
             ),

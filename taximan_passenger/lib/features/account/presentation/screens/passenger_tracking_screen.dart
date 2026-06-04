@@ -22,7 +22,7 @@ class PassengerTrackingScreen extends ConsumerWidget {
         : ref.watch(driverStreamProvider(driverId)).valueOrNull;
 
     return BottomNavShell(
-      currentIndex: 3,
+      currentIndex: 2,
       title: 'Tracking',
       child: SafeArea(
         child: ListView(
