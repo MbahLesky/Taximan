@@ -11,16 +11,32 @@ import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
 import '../../../account/application/providers/user_provider.dart';
 import '../../../auth/application/providers/auth_state_provider.dart';
+import '../../../location/application/providers/location_state_provider.dart';
+import '../../../location/presentation/widgets/live_map_view.dart';
 import '../../../matching/application/providers/driver_providers.dart';
 import '../../../trip/application/providers/trip_providers.dart';
 import '../../application/providers/booking_providers.dart';
 import '../../application/providers/booking_state_provider.dart';
 
-class PassengerHomeScreen extends ConsumerWidget {
+class PassengerHomeScreen extends ConsumerStatefulWidget {
   const PassengerHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PassengerHomeScreen> createState() =>
+      _PassengerHomeScreenState();
+}
+
+class _PassengerHomeScreenState extends ConsumerState<PassengerHomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(locationStateProvider.notifier).startLiveUpdates();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider).valueOrNull;
     final passengerId = ref.watch(authStateProvider).userId;
     final availableDriverCount = ref.watch(availableDriverCountProvider);
@@ -37,6 +53,9 @@ class PassengerHomeScreen extends ConsumerWidget {
               const <Trip>[];
     final bookingState = ref.watch(bookingStateProvider);
     final booking = bookingState.booking;
+    final locationState = ref.watch(locationStateProvider);
+    final onlineDrivers =
+        ref.watch(onlineDriverLocationsProvider).valueOrNull ?? const [];
     final firstName = currentUser?.fullName.split(' ').first;
 
     return BottomNavShell(
@@ -98,9 +117,7 @@ class PassengerHomeScreen extends ConsumerWidget {
                     ].where((value) => value.isNotEmpty).join('\n'),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.primaryDark,
-                    ),
+                    style: const TextStyle(color: AppColors.primaryDark),
                   ),
                   trailing: Text(
                     upcomingTrip.status,
@@ -177,77 +194,31 @@ class PassengerHomeScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            Container(
+            LiveMapView(
               height: 210,
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: CustomPaint(painter: _MapPlaceholderPainter()),
-                  ),
-                  const Positioned(
-                    top: 88,
-                    left: 72,
-                    child: Icon(
-                      Icons.my_location,
-                      color: AppColors.info,
-                      size: 28,
-                    ),
-                  ),
-                  const Positioned(
-                    right: 76,
-                    bottom: 84,
-                    child: Icon(
-                      Icons.location_on,
-                      color: AppColors.error,
-                      size: 34,
-                    ),
-                  ),
-                  Positioned(
-                    right: 16,
-                    bottom: 16,
-                    child: IconButton.filled(
-                      tooltip: 'Use current location',
-                      onPressed: () => context.push('/pickup'),
-                      icon: const Icon(Icons.gps_fixed),
-                    ),
-                  ),
-                  Positioned(
-                    left: 16,
-                    top: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.compact,
-                        vertical: AppSpacing.sm,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.sensors,
-                            size: 16,
-                            color: AppColors.success,
-                          ),
-                          SizedBox(width: AppSpacing.xs),
-                          Text(
-                            'Location active',
-                            style: TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              currentLocation: locationState.currentLocation.hasCoordinates
+                  ? locationState.currentLocation
+                  : null,
+              pickup: booking.pickup,
+              destination: booking.destinationLocation.address.isEmpty
+                  ? null
+                  : booking.destinationLocation,
+              driverLocations: onlineDrivers,
+              permissionStatus: locationState.permissionStatus,
+              isLoading: locationState.isLoading,
+              errorMessage: locationState.errorMessage,
+              showDriverEmptyState: true,
+              myLocationEnabled: locationState.hasLocationPermission,
+              onCurrentLocationPressed: () async {
+                final location = await ref
+                    .read(locationStateProvider.notifier)
+                    .requestCurrentLocation();
+                if (location != null) {
+                  ref
+                      .read(bookingStateProvider.notifier)
+                      .setPickupLocation(location);
+                }
+              },
             ),
             const SizedBox(height: AppSpacing.md),
             AppCard(
@@ -433,37 +404,4 @@ class _LocationTile extends StatelessWidget {
       onTap: onTap,
     );
   }
-}
-
-class _MapPlaceholderPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final roadPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.8)
-      ..strokeWidth = 18
-      ..strokeCap = StrokeCap.round;
-    final smallRoadPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.55)
-      ..strokeWidth = 9
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawLine(
-      Offset(24, size.height * .28),
-      Offset(size.width - 38, size.height * .68),
-      roadPaint,
-    );
-    canvas.drawLine(
-      Offset(40, size.height * .78),
-      Offset(size.width * .72, 30),
-      smallRoadPaint,
-    );
-    canvas.drawLine(
-      Offset(size.width * .15, 48),
-      Offset(size.width * .92, size.height * .24),
-      smallRoadPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

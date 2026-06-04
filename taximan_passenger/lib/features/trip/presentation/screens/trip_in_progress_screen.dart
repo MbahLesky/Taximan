@@ -7,6 +7,8 @@ import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../booking/application/providers/booking_state_provider.dart';
+import '../../../location/application/providers/location_state_provider.dart';
+import '../../../location/presentation/widgets/live_map_view.dart';
 
 class TripInProgressScreen extends ConsumerWidget {
   const TripInProgressScreen({super.key});
@@ -14,31 +16,46 @@ class TripInProgressScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final booking = ref.watch(bookingStateProvider).booking;
+    final driverId = booking.driverId ?? '';
+    if (driverId.isNotEmpty) {
+      ref.listen(assignedDriverLocationProvider(driverId), (previous, next) {
+        final location = next.valueOrNull;
+        if (location != null) {
+          ref
+              .read(locationStateProvider.notifier)
+              .updateAssignedDriverLocation(location);
+        }
+      });
+    }
+    final locationState = ref.watch(locationStateProvider);
+    final assignedDriverLocation = driverId.isEmpty
+        ? null
+        : ref.watch(assignedDriverLocationProvider(driverId)).valueOrNull;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Trip in progress')),
       body: Column(
         children: [
           Expanded(
-            child: Container(
-              margin: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.route, size: 86, color: AppColors.primaryDark),
-                    SizedBox(height: AppSpacing.sm),
-                    Text(
-                      'Route progress',
-                      style: TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                  ],
-                ),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: LiveMapView(
+                currentLocation: locationState.currentLocation.hasCoordinates
+                    ? locationState.currentLocation
+                    : null,
+                pickup: booking.pickup,
+                destination: booking.destinationLocation,
+                assignedDriverLocation: assignedDriverLocation,
+                permissionStatus: locationState.permissionStatus,
+                isLoading:
+                    driverId.isNotEmpty &&
+                    ref
+                        .watch(assignedDriverLocationProvider(driverId))
+                        .isLoading,
+                errorMessage: driverId.isEmpty
+                    ? 'A driver has not been assigned yet.'
+                    : null,
+                myLocationEnabled: locationState.hasLocationPermission,
               ),
             ),
           ),

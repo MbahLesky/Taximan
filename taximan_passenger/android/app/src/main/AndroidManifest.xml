@@ -1,8 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <application
         android:label="Taximan Passenger"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <!-- Google Maps API key -->
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyDhVi55PA2RIXJYCi4oVMCuqud1wkCxF40" />
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"

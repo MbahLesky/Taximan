@@ -9,10 +9,26 @@ import '../../../../shared/models/app_location.dart';
 import '../../../../shared/utils/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../location/application/providers/location_state_provider.dart';
+import '../../../location/presentation/widgets/live_map_view.dart';
+import '../../../location/presentation/widgets/map_location_picker.dart';
 import '../../application/providers/booking_state_provider.dart';
 
-class RouteTimeScreen extends ConsumerWidget {
+class RouteTimeScreen extends ConsumerStatefulWidget {
   const RouteTimeScreen({super.key});
+
+  @override
+  ConsumerState<RouteTimeScreen> createState() => _RouteTimeScreenState();
+}
+
+class _RouteTimeScreenState extends ConsumerState<RouteTimeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(locationStateProvider.notifier).startLiveUpdates();
+    });
+  }
 
   Future<void> _pickSchedule(
     BuildContext context,
@@ -51,7 +67,7 @@ class RouteTimeScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     ref.listen(bookingStateProvider, (previous, next) {
       final message = next.errorMessage;
       if (message != null && message != previous?.errorMessage) {
@@ -64,6 +80,7 @@ class RouteTimeScreen extends ConsumerWidget {
     });
 
     final booking = ref.watch(bookingStateProvider).booking;
+    final locationState = ref.watch(locationStateProvider);
     final controller = ref.read(bookingStateProvider.notifier);
 
     return Scaffold(
@@ -72,8 +89,20 @@ class RouteTimeScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
           _MapPreview(
+            currentLocation: locationState.currentLocation,
             pickup: booking.pickup,
             destination: booking.destinationLocation,
+            permissionStatus: locationState.permissionStatus,
+            isLoading: locationState.isLoading,
+            errorMessage: locationState.errorMessage,
+            onCurrentLocationPressed: () async {
+              final location = await ref
+                  .read(locationStateProvider.notifier)
+                  .requestCurrentLocation();
+              if (location != null) {
+                controller.setPickupLocation(location);
+              }
+            },
           ),
           const SizedBox(height: AppSpacing.md),
           AppCard(
@@ -90,6 +119,8 @@ class RouteTimeScreen extends ConsumerWidget {
                   icon: Icons.my_location,
                   selectedLocation: booking.pickup,
                   onSelected: controller.setPickupLocation,
+                  pickup: booking.pickup,
+                  destination: booking.destinationLocation,
                 ),
                 const Divider(height: 28),
                 _LocationSelector(
@@ -99,6 +130,8 @@ class RouteTimeScreen extends ConsumerWidget {
                       ? null
                       : booking.destinationLocation,
                   onSelected: controller.setDestinationLocation,
+                  pickup: booking.pickup,
+                  destination: booking.destinationLocation,
                 ),
               ],
             ),
@@ -175,12 +208,16 @@ class _LocationSelector extends StatelessWidget {
     required this.icon,
     required this.selectedLocation,
     required this.onSelected,
+    required this.pickup,
+    required this.destination,
   });
 
   final String label;
   final IconData icon;
   final AppLocation? selectedLocation;
   final ValueChanged<AppLocation> onSelected;
+  final AppLocation pickup;
+  final AppLocation destination;
 
   @override
   Widget build(BuildContext context) {
@@ -227,7 +264,7 @@ class _LocationSelector extends StatelessWidget {
                     suffixIcon: IconButton(
                       tooltip: 'Use current location',
                       icon: const Icon(Icons.gps_fixed),
-                      onPressed: () => onSelected(defaultPassengerLocation),
+                      onPressed: () => _useCurrentLocation(context),
                     ),
                   ),
                 );
@@ -241,7 +278,7 @@ class _LocationSelector extends StatelessWidget {
             ActionChip(
               avatar: const Icon(Icons.my_location, size: 18),
               label: const Text('Current location'),
-              onPressed: () => onSelected(defaultPassengerLocation),
+              onPressed: () => _useCurrentLocation(context),
             ),
             ActionChip(
               avatar: const Icon(Icons.map_outlined, size: 18),
@@ -254,120 +291,110 @@ class _LocationSelector extends StatelessWidget {
     );
   }
 
-  void _showMapPicker(BuildContext context) {
-    showModalBottomSheet<void>(
+  Future<void> _useCurrentLocation(BuildContext context) async {
+    final container = ProviderScope.containerOf(context);
+    final location = await container
+        .read(locationStateProvider.notifier)
+        .requestCurrentLocation();
+    if (location != null) {
+      onSelected(location);
+    }
+  }
+
+  Future<void> _showMapPicker(BuildContext context) async {
+    final selected = await showModalBottomSheet<AppLocation>(
       context: context,
-      showDragHandle: true,
+      isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) {
-        return SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            children: [
-              Text(
-                'Pin location',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              const _MapPreview(),
-              const SizedBox(height: AppSpacing.md),
-              ...bamendaLocations.map(
-                (location) => ListTile(
-                  leading: const Icon(Icons.place_outlined),
-                  title: Text(location.displayName),
-                  subtitle: Text(location.fullAddress),
-                  onTap: () {
-                    onSelected(location.copyWith(source: 'map_pin'));
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ),
-            ],
+        return SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.9,
+          child: MapLocationPickerSheet(
+            title: 'Pin $label',
+            initialLocation: selectedLocation,
+            pickup: pickup,
+            destination: destination.address.isEmpty ? null : destination,
           ),
         );
       },
     );
+    if (selected != null) {
+      onSelected(selected.copyWith(source: 'map_pin'));
+    }
   }
 }
 
 class _MapPreview extends StatelessWidget {
-  const _MapPreview({this.pickup, this.destination});
+  const _MapPreview({
+    this.currentLocation,
+    this.pickup,
+    this.destination,
+    this.permissionStatus = 'unknown',
+    this.isLoading = false,
+    this.errorMessage,
+    this.onCurrentLocationPressed,
+  });
 
+  final AppLocation? currentLocation;
   final AppLocation? pickup;
   final AppLocation? destination;
+  final String permissionStatus;
+  final bool isLoading;
+  final String? errorMessage;
+  final VoidCallback? onCurrentLocationPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 180,
-      decoration: BoxDecoration(
-        color: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Stack(
-        children: [
-          Positioned.fill(child: CustomPaint(painter: _RoutePainter())),
-          const Positioned(
-            left: 42,
-            top: 44,
-            child: Icon(Icons.my_location, color: AppColors.info, size: 28),
-          ),
-          const Positioned(
-            right: 44,
-            bottom: 42,
-            child: Icon(Icons.location_on, color: AppColors.error, size: 34),
-          ),
-          Positioned(
-            left: AppSpacing.md,
-            right: AppSpacing.md,
-            bottom: AppSpacing.md,
-            child: Text(
-              destination?.address.isNotEmpty == true
-                  ? '${pickup?.displayName ?? 'Pickup'} to '
-                        '${destination!.displayName}'
-                  : 'Bamenda service area',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w800),
+    return Stack(
+      children: [
+        LiveMapView(
+          height: 180,
+          currentLocation: currentLocation?.hasCoordinates == true
+              ? currentLocation
+              : null,
+          pickup: pickup,
+          destination: destination?.address.isNotEmpty == true
+              ? destination
+              : null,
+          permissionStatus: permissionStatus,
+          isLoading: isLoading,
+          errorMessage: errorMessage,
+          onCurrentLocationPressed: onCurrentLocationPressed,
+          myLocationEnabled: permissionStatus == 'granted',
+          borderRadius: 16,
+        ),
+        Positioned(
+          left: AppSpacing.md,
+          right: AppSpacing.md,
+          bottom: AppSpacing.md,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: AppColors.surface.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.xs,
+                ),
+                child: Text(
+                  destination?.address.isNotEmpty == true
+                      ? '${pickup?.displayName ?? 'Pickup'} to '
+                            '${destination!.displayName}'
+                      : 'Bamenda service area',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
-}
-
-class _RoutePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final roadPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.7)
-      ..strokeWidth = 12
-      ..strokeCap = StrokeCap.round;
-    final routePaint = Paint()
-      ..color = AppColors.primaryDark
-      ..strokeWidth = 5
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawLine(
-      Offset(20, size.height * .72),
-      Offset(size.width - 24, 38),
-      roadPaint,
-    );
-    canvas.drawLine(
-      Offset(size.width * .16, 42),
-      Offset(size.width * .86, size.height - 36),
-      roadPaint,
-    );
-    canvas.drawLine(
-      const Offset(58, 58),
-      Offset(size.width - 60, size.height - 58),
-      routePaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 String _formatDateTime(DateTime value) {

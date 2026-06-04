@@ -9,6 +9,8 @@ import '../../../../shared/utils/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../auth/application/providers/auth_state_provider.dart';
+import '../../../location/application/providers/location_state_provider.dart';
+import '../../../location/presentation/widgets/live_map_view.dart';
 import '../../application/providers/repositories.dart';
 import '../../application/providers/booking_state_provider.dart';
 
@@ -68,16 +70,13 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
     ref.listen(bookingStateProvider, (previous, next) {
       final message = next.errorMessage;
       if (message != null && message != previous?.errorMessage) {
-        AppToast.error(
-          context,
-          title: 'Booking error',
-          description: message,
-        );
+        AppToast.error(context, title: 'Booking error', description: message);
       }
     });
 
     final bookingState = ref.watch(bookingStateProvider);
     final networkStatus = ref.watch(networkStatusProvider);
+    final locationState = ref.watch(locationStateProvider);
     final booking = bookingState.booking;
 
     return Scaffold(
@@ -85,38 +84,17 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          Container(
+          LiveMapView(
             height: 170,
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: CustomPaint(painter: _SummaryMapPainter()),
-                ),
-                const Positioned(
-                  left: 52,
-                  top: 54,
-                  child: Icon(
-                    Icons.my_location,
-                    color: AppColors.info,
-                    size: 28,
-                  ),
-                ),
-                const Positioned(
-                  right: 52,
-                  bottom: 44,
-                  child: Icon(
-                    Icons.location_on,
-                    color: AppColors.error,
-                    size: 34,
-                  ),
-                ),
-              ],
-            ),
+            currentLocation: locationState.currentLocation.hasCoordinates
+                ? locationState.currentLocation
+                : null,
+            pickup: booking.pickup,
+            destination: booking.destinationLocation,
+            permissionStatus: locationState.permissionStatus,
+            isLoading: locationState.isLoading,
+            errorMessage: locationState.errorMessage,
+            myLocationEnabled: locationState.hasLocationPermission,
           ),
           const SizedBox(height: AppSpacing.md),
           AppCard(
@@ -261,39 +239,6 @@ String _formatDateTime(DateTime value) {
   final hour = value.hour.toString().padLeft(2, '0');
   final minute = value.minute.toString().padLeft(2, '0');
   return '${value.day}/${value.month}/${value.year} at $hour:$minute';
-}
-
-class _SummaryMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final roadPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.72)
-      ..strokeWidth = 12
-      ..strokeCap = StrokeCap.round;
-    final routePaint = Paint()
-      ..color = AppColors.primaryDark
-      ..strokeWidth = 5
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawLine(
-      Offset(24, size.height * .72),
-      Offset(size.width - 32, 38),
-      roadPaint,
-    );
-    canvas.drawLine(
-      Offset(size.width * .12, 42),
-      Offset(size.width * .88, size.height - 36),
-      roadPaint,
-    );
-    canvas.drawLine(
-      Offset(68, 72),
-      Offset(size.width - 68, size.height - 56),
-      routePaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _RouteRow extends StatelessWidget {

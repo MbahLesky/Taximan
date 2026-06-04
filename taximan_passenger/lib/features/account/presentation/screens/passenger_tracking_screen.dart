@@ -8,6 +8,8 @@ import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
 import '../../../booking/application/providers/booking_state_provider.dart';
+import '../../../location/application/providers/location_state_provider.dart';
+import '../../../location/presentation/widgets/live_map_view.dart';
 import '../../../matching/application/providers/driver_providers.dart';
 
 class PassengerTrackingScreen extends ConsumerWidget {
@@ -20,6 +22,20 @@ class PassengerTrackingScreen extends ConsumerWidget {
     final driver = driverId.isEmpty
         ? null
         : ref.watch(driverStreamProvider(driverId)).valueOrNull;
+    if (driverId.isNotEmpty) {
+      ref.listen(assignedDriverLocationProvider(driverId), (previous, next) {
+        final location = next.valueOrNull;
+        if (location != null) {
+          ref
+              .read(locationStateProvider.notifier)
+              .updateAssignedDriverLocation(location);
+        }
+      });
+    }
+    final locationState = ref.watch(locationStateProvider);
+    final assignedDriverLocation = driverId.isEmpty
+        ? null
+        : ref.watch(assignedDriverLocationProvider(driverId)).valueOrNull;
 
     return BottomNavShell(
       currentIndex: 2,
@@ -28,50 +44,22 @@ class PassengerTrackingScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            Container(
+            LiveMapView(
               height: 220,
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: CustomPaint(painter: _TrackingMapPainter()),
-                  ),
-                  const Positioned(
-                    top: 44,
-                    left: 58,
-                    child: _MapPin(
-                      icon: Icons.person_pin_circle,
-                      color: AppColors.info,
-                    ),
-                  ),
-                  const Positioned(
-                    right: 64,
-                    bottom: 58,
-                    child: _MapPin(
-                      icon: Icons.local_taxi,
-                      color: AppColors.primaryDark,
-                    ),
-                  ),
-                  Positioned(
-                    right: 16,
-                    top: 16,
-                    child: Chip(
-                      backgroundColor: AppColors.surface,
-                      side: const BorderSide(color: AppColors.border),
-                      avatar: const Icon(
-                        Icons.sensors,
-                        size: 18,
-                        color: AppColors.success,
-                      ),
-                      label: const Text('Live'),
-                    ),
-                  ),
-                ],
-              ),
+              currentLocation: locationState.currentLocation.hasCoordinates
+                  ? locationState.currentLocation
+                  : null,
+              pickup: booking.pickup,
+              destination: booking.destinationLocation,
+              assignedDriverLocation: assignedDriverLocation,
+              permissionStatus: locationState.permissionStatus,
+              isLoading:
+                  driverId.isNotEmpty &&
+                  ref.watch(assignedDriverLocationProvider(driverId)).isLoading,
+              errorMessage: driverId.isEmpty
+                  ? 'A driver has not been assigned yet.'
+                  : null,
+              myLocationEnabled: locationState.hasLocationPermission,
             ),
             const SizedBox(height: AppSpacing.md),
             AppCard(
@@ -133,10 +121,10 @@ class PassengerTrackingScreen extends ConsumerWidget {
                     ),
                     title: Text(driver?.fullName ?? 'Driver assigned'),
                     subtitle: Text(
-                      [
-                        driver?.vehicle,
-                        driver?.plateNumber,
-                      ].whereType<String>().where((value) => value.isNotEmpty).join(' - '),
+                      [driver?.vehicle, driver?.plateNumber]
+                          .whereType<String>()
+                          .where((value) => value.isNotEmpty)
+                          .join(' - '),
                     ),
                     trailing: const Icon(Icons.star, color: AppColors.warning),
                   ),
@@ -207,73 +195,4 @@ class _TimelineStep extends StatelessWidget {
       ),
     );
   }
-}
-
-class _MapPin extends StatelessWidget {
-  const _MapPin({required this.icon, required this.color});
-
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Icon(icon, color: color),
-    );
-  }
-}
-
-class _TrackingMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final routePaint = Paint()
-      ..color = AppColors.primaryDark.withValues(alpha: 0.18)
-      ..strokeWidth = 16
-      ..strokeCap = StrokeCap.round;
-    final activePaint = Paint()
-      ..color = AppColors.primaryDark
-      ..strokeWidth = 5
-      ..strokeCap = StrokeCap.round;
-    final roadPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.72)
-      ..strokeWidth = 10
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawLine(
-      Offset(28, size.height * .78),
-      Offset(size.width * .86, 42),
-      roadPaint,
-    );
-    canvas.drawLine(
-      Offset(size.width * .12, 54),
-      Offset(size.width - 32, size.height * .72),
-      roadPaint,
-    );
-    canvas.drawLine(
-      Offset(78, 72),
-      Offset(size.width - 86, size.height - 76),
-      routePaint,
-    );
-    canvas.drawLine(
-      Offset(78, 72),
-      Offset(size.width * .58, size.height * .54),
-      activePaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
