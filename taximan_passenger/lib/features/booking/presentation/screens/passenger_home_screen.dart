@@ -76,17 +76,19 @@ class PassengerHomeScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
             if (upcomingTrip != null) ...[
               AppCard(
+                color: AppColors.primary,
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(
                     Icons.schedule,
-                    color: AppColors.primary,
+                    color: AppColors.primaryDark,
                     size: 30,
                   ),
                   title: Text(
                     'Upcoming trip',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
+                      color: AppColors.primaryDark,
                     ),
                   ),
                   subtitle: Text(
@@ -94,12 +96,18 @@ class PassengerHomeScreen extends ConsumerWidget {
                       '${upcomingTrip.pickupLocation} -> ${upcomingTrip.destination}',
                       _formatTripPickupTime(upcomingTrip),
                     ].where((value) => value.isNotEmpty).join('\n'),
-                    maxLines: 2,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.primaryDark,
+                    ),
                   ),
                   trailing: Text(
                     upcomingTrip.status,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primaryDark,
+                    ),
                   ),
                   onTap: () => context.push('/trip/${upcomingTrip.id}'),
                 ),
@@ -365,7 +373,7 @@ String _formatTripPickupTime(Trip trip) {
   }
   final hour = value.hour.toString().padLeft(2, '0');
   final minute = value.minute.toString().padLeft(2, '0');
-  return '${value.day}/${value.month}/${value.year} at $hour:$minute';
+  return '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year} at $hour:$minute';
 }
 
 class _SectionHeader extends StatelessWidget {

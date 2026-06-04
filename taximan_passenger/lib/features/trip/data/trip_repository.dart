@@ -242,8 +242,8 @@ class TripRepository {
     return _firestore
         .collection(_collection)
         .where('passengerId', isEqualTo: passengerId)
-        .where('status', whereIn: TripStatus.active)
-        .orderBy('createdAt', descending: true)
+        .where('status', whereIn: TripStatus.upcoming)
+        .orderBy('scheduledPickupTime', descending: false)
         .limit(1)
         .snapshots()
         .map((snapshot) {

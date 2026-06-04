@@ -360,11 +360,10 @@ String _formatPickupTime(Booking booking) {
 
 String _formatTripPickupTime(Trip trip) {
   final value = trip.scheduledPickupTime;
-  print("\n\n\nTrip Scheduled Date: ${trip.scheduledPickupTime}\n\n\n");
   if (value == null) {
     return trip.date;
   }
-  return '${value.day}/${value.month}/${value.year} '
+  return '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year} at '
       '${value.hour.toString().padLeft(2, '0')}:'
       '${value.minute.toString().padLeft(2, '0')}';
 }
