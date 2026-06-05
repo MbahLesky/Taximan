@@ -3,7 +3,10 @@
         android:label="Taximan Driver"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+                <!-- Google Maps API key -->
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyDN7AEgj57dmNIPvNKIu-skUwDJcxA1-2M" />
         <activity
+
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"

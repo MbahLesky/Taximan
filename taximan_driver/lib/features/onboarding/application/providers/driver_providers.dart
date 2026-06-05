@@ -16,3 +16,14 @@ final currentDriverProvider = StreamProvider<DriverModel?>((ref) {
 
   return ref.watch(driverRepositoryProvider).streamDriver(userId);
 });
+
+final driverDocumentsProvider = StreamProvider<List<DriverDocumentRecord>>((
+  ref,
+) {
+  final userId = ref.watch(authStateProvider).userId;
+  if (userId == null || userId.isEmpty) {
+    return const Stream<List<DriverDocumentRecord>>.empty();
+  }
+
+  return ref.watch(driverRepositoryProvider).streamDriverDocuments(userId);
+});

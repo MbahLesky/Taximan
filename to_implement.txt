@@ -1,0 +1,63 @@
+Driver app status
+The taximan_driver app currently has:
+
+UI prototype screens wired with GoRouter
+Riverpod app wrapper
+dummy driver / vehicle / trip / earnings data
+reusable UI widgets
+Firebase.initializeApp() setup, but no real backend wiring
+Firebase packages present in generated plugins, but not implemented in app logic
+What still needs to be implemented
+1. Authentication
+FirebaseAuth registration and login
+session persistence
+logout
+email/phone auth flow instead of dummy screen transitions
+2. Driver onboarding
+save personal details to Firestore
+save vehicle details
+upload documents/photos to Firebase Storage
+verification status tracking
+onboarding state flow from pending/rejected/approved
+3. Availability
+online/offline toggle backed by Firestore
+availability schedule persistence
+driver presence tracking for matching
+4. Booking management
+real-time ride request delivery via Firestore
+accept/reject request actions
+timeouts / request lifecycle handling
+fare proposal flow integration
+5. Trip execution
+real pickup route and map/navigation integration
+arrival, trip start, in-progress, and trip complete state updates
+update trip status back to backend in real time
+6. Earnings and history
+fetch completed trips from Firestore
+calculate earnings summary
+show real trip history and trip detail records
+7. Account
+profile view/edit
+vehicle info view
+document status screen backed by live data
+8. Real-time / notifications
+Firestore listeners for ride updates
+FCM push notifications for incoming requests
+location permissions and driver location updates
+Short answer
+The driver app is ready for backend implementation. Next is to replace dummy data/screens with real Firebase-backed authentication, onboarding, availability, booking, trip execution, earnings, and account services.
+
+Raptor mini (Preview) • 2.1 credits
+AndroidManifest.xml
+
+Agent
+Auto
+Local
+Default Approvals
+PROBLEMS
+2
+OUTPUT
+DEBUG CONSOLE
+TERMINAL
+PORTS
+

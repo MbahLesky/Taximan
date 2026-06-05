@@ -11,6 +11,7 @@ import '../../../auth/application/providers/auth_state_provider.dart';
 import '../../application/providers/driver_providers.dart';
 import '../../application/providers/upload_providers.dart';
 import '../../data/upload_service.dart';
+import '../../domain/driver_document_requirements.dart';
 
 class DocumentUploadScreen extends ConsumerStatefulWidget {
   const DocumentUploadScreen({super.key});
@@ -21,23 +22,15 @@ class DocumentUploadScreen extends ConsumerStatefulWidget {
 }
 
 class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
-  static const _documents = [
-    _DriverDocumentSpec('national_id', 'National ID'),
-    _DriverDocumentSpec('driver_license', "Driver's License"),
-    _DriverDocumentSpec('insurance', 'Vehicle Insurance'),
-    _DriverDocumentSpec('vehicle_registration', 'Vehicle Registration'),
-    _DriverDocumentSpec('road_worthiness', 'Road Worthiness'),
-  ];
-
   final Map<String, PlatformFile> _selectedFiles = {};
   final Map<String, String> _uploadedUrls = {};
   String? _uploadingDocumentType;
   bool _isSubmitting = false;
 
-  Future<void> _pickDocument(_DriverDocumentSpec document) async {
+  Future<void> _pickDocument(DriverDocumentRequirement document) async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'pdf'],
+      allowedExtensions: UploadService.allowedDocumentExtensions.toList(),
       withData: true,
     );
     final file = result?.files.single;
@@ -65,7 +58,7 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
       _showMessage('Sign in before uploading documents.');
       return;
     }
-    final missingDocuments = _documents
+    final missingDocuments = requiredDriverDocuments
         .where((document) => !_selectedFiles.containsKey(document.type))
         .map((document) => document.label)
         .join(', ');
@@ -79,7 +72,7 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
       final uploadService = ref.read(uploadServiceProvider);
       final urls = <String, String>{};
 
-      for (final document in _documents) {
+      for (final document in requiredDriverDocuments) {
         setState(() => _uploadingDocumentType = document.type);
         final file = _selectedFiles[document.type]!;
         final url = await uploadService.uploadDriverDocument(
@@ -98,8 +91,10 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
       if (mounted) {
         context.push('/profile-photo');
       }
-    } on FileSizeLimitException {
-      _showMessage('Files must be 1 MB or smaller.');
+    } on FileSizeLimitException catch (e) {
+      _showMessage(e.toString());
+    } on UnsupportedFileTypeException catch (e) {
+      _showMessage(e.toString());
     } catch (e) {
       _showMessage('Could not upload documents. Please try again.');
     } finally {
@@ -132,7 +127,7 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
             ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
           ),
           const SizedBox(height: AppSpacing.md),
-          ..._documents.map((document) {
+          ...requiredDriverDocuments.map((document) {
             final file = _selectedFiles[document.type];
             final uploaded = _uploadedUrls.containsKey(document.type);
             final uploading = _uploadingDocumentType == document.type;
@@ -174,13 +169,6 @@ class _DocumentUploadScreenState extends ConsumerState<DocumentUploadScreen> {
       ),
     );
   }
-}
-
-class _DriverDocumentSpec {
-  const _DriverDocumentSpec(this.type, this.label);
-
-  final String type;
-  final String label;
 }
 
 String _formatBytes(int bytes) {

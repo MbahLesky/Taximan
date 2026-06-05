@@ -1,76 +1,49 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../shared/models/driver.dart';
-import '../../../../shared/models/vehicle.dart';
+import '../../../auth/application/providers/auth_state_provider.dart';
+import '../../../onboarding/application/providers/driver_providers.dart';
+import '../../data/driver_availability_repository.dart';
 
-class DriverState {
-  const DriverState({
-    required this.driver,
-    this.isOnline = false,
-    this.isBusy = false,
-    this.errorMessage,
-  });
+final driverAvailabilityRepositoryProvider =
+    Provider<DriverAvailabilityRepository>((ref) {
+      return DriverAvailabilityRepository();
+    });
 
-  final Driver driver;
-  final bool isOnline;
-  final bool isBusy;
-  final String? errorMessage;
+final driverAvailabilityActionsProvider = Provider<DriverAvailabilityActions>((
+  ref,
+) {
+  return DriverAvailabilityActions(ref);
+});
 
-  String get statusLabel {
-    if (isBusy) {
-      return 'Busy';
+class DriverAvailabilityActions {
+  DriverAvailabilityActions(this._ref);
+
+  final Ref _ref;
+
+  Future<void> toggleAvailability() async {
+    final driver = _ref.read(currentDriverProvider).valueOrNull;
+    final driverId = _driverId;
+    final shouldGoOnline = !(driver?.isAvailable ?? false);
+    await _repository.setOnline(driverId: driverId, isOnline: shouldGoOnline);
+  }
+
+  Future<void> setBusy(bool value) async {
+    await _repository.setBusy(driverId: _driverId, isBusy: value);
+  }
+
+  Future<void> saveSchedule(List<AvailabilityScheduleEntry> schedule) async {
+    await _repository.saveSchedule(driverId: _driverId, schedule: schedule);
+  }
+
+  DriverAvailabilityRepository get _repository {
+    return _ref.read(driverAvailabilityRepositoryProvider);
+  }
+
+  String get _driverId {
+    final driverId = _ref.read(authStateProvider).userId;
+    if (driverId == null || driverId.isEmpty) {
+      throw Exception('Sign in before updating availability.');
     }
-    return isOnline ? 'Available' : 'Offline';
-  }
-
-  DriverState copyWith({
-    Driver? driver,
-    bool? isOnline,
-    bool? isBusy,
-    String? errorMessage,
-  }) {
-    return DriverState(
-      driver: driver ?? this.driver,
-      isOnline: isOnline ?? this.isOnline,
-      isBusy: isBusy ?? this.isBusy,
-      errorMessage: errorMessage,
-    );
+    return driverId;
   }
 }
-
-class DriverController extends StateNotifier<DriverState> {
-  DriverController()
-    : super(
-        const DriverState(
-          driver: Driver(
-            id: 'driver-001',
-            fullName: 'Samuel Fotso',
-            email: 'samuel.fotso@example.com',
-            phone: '+237 6 91 24 77 05',
-            city: 'Yaounde',
-            rating: 4.9,
-            verificationStatus: 'Pending verification',
-            vehicle: Vehicle(
-              type: 'Taxi',
-              model: 'Toyota Corolla',
-              plateNumber: 'LT 4821 AB',
-              color: 'Yellow',
-              capacity: 4,
-            ),
-          ),
-        ),
-      );
-
-  void toggleAvailability() {
-    state = state.copyWith(isOnline: !state.isOnline, isBusy: false);
-  }
-
-  void setBusy(bool value) {
-    state = state.copyWith(isBusy: value, isOnline: true);
-  }
-}
-
-final driverStateProvider =
-    StateNotifierProvider<DriverController, DriverState>(
-      (ref) => DriverController(),
-    );

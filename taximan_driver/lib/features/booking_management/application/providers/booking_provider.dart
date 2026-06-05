@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/models/booking.dart';
@@ -14,6 +12,12 @@ final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
 final availableBookingsStreamProvider = StreamProvider<List<Booking>>((ref) {
   final driverId = ref.watch(authStateProvider).userId;
   if (driverId == null || driverId.isEmpty) {
+    return const Stream<List<Booking>>.empty();
+  }
+  final driver = ref.watch(currentDriverProvider).valueOrNull;
+  if (driver == null ||
+      driver.verificationStatus.toLowerCase() != 'approved' ||
+      !driver.isAvailable) {
     return const Stream<List<Booking>>.empty();
   }
 

@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../application/onboarding_flow.dart';
+import '../../application/providers/driver_providers.dart';
 
-class VerificationPendingScreen extends StatelessWidget {
+class VerificationPendingScreen extends ConsumerWidget {
   const VerificationPendingScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentDriver = ref.watch(currentDriverProvider).valueOrNull;
+    final status = currentDriver?.verificationStatus ?? 'pending';
+
     return Scaffold(
       appBar: AppBar(title: const Text('Verification pending')),
       body: SafeArea(
@@ -26,7 +32,7 @@ class VerificationPendingScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xl),
               Text(
-                'Verification pending',
+                _statusTitle(status),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w800,
                 ),
@@ -45,9 +51,11 @@ class VerificationPendingScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.compact),
               AppButton(
-                label: 'Open demo dashboard',
+                label: 'Refresh status',
                 variant: AppButtonVariant.secondary,
-                onPressed: () => context.go('/dashboard'),
+                onPressed: currentDriver == null
+                    ? null
+                    : () => context.go(nextDriverRoute(currentDriver)),
               ),
             ],
           ),
@@ -55,4 +63,12 @@ class VerificationPendingScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+String _statusTitle(String status) {
+  return switch (status.toLowerCase()) {
+    'approved' => 'Verification approved',
+    'rejected' => 'Verification rejected',
+    _ => 'Verification pending',
+  };
 }

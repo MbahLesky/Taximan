@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/models/vehicle.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
@@ -85,35 +84,35 @@ class _VehicleDetailsScreenState extends ConsumerState<VehicleDetailsScreen> {
         children: [
           AppTextField(
             label: 'Vehicle type',
-            hint: DummyData.vehicleType,
+            hint: 'Taxi',
             icon: Icons.local_taxi,
             onChanged: (value) => _type = value,
           ),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
             label: 'Make and model',
-            hint: DummyData.vehicleModel,
+            hint: 'Toyota Corolla',
             icon: Icons.directions_car,
             onChanged: (value) => _model = value,
           ),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
             label: 'Plate number',
-            hint: DummyData.vehiclePlate,
+            hint: 'NW-123-AB',
             icon: Icons.pin,
             onChanged: (value) => _plateNumber = value,
           ),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
             label: 'Vehicle color',
-            hint: DummyData.vehicleColor,
+            hint: 'Yellow',
             icon: Icons.palette_outlined,
             onChanged: (value) => _color = value,
           ),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
             label: 'Capacity',
-            hint: DummyData.vehicleCapacity,
+            hint: '4',
             icon: Icons.groups_outlined,
             keyboardType: TextInputType.number,
             onChanged: (value) => _capacity = value,

@@ -11,6 +11,8 @@ class DriverModel {
     this.profilePhotoUrl,
     this.role = 'driver',
     this.verificationStatus = 'pending',
+    this.onboardingStatus = 'pending',
+    this.rejectionReason,
     this.availabilityStatus = 'offline',
     this.isAvailable = false,
     this.isActive = true,
@@ -19,6 +21,7 @@ class DriverModel {
     this.vehicleId,
     this.vehicle,
     this.documentUrls = const {},
+    this.availabilitySchedule = const [],
     this.createdAt,
     this.updatedAt,
   });
@@ -31,6 +34,8 @@ class DriverModel {
   final String? profilePhotoUrl;
   final String role;
   final String verificationStatus;
+  final String onboardingStatus;
+  final String? rejectionReason;
   final String availabilityStatus;
   final bool isAvailable;
   final bool isActive;
@@ -39,6 +44,7 @@ class DriverModel {
   final String? vehicleId;
   final Vehicle? vehicle;
   final Map<String, String> documentUrls;
+  final List<Map<String, String>> availabilitySchedule;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -51,6 +57,8 @@ class DriverModel {
     String? profilePhotoUrl,
     String? role,
     String? verificationStatus,
+    String? onboardingStatus,
+    String? rejectionReason,
     String? availabilityStatus,
     bool? isAvailable,
     bool? isActive,
@@ -59,6 +67,7 @@ class DriverModel {
     String? vehicleId,
     Vehicle? vehicle,
     Map<String, String>? documentUrls,
+    List<Map<String, String>>? availabilitySchedule,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -71,6 +80,8 @@ class DriverModel {
       profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
       role: role ?? this.role,
       verificationStatus: verificationStatus ?? this.verificationStatus,
+      onboardingStatus: onboardingStatus ?? this.onboardingStatus,
+      rejectionReason: rejectionReason ?? this.rejectionReason,
       availabilityStatus: availabilityStatus ?? this.availabilityStatus,
       isAvailable: isAvailable ?? this.isAvailable,
       isActive: isActive ?? this.isActive,
@@ -79,6 +90,7 @@ class DriverModel {
       vehicleId: vehicleId ?? this.vehicleId,
       vehicle: vehicle ?? this.vehicle,
       documentUrls: documentUrls ?? this.documentUrls,
+      availabilitySchedule: availabilitySchedule ?? this.availabilitySchedule,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -94,6 +106,8 @@ class DriverModel {
       'profilePhotoUrl': profilePhotoUrl,
       'role': role,
       'verificationStatus': verificationStatus,
+      'onboardingStatus': onboardingStatus,
+      'rejectionReason': rejectionReason,
       'availabilityStatus': availabilityStatus,
       'isAvailable': isAvailable,
       'isActive': isActive,
@@ -102,6 +116,7 @@ class DriverModel {
       'vehicleId': vehicleId,
       'vehicle': vehicle?.toMap(),
       'documentUrls': documentUrls,
+      'availabilitySchedule': availabilitySchedule,
       'createdAt': writeDateTime(createdAt),
       'updatedAt': writeDateTime(updatedAt),
     };
@@ -111,6 +126,15 @@ class DriverModel {
     final documentUrls = (map['documentUrls'] as Map<String, dynamic>?) ?? {};
     final vehicleMap = map['vehicle'] as Map<String, dynamic>?;
     final ratingValue = map['ratingAverage'] ?? map['rating'];
+    final availabilitySchedule =
+        (map['availabilitySchedule'] as List<dynamic>? ?? const [])
+            .whereType<Map>()
+            .map(
+              (entry) => entry.map(
+                (key, value) => MapEntry(key.toString(), value.toString()),
+              ),
+            )
+            .toList();
 
     return DriverModel(
       id: map['id'] as String? ?? '',
@@ -121,6 +145,8 @@ class DriverModel {
       profilePhotoUrl: map['profilePhotoUrl'] as String?,
       role: map['role'] as String? ?? 'driver',
       verificationStatus: map['verificationStatus'] as String? ?? 'pending',
+      onboardingStatus: map['onboardingStatus'] as String? ?? 'pending',
+      rejectionReason: map['rejectionReason'] as String?,
       availabilityStatus: map['availabilityStatus'] as String? ?? 'offline',
       isAvailable: map['isAvailable'] as bool? ?? false,
       isActive: map['isActive'] as bool? ?? true,
@@ -131,6 +157,7 @@ class DriverModel {
       documentUrls: documentUrls.map(
         (key, value) => MapEntry(key, value?.toString() ?? ''),
       ),
+      availabilitySchedule: availabilitySchedule,
       createdAt: readDateTime(map['createdAt']),
       updatedAt: readDateTime(map['updatedAt']),
     );

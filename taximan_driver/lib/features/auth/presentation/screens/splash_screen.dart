@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../onboarding/application/onboarding_flow.dart';
+import '../../../onboarding/application/providers/driver_providers.dart';
 import '../../application/providers/auth_state_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -21,12 +23,40 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer(const Duration(seconds: 2), () {
-      if (mounted) {
-        final authState = ref.read(authStateProvider);
-        context.go(authState.isAuthenticated ? '/dashboard' : '/onboarding');
+    _timer = Timer(const Duration(seconds: 2), _resolveInitialRoute);
+  }
+
+  Future<void> _resolveInitialRoute() async {
+    if (!mounted) {
+      return;
+    }
+    final authState = ref.read(authStateProvider);
+    final driverId = authState.userId;
+    if (!authState.isAuthenticated || driverId == null) {
+      context.go('/onboarding');
+      return;
+    }
+
+    try {
+      final driver = await ref
+          .read(driverRepositoryProvider)
+          .fetchDriver(driverId);
+      if (!mounted) {
+        return;
       }
-    });
+      if (driver == null) {
+        await ref.read(authStateProvider.notifier).logout();
+        if (mounted) {
+          context.go('/login');
+        }
+        return;
+      }
+      context.go(nextDriverRoute(driver));
+    } catch (_) {
+      if (mounted) {
+        context.go('/login');
+      }
+    }
   }
 
   @override

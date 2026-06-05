@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
+import '../../../onboarding/application/providers/driver_providers.dart';
 
-class DriverProfileScreen extends StatelessWidget {
+class DriverProfileScreen extends ConsumerWidget {
   const DriverProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final driver = ref.watch(currentDriverProvider).valueOrNull;
+    final photoUrl = driver?.profilePhotoUrl;
+
     return BottomNavShell(
       currentIndex: 3,
       title: 'Profile',
@@ -23,38 +27,47 @@ class DriverProfileScreen extends StatelessWidget {
             AppCard(
               child: Column(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 42,
                     backgroundColor: AppColors.primaryLight,
-                    child: Icon(
-                      Icons.person,
-                      size: 46,
-                      color: AppColors.primaryDark,
-                    ),
+                    backgroundImage: photoUrl == null || photoUrl.isEmpty
+                        ? null
+                        : NetworkImage(photoUrl),
+                    child: photoUrl == null || photoUrl.isEmpty
+                        ? const Icon(
+                            Icons.person,
+                            size: 46,
+                            color: AppColors.primaryDark,
+                          )
+                        : null,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    DummyData.driverName,
+                    driver?.fullName.isNotEmpty == true
+                        ? driver!.fullName
+                        : 'Driver profile',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const Text('Rating ${DummyData.driverRating}'),
+                  Text(
+                    'Rating ${(driver?.ratingAverage ?? 0).toStringAsFixed(1)}',
+                  ),
                   const Divider(height: 28),
-                  const _ProfileLine(
+                  _ProfileLine(
                     icon: Icons.phone_outlined,
                     label: 'Phone',
-                    value: DummyData.driverPhone,
+                    value: driver?.phone ?? '',
                   ),
-                  const _ProfileLine(
+                  _ProfileLine(
                     icon: Icons.email_outlined,
                     label: 'Email',
-                    value: DummyData.driverEmail,
+                    value: driver?.email ?? '',
                   ),
                   AppButton(
-                    label: 'Edit profile placeholder',
+                    label: 'Update documents',
                     variant: AppButtonVariant.secondary,
-                    onPressed: () {},
+                    onPressed: () => context.go('/document-upload'),
                   ),
                   const SizedBox(height: AppSpacing.compact),
                   AppButton(

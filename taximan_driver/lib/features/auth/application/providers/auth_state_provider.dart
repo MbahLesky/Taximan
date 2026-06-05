@@ -76,6 +76,13 @@ class AuthController extends StateNotifier<AuthState> {
         errorMessage: _friendlyAuthMessage(e),
       );
       rethrow;
+    } on DriverEmailBelongsToPassengerException {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage:
+            'That email belongs to a passenger account. Use a different driver email.',
+      );
+      rethrow;
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
       rethrow;
@@ -85,12 +92,29 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> login({required String email, required String password}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final user = await _repository.login(email: email, password: password);
+      final user = await _repository.login(
+        emailOrPhone: email,
+        password: password,
+      );
       state = AuthState(userId: user.uid, isAuthenticated: true);
     } on firebase_auth.FirebaseAuthException catch (e) {
       state = state.copyWith(
         isLoading: false,
         errorMessage: _friendlyAuthMessage(e),
+      );
+      rethrow;
+    } on DriverAccountMissingException {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage:
+            'This account is not registered as a driver. Use a driver email or phone number.',
+      );
+      rethrow;
+    } on DriverEmailBelongsToPassengerException {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage:
+            'That email belongs to a passenger account. Use a different driver email.',
       );
       rethrow;
     } catch (e) {

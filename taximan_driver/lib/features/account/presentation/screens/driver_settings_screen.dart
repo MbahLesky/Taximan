@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../auth/application/providers/auth_state_provider.dart';
 
-class DriverSettingsScreen extends StatelessWidget {
+class DriverSettingsScreen extends ConsumerWidget {
   const DriverSettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
@@ -44,9 +46,14 @@ class DriverSettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xl),
           AppButton(
-            label: 'Logout placeholder',
+            label: 'Logout',
             variant: AppButtonVariant.danger,
-            onPressed: () => context.go('/login'),
+            onPressed: () async {
+              await ref.read(authStateProvider.notifier).logout();
+              if (context.mounted) {
+                context.go('/onboarding');
+              }
+            },
           ),
         ],
       ),

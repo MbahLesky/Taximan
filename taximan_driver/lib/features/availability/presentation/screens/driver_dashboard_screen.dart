@@ -17,19 +17,18 @@ class DriverDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final driverState = ref.watch(driverStateProvider);
     final earnings = ref.watch(earningsProvider);
-    final driver = driverState.driver;
     final currentDriver = ref.watch(currentDriverProvider).valueOrNull;
     final incomingRequests = ref
         .watch(availableBookingsStreamProvider)
         .valueOrNull;
-    final online = driverState.isOnline;
+    final online = currentDriver?.isAvailable ?? false;
     final driverName = currentDriver?.fullName.isNotEmpty == true
         ? currentDriver!.fullName
-        : driver.fullName;
-    final verificationStatus =
-        currentDriver?.verificationStatus ?? driver.verificationStatus;
+        : 'Driver';
+    final verificationStatus = currentDriver?.verificationStatus ?? 'pending';
+    final availabilityStatus = currentDriver?.availabilityStatus ?? 'offline';
+    final canGoOnline = verificationStatus.toLowerCase() == 'approved';
 
     return BottomNavShell(
       currentIndex: 0,
@@ -56,7 +55,10 @@ class DriverDashboardScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                _StatusBadge(label: driverState.statusLabel, online: online),
+                _StatusBadge(
+                  label: _availabilityLabel(availabilityStatus, online),
+                  online: online,
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
@@ -92,9 +94,30 @@ class DriverDashboardScreen extends ConsumerWidget {
                     variant: online
                         ? AppButtonVariant.secondary
                         : AppButtonVariant.primary,
-                    onPressed: () => ref
-                        .read(driverStateProvider.notifier)
-                        .toggleAvailability(),
+                    onPressed: () async {
+                      if (!online && !canGoOnline) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Approval is required before going online.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      try {
+                        await ref
+                            .read(driverAvailabilityActionsProvider)
+                            .toggleAvailability();
+                      } catch (e) {
+                        if (!context.mounted) {
+                          return;
+                        }
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(e.toString())));
+                      }
+                    },
                   ),
                 ],
               ),
@@ -107,7 +130,7 @@ class DriverDashboardScreen extends ConsumerWidget {
                   Icons.verified_user_outlined,
                   color: AppColors.warning,
                 ),
-                title: Text(verificationStatus),
+                title: Text(_verificationLabel(verificationStatus)),
                 subtitle: Text('Approval is required before live operations.'),
               ),
             ),
@@ -190,6 +213,24 @@ class DriverDashboardScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+String _availabilityLabel(String status, bool isOnline) {
+  return switch (status.toLowerCase()) {
+    'busy' => 'Busy',
+    'online' => 'Available',
+    _ => isOnline ? 'Available' : 'Offline',
+  };
+}
+
+String _verificationLabel(String status) {
+  return switch (status.toLowerCase()) {
+    'approved' => 'Approved',
+    'rejected' => 'Rejected',
+    'suspended' => 'Suspended',
+    'not_submitted' => 'Not submitted',
+    _ => 'Pending verification',
+  };
 }
 
 class _StatusBadge extends StatelessWidget {
