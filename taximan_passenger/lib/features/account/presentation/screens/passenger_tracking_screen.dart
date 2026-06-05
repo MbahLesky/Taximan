@@ -46,22 +46,49 @@ class PassengerTrackingScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            LiveMapView(
-              height: 220,
-              currentLocation: locationState.currentLocation.hasCoordinates
-                  ? locationState.currentLocation
-                  : null,
-              pickup: booking.pickup,
-              destination: booking.destinationLocation,
-              assignedDriverLocation: assignedDriverLocation,
-              permissionStatus: locationState.permissionStatus,
-              isLoading:
-                  driverId.isNotEmpty &&
-                  ref.watch(assignedDriverLocationProvider(driverId)).isLoading,
-              errorMessage: driverId.isEmpty
-                  ? 'A driver has not been assigned yet.'
-                  : null,
-              myLocationEnabled: locationState.hasLocationPermission,
+            Stack(
+              children: [
+                LiveMapView(
+                  height: 220,
+                  currentLocation: locationState.currentLocation.hasCoordinates
+                      ? locationState.currentLocation
+                      : null,
+                  pickup: booking.pickup,
+                  destination: booking.destinationLocation,
+                  assignedDriverLocation: assignedDriverLocation,
+                  permissionStatus: locationState.permissionStatus,
+                  isLoading:
+                      driverId.isNotEmpty &&
+                      ref.watch(assignedDriverLocationProvider(driverId)).isLoading,
+                  errorMessage: driverId.isEmpty
+                      ? 'A driver has not been assigned yet.'
+                      : null,
+                  myLocationEnabled: locationState.hasLocationPermission,
+                  onTap: (_) => context.push('/tracking/map'),
+                ),
+                Positioned(
+                  right: AppSpacing.sm,
+                  top: AppSpacing.sm,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Text(
+                      'Tap to open full screen',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.md),
             AppCard(
