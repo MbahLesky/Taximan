@@ -74,11 +74,54 @@ async function fetchUsers() {
 }
 
 async function fetchDriverDocuments(driverId) {
-  const { collection, getDocs, query, where, orderBy } = await import('https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js');
+  const { collection, getDocs, query, where, orderBy, doc: docRef, getDoc } = await import('https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js');
   const docsRef = collection(state.db, 'driver_documents');
   const q = query(docsRef, where('driverId', '==', driverId), orderBy('documentType'));
   const snapshot = await getDocs(q);
-  state.documents = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  console.log('fetchDriverDocuments snapshot size:', snapshot.size);
+  if (!snapshot.empty) {
+    state.documents = snapshot.docs.map((d) => {
+      const data = d.data() || {};
+      return {
+        id: d.id,
+        driverId: data.driverId || data.driver_id || null,
+        documentType: data.documentType || data.document_type || data.type || 'unknown',
+        fileUrl: data.fileUrl || data.file_url || data.url || '',
+        status: data.status || 'pending',
+        rejectionReason: data.rejectionReason || data.rejection_reason || null,
+        uploadedAt: data.uploadedAt || data.uploaded_at || null,
+        reviewedAt: data.reviewedAt || data.reviewed_at || null,
+      };
+    });
+    return;
+  }
+
+  // Fallback: some flows only write a `documentUrls` map on the driver document.
+  try {
+    const driverDocRef = docRef(state.db, 'drivers', driverId);
+    const driverSnap = await getDoc(driverDocRef);
+    if (driverSnap.exists()) {
+      const data = driverSnap.data();
+      const docMap = data?.documentUrls || data?.documentURLs || data?.document_urls || null;
+      if (docMap && typeof docMap === 'object') {
+        state.documents = Object.entries(docMap).map(([key, url]) => ({
+          id: `${driverId}_${key}`,
+          driverId,
+          documentType: key,
+          fileUrl: url,
+          status: 'pending',
+          rejectionReason: null,
+        }));
+        console.log('Synthesized documents from driver.documentUrls:', state.documents);
+        return;
+      }
+    }
+  } catch (err) {
+    console.error('Error reading driver documentUrls fallback:', err);
+  }
+
+  // nothing found
+  state.documents = [];
 }
 
 function refreshSummary() {
@@ -179,33 +222,41 @@ function renderDocuments() {
     return;
   }
 
+  // Minimal document view: document type + download icon/link + approve/reject
   documentList.innerHTML = state.documents
     .map((document) => {
-      const statusLabel = document.status?.toLowerCase() === 'approved' ? 'Approved' : document.status?.toLowerCase() === 'rejected' ? 'Rejected' : 'Pending';
-      const statusClass = document.status?.toLowerCase() === 'approved' ? 'status-pill' : document.status?.toLowerCase() === 'rejected' ? 'status-pill danger' : 'status-pill';
+      const label = (document.documentType || 'unknown').toString().replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const fileUrl = document.fileUrl || '';
+      const status = (document.status || 'pending').toLowerCase();
+      let actionHtml = '';
+      if (status === 'approved') {
+        actionHtml = `<button class="state-btn" disabled>Approved</button>`;
+      } else if (status === 'rejected') {
+        actionHtml = `<button class="state-btn" disabled>Rejected</button>`;
+      } else {
+        actionHtml = `
+          <button class="primary" data-action="approve" data-doc-id="${document.id}">Approve</button>
+          <button class="danger" data-action="reject" data-doc-id="${document.id}">Reject</button>
+        `;
+      }
+
       return `
-        <article class="document-card">
-          <header>
-            <div>
-              <strong>${document.documentType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</strong>
-              <span>${statusLabel}</span>
-            </div>
-            <span class="${statusClass}">${statusLabel}</span>
-          </header>
-          <div class="doc-meta">
-            <span><strong>Document ID:</strong> ${document.id}</span>
-            <span><strong>File URL:</strong> <a href="${document.fileUrl}" target="_blank">View file</a></span>
-            ${document.rejectionReason ? `<span><strong>Rejection reason:</strong> ${document.rejectionReason}</span>` : ''}
+        <div class="document-row">
+          <div class="doc-left">
+            <a class="doc-download" href="${fileUrl}" target="_blank" download aria-label="Download ${label}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3v9" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11l4 4 4-4" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 21H3" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <span class="doc-type">${label}</span>
           </div>
           <div class="doc-actions">
-            <button class="primary" data-action="approve" data-doc-id="${document.id}">Approve</button>
-            <button class="danger" data-action="reject" data-doc-id="${document.id}">Reject</button>
+            ${actionHtml}
           </div>
-        </article>
+        </div>
       `;
     })
     .join('');
 
+  // attach handlers
   documentList.querySelectorAll('[data-action]').forEach((button) => {
     button.addEventListener('click', async () => {
       const docId = button.dataset.docId;
@@ -214,13 +265,51 @@ function renderDocuments() {
     });
   });
 
-  const allReviewed = state.documents.every((doc) => doc.status?.toLowerCase() !== 'pending');
-  const allApproved = allReviewed && state.documents.every((doc) => doc.status?.toLowerCase() === 'approved');
-  const allRejected = allReviewed && state.documents.every((doc) => doc.status?.toLowerCase() === 'rejected');
+  // driver action visibility depends on review state
+  const allReviewed = state.documents.every((doc) => (doc.status || 'pending').toLowerCase() !== 'pending');
+  const allApproved = allReviewed && state.documents.every((doc) => (doc.status || '').toLowerCase() === 'approved');
+  const allRejected = allReviewed && state.documents.every((doc) => (doc.status || '').toLowerCase() === 'rejected');
 
-  approveDriverBtn.style.display = allApproved ? 'inline-flex' : 'none';
-  rejectDriverBtn.style.display = allRejected ? 'inline-flex' : 'none';
-  driverAction.classList.toggle('hidden', !allReviewed);
+  // driver action visibility and labels are handled by updateDriverActionButtons
+  updateDriverActionButtons(allReviewed, allApproved, allRejected);
+}
+
+function updateDriverActionButtons(allReviewed = false, allApproved = false, allRejected = false) {
+  if (!state.selectedDriver) return;
+  const status = (state.selectedDriver.verificationStatus || 'pending').toLowerCase();
+
+  if (status === 'approved') {
+    approveDriverBtn.textContent = 'Approved';
+    approveDriverBtn.disabled = true;
+    approveDriverBtn.classList.remove('primary');
+    approveDriverBtn.classList.add('state-btn');
+    approveDriverBtn.style.display = 'inline-flex';
+    rejectDriverBtn.style.display = 'none';
+  } else if (status === 'rejected') {
+    rejectDriverBtn.textContent = 'Rejected';
+    rejectDriverBtn.disabled = true;
+    rejectDriverBtn.classList.remove('danger');
+    rejectDriverBtn.classList.add('state-btn');
+    rejectDriverBtn.style.display = 'inline-flex';
+    approveDriverBtn.style.display = 'none';
+  } else {
+    // pending - show final actions only when all documents reviewed
+    approveDriverBtn.textContent = 'Approve Driver';
+    approveDriverBtn.disabled = false;
+    approveDriverBtn.classList.remove('state-btn');
+    approveDriverBtn.classList.add('primary');
+
+    rejectDriverBtn.textContent = 'Reject Driver';
+    rejectDriverBtn.disabled = false;
+    rejectDriverBtn.classList.remove('state-btn');
+    rejectDriverBtn.classList.add('danger');
+
+    approveDriverBtn.style.display = allApproved ? 'inline-flex' : 'none';
+    rejectDriverBtn.style.display = allRejected ? 'inline-flex' : 'none';
+  }
+
+  // show the driverAction panel if driver has been finalized or all documents reviewed
+  driverAction.classList.toggle('hidden', !(allReviewed || status !== 'pending'));
 }
 
 async function selectDriver(driverId) {

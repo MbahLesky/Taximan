@@ -334,6 +334,56 @@ input {
   flex-wrap: wrap;
 }
 
+.document-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+
+.doc-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.doc-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #eef2ff;
+  color: #1e40af;
+  text-decoration: none;
+}
+
+.doc-type {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.doc-actions .state-btn {
+  background: #e5e7eb;
+  color: #374151;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: default;
+}
+
+.driver-action .state-btn {
+  background: #e5e7eb;
+  color: #374151;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: default;
+}
+
 .driver-action {
   margin-top: 20px;
   padding: 20px;
