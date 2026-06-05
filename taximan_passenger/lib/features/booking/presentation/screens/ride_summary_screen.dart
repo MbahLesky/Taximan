@@ -80,7 +80,13 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
     final booking = bookingState.booking;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ride summary')),
+      appBar: AppBar(
+        title: const Text('Ride summary'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [

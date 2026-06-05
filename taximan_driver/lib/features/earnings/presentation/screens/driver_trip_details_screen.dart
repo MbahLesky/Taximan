@@ -2,40 +2,55 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
-import '../../../../shared/dummy/dummy_data.dart';
+import '../../../../shared/models/trip.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/app_empty_state.dart';
 
 class DriverTripDetailsScreen extends StatelessWidget {
-  const DriverTripDetailsScreen({super.key});
+  const DriverTripDetailsScreen({super.key, this.trip});
+
+  final Trip? trip;
 
   @override
   Widget build(BuildContext context) {
+    if (trip == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Trip details')),
+        body: const Center(
+          child: AppEmptyState(
+            icon: Icons.error_outline,
+            title: 'Trip not found',
+            message: 'Select a trip from history to see details.',
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Trip details')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
-        children: const [
+        children: [
           AppCard(
             child: Column(
               children: [
-                _DetailsLine(
-                  label: 'Passenger',
-                  value: DummyData.passengerName,
-                ),
-                _DetailsLine(label: 'Pickup', value: DummyData.incomingPickup),
-                _DetailsLine(
-                  label: 'Destination',
-                  value: DummyData.incomingDestination,
-                ),
-                _DetailsLine(label: 'Fare', value: DummyData.estimatedFare),
-                _DetailsLine(
-                  label: 'Payment method',
-                  value: DummyData.paymentMethod,
-                ),
-                _DetailsLine(label: 'Trip status', value: 'Completed'),
-                Divider(height: 28),
-                _DetailsLine(label: 'Commission', value: DummyData.commission),
-                _DetailsLine(label: 'Net earning', value: DummyData.netEarning),
+                _DetailsLine(label: 'Passenger', value: trip!.passengerName),
+                _DetailsLine(label: 'Pickup', value: trip!.pickup.address),
+                _DetailsLine(label: 'Destination', value: trip!.destinationLocation.address),
+                _DetailsLine(label: 'Fare', value: trip!.formattedFare),
+                _DetailsLine(label: 'Payment method', value: trip!.paymentMethod),
+                _DetailsLine(label: 'Trip status', value: trip!.status),
+                _DetailsLine(label: 'Date', value: trip!.date),
+                if (trip!.completedAt != null) ...[
+                  _DetailsLine(
+                    label: 'Completed',
+                    value: trip!.completedAt!.toLocal().toString(),
+                  ),
+                ],
+                const Divider(height: 28),
+                _DetailsLine(label: 'Distance', value: trip!.distance),
+                _DetailsLine(label: 'Duration', value: trip!.duration),
+                _DetailsLine(label: 'Payment status', value: trip!.paymentStatus),
               ],
             ),
           ),

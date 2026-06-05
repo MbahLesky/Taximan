@@ -125,7 +125,13 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen> {
       data: (booking) {
         if (booking == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Booking details')),
+            appBar: AppBar(
+              title: const Text('Booking details'),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.pop(),
+              ),
+            ),
             body: const Center(child: Text('Booking not found.')),
           );
         }

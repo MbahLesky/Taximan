@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/models/app_location.dart';
@@ -60,8 +61,11 @@ class _PassengerTrackingMapScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Live tracking'),
-        leading: BackButton(onPressed: () => Navigator.of(context).pop()),
+        title: const Text('Driver location'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: SafeArea(
         child: Stack(

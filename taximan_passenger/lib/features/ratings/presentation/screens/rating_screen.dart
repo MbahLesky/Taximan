@@ -40,7 +40,13 @@ class RatingScreen extends ConsumerWidget {
         !ratingState.isSubmitting;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Rate your driver')),
+      appBar: AppBar(
+        title: const Text('Rate your driver'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(

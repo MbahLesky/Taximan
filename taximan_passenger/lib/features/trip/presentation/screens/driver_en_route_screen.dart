@@ -36,7 +36,13 @@ class DriverEnRouteScreen extends ConsumerWidget {
         : ref.watch(assignedDriverLocationProvider(driverId)).valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Driver en route')),
+      appBar: AppBar(
+        title: const Text('Driver en route'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: Column(
         children: [
           Expanded(

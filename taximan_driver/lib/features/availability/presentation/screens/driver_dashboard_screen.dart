@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
@@ -8,6 +12,10 @@ import '../../../earnings/application/providers/earnings_provider.dart';
 import '../../../booking_management/application/providers/booking_provider.dart';
 import '../../../onboarding/application/providers/driver_providers.dart';
 import '../../application/providers/driver_state_provider.dart';
+import '../../../trip/application/providers/trip_providers.dart';
+import '../../../../shared/models/app_location.dart';
+import '../../../../shared/models/earnings.dart';
+import '../../../../shared/models/trip.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
@@ -17,11 +25,12 @@ class DriverDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final earnings = ref.watch(earningsProvider);
+    // final earnings = ref.watch(earningsProvider);
     final currentDriver = ref.watch(currentDriverProvider).valueOrNull;
-    final incomingRequests = ref
-        .watch(availableBookingsStreamProvider)
-        .valueOrNull;
+    final incomingRequests = ref.watch(availableBookingsStreamProvider).valueOrNull;
+    final activeTrip = ref.watch(driverActiveTripProvider).valueOrNull;
+    final earnings = ref.watch(earningsProvider).valueOrNull ??
+        const Earnings(today: 0, week: 0, total: 0, completedTrips: 0);
     final online = currentDriver?.isAvailable ?? false;
     final driverName = currentDriver?.fullName.isNotEmpty == true
         ? currentDriver!.fullName
@@ -171,21 +180,7 @@ class DriverDashboardScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.md),
-            Container(
-              height: 220,
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.map_outlined,
-                  size: 82,
-                  color: AppColors.primaryDark,
-                ),
-              ),
-            ),
+            DriverDashboardMiniMap(activeTrip: activeTrip),
             const SizedBox(height: AppSpacing.md),
             Wrap(
               spacing: AppSpacing.sm,
@@ -288,6 +283,200 @@ class _MetricCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class DriverDashboardMiniMap extends StatefulWidget {
+  const DriverDashboardMiniMap({super.key, this.activeTrip});
+
+  final Trip? activeTrip;
+
+  @override
+  State<DriverDashboardMiniMap> createState() => _DriverDashboardMiniMapState();
+}
+
+class _DriverDashboardMiniMapState extends State<DriverDashboardMiniMap> {
+  final Completer<GoogleMapController> _mapController = Completer();
+  late final Future<Position> _currentPositionFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentPositionFuture = _determinePosition();
+  }
+
+  Future<Position> _determinePosition() async {
+    if (!await Geolocator.isLocationServiceEnabled()) {
+      throw Exception('Location services are disabled.');
+    }
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever ||
+        permission == LocationPermission.denied) {
+      throw Exception('Location permissions are denied.');
+    }
+
+    return Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Live map',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          FutureBuilder<Position>(
+            future: _currentPositionFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const SizedBox(
+                  height: 200,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return SizedBox(
+                  height: 120,
+                  child: Center(
+                    child: Text(
+                      snapshot.error.toString(),
+                      style: const TextStyle(color: AppColors.error),
+                    ),
+                  ),
+                );
+              }
+
+              final current = LatLng(
+                snapshot.data!.latitude,
+                snapshot.data!.longitude,
+              );
+              final markers = <Marker>{
+                Marker(
+                  markerId: const MarkerId('current_location'),
+                  position: current,
+                  infoWindow: const InfoWindow(title: 'You'),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(
+                    BitmapDescriptor.hueAzure,
+                  ),
+                ),
+              };
+              final polylines = <Polyline>{};
+
+              if (widget.activeTrip != null) {
+                final pickup = _latLngFromLocation(widget.activeTrip!.pickup);
+                final destination =
+                    _latLngFromLocation(widget.activeTrip!.destinationLocation);
+                if (pickup != null) {
+                  markers.add(
+                    Marker(
+                      markerId: const MarkerId('pickup'),
+                      position: pickup,
+                      infoWindow: InfoWindow(
+                        title: 'Pickup',
+                        snippet: widget.activeTrip!.pickup.address,
+                      ),
+                      icon: BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueBlue,
+                      ),
+                    ),
+                  );
+                }
+                if (destination != null) {
+                  markers.add(
+                    Marker(
+                      markerId: const MarkerId('destination'),
+                      position: destination,
+                      infoWindow: InfoWindow(
+                        title: 'Destination',
+                        snippet: widget.activeTrip!.destinationLocation.address,
+                      ),
+                      icon: BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueRed,
+                      ),
+                    ),
+                  );
+                }
+                if (pickup != null && destination != null) {
+                  polylines.add(
+                    Polyline(
+                      polylineId: const PolylineId('trip_route'),
+                      points: [pickup, destination],
+                      color: AppColors.primaryDark,
+                      width: 4,
+                    ),
+                  );
+                }
+              }
+
+              final initialCamera = CameraPosition(target: current, zoom: 13);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    height: 220,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: GoogleMap(
+                        initialCameraPosition: initialCamera,
+                        markers: markers,
+                        polylines: polylines,
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: false,
+                        zoomControlsEnabled: false,
+                        onMapCreated: (controller) {
+                          if (!_mapController.isCompleted) {
+                            _mapController.complete(controller);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    widget.activeTrip != null
+                        ? 'Active trip: ${widget.activeTrip!.status}'
+                        : 'No active trip. Tap to open the full screen map.',
+                    style: const TextStyle(color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: AppButton(
+                      label: 'Open full screen',
+                      icon: Icons.open_in_full,
+                      variant: AppButtonVariant.secondary,
+                      onPressed: () => context.push(
+                        '/trip-map',
+                        extra: widget.activeTrip,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  LatLng? _latLngFromLocation(AppLocation location) {
+    if (location.latitude == null || location.longitude == null) {
+      return null;
+    }
+    return LatLng(location.latitude!, location.longitude!);
   }
 }
 

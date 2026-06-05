@@ -86,7 +86,13 @@ class _RouteTimeScreenState extends ConsumerState<RouteTimeScreen> {
     final controller = ref.read(bookingStateProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Plan route')),
+      appBar: AppBar(
+        title: const Text('Plan route'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [

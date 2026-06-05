@@ -71,7 +71,13 @@ class _RideDetailsScreenState extends ConsumerState<RideDetailsScreen> {
     final booking = ref.watch(bookingStateProvider).booking;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ride details')),
+      appBar: AppBar(
+        title: const Text('Ride details'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [

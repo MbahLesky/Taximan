@@ -23,10 +23,12 @@ import '../features/onboarding/presentation/screens/vehicle_details_screen.dart'
 import '../features/onboarding/presentation/screens/verification_pending_screen.dart';
 import '../features/onboarding/presentation/screens/verification_rejected_screen.dart';
 import '../features/trip/presentation/screens/mark_arrival_screen.dart';
+import '../features/trip/presentation/screens/driver_trip_map_screen.dart';
 import '../features/trip/presentation/screens/navigate_to_pickup_screen.dart';
 import '../features/trip/presentation/screens/trip_completed_screen.dart';
 import '../features/trip/presentation/screens/trip_in_progress_screen.dart';
 import '../features/trip/presentation/screens/trip_start_screen.dart';
+import '../shared/models/trip.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
@@ -106,6 +108,12 @@ final appRouter = GoRouter(
       builder: (context, state) => const TripCompletedScreen(),
     ),
     GoRoute(
+      path: '/trip-map',
+      builder: (context, state) => DriverTripMapScreen(
+        trip: state.extra as Trip?,
+      ),
+    ),
+    GoRoute(
       path: '/earnings',
       builder: (context, state) => const EarningsScreen(),
     ),
@@ -115,7 +123,9 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/trip-details',
-      builder: (context, state) => const DriverTripDetailsScreen(),
+      builder: (context, state) => DriverTripDetailsScreen(
+        trip: state.extra as Trip?,
+      ),
     ),
     GoRoute(
       path: '/profile',

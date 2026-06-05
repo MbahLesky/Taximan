@@ -100,7 +100,13 @@ class _FareProposalScreenState extends ConsumerState<FareProposalScreen> {
     final booking = ref.watch(bookingStateProvider).booking;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Fare proposal')),
+      appBar: AppBar(
+        title: const Text('Fare proposal'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [

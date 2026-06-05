@@ -15,7 +15,13 @@ class PaymentConfirmationScreen extends ConsumerWidget {
     final fare = ref.watch(paymentStateProvider).activePayment?.formattedAmount;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Payment confirmation')),
+      appBar: AppBar(
+        title: const Text('Payment confirmation'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),

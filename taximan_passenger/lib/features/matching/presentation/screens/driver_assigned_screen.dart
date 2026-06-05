@@ -21,7 +21,13 @@ class DriverAssignedScreen extends ConsumerWidget {
         : ref.watch(driverStreamProvider(driverId)).valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Driver assigned')),
+      appBar: AppBar(
+        title: const Text('Driver assigned'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [

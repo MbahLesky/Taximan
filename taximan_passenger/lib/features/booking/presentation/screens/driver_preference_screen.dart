@@ -47,7 +47,13 @@ class _DriverPreferenceScreenState
     final hasPreferredDriver = booking.preferredDriverId?.isNotEmpty == true;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Driver preference')),
+      appBar: AppBar(
+        title: const Text('Driver preference'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [

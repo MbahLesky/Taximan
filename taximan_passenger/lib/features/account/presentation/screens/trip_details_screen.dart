@@ -204,7 +204,13 @@ class _TripDetailsScreenState extends ConsumerState<TripDetailsScreen> {
       data: (trip) {
         if (trip == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Trip details')),
+            appBar: AppBar(
+              title: const Text('Trip details'),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.pop(),
+              ),
+            ),
             body: const Center(child: Text('Trip not found.')),
           );
         }

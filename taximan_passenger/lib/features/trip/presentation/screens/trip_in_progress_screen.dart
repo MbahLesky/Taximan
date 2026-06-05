@@ -33,7 +33,13 @@ class TripInProgressScreen extends ConsumerWidget {
         : ref.watch(assignedDriverLocationProvider(driverId)).valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Trip in progress')),
+      appBar: AppBar(
+        title: const Text('Trip in progress'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: Column(
         children: [
           Expanded(

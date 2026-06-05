@@ -1,12 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/models/earnings.dart';
+import '../../../trip/application/providers/trip_providers.dart';
 
-final earningsProvider = Provider<Earnings>(
-  (ref) => const Earnings(
-    today: 18500,
-    week: 92000,
-    total: 340000,
-    completedTrips: 7,
-  ),
-);
+final earningsProvider = FutureProvider<Earnings>((ref) async {
+  final summary = await ref.watch(driverEarningsProvider.future);
+  return Earnings(
+    today: summary.today,
+    week: summary.week,
+    total: summary.total,
+    completedTrips: summary.completedTrips,
+  );
+});

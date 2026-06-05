@@ -120,7 +120,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     final fare = payment?.formattedAmount ?? '0 FCFA';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Payment')),
+      appBar: AppBar(
+        title: const Text('Payment'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [

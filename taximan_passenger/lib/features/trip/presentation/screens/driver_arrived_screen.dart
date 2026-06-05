@@ -21,7 +21,13 @@ class DriverArrivedScreen extends ConsumerWidget {
         : ref.watch(driverStreamProvider(driverId)).valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Driver arrived')),
+      appBar: AppBar(
+        title: const Text('Driver arrived'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(

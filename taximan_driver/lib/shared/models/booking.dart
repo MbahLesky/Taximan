@@ -1,3 +1,4 @@
+import 'app_location.dart';
 import 'model_helpers.dart';
 
 class Booking {
@@ -20,6 +21,8 @@ class Booking {
     this.luggageCount = 0,
     this.additionalInfo = '',
     this.finalFare,
+    this.pickup = const AppLocation(address: ''),
+    this.destinationLocation = const AppLocation(address: ''),
     this.createdAt,
     this.updatedAt,
   });
@@ -42,27 +45,27 @@ class Booking {
   final int luggageCount;
   final String additionalInfo;
   final int? finalFare;
+  final AppLocation pickup;
+  final AppLocation destinationLocation;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
   String get formattedFare => '${(finalFare ?? estimatedFare)} FCFA';
 
   factory Booking.fromMap(Map<String, dynamic> map) {
-    final pickupText =
-        _locationText(map['pickupLocation']) ??
-        (map['pickupLocationText'] as String?) ??
-        '';
-    final destinationText =
-        _locationText(map['destinationLocation']) ??
-        (map['destination'] as String?) ??
-        '';
+    final pickup = AppLocation.fromValue(
+      map['pickupLocation'] ?? map['pickupLocationText'],
+    );
+    final destination = AppLocation.fromValue(
+      map['destinationLocation'] ?? map['destination'],
+    );
     final distanceKm = (map['distanceKm'] as num?)?.toDouble();
     final durationMinutes = (map['estimatedDurationMinutes'] as num?)?.toInt();
 
     return Booking(
       id: map['id'] as String? ?? '',
-      pickupLocation: pickupText,
-      destination: destinationText,
+      pickupLocation: pickup.address,
+      destination: destination.address,
       estimatedFare: (map['estimatedFare'] as num?)?.toInt() ?? 0,
       distance:
           map['distance'] as String? ??
@@ -85,21 +88,10 @@ class Booking {
       luggageCount: (map['luggageCount'] as num?)?.toInt() ?? 0,
       additionalInfo: map['additionalInfo'] as String? ?? '',
       finalFare: (map['finalFare'] as num?)?.toInt(),
+      pickup: pickup,
+      destinationLocation: destination,
       createdAt: readDateTime(map['createdAt']),
       updatedAt: readDateTime(map['updatedAt']),
     );
   }
-}
-
-String? _locationText(Object? value) {
-  if (value is String) {
-    return value;
-  }
-  if (value is Map<String, dynamic>) {
-    return value['address'] as String? ?? value['name'] as String?;
-  }
-  if (value is Map) {
-    return value['address']?.toString() ?? value['name']?.toString();
-  }
-  return null;
 }

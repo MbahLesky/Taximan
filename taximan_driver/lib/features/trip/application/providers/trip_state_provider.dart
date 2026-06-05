@@ -37,8 +37,9 @@ class DriverTripController extends StateNotifier<DriverTripState> {
             destination: 'Bastos Roundabout',
             fare: 3000,
             distance: '8.4 km',
-            eta: '16 min',
+            duration: '16 min',
             status: 'incoming',
+            date: '',
           ),
         ),
       );
