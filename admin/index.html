@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taximan Admin Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script type="module" src="app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div>
+        <h1>Taximan Admin Dashboard</h1>
+        <p>Admin dashboard for verifying drivers and their documents.</p>
+      </div>
+      <!-- <div class="badge">Prototype - no auth required</div> -->
+    </header>
+
+    <div id="statusBar" class="status-bar">Connecting to Firestore...</div>
+
+    <main class="main-grid">
+      <aside class="sidebar">
+        <div class="summary-grid">
+          <article class="summary-card">
+            <span id="totalUsers">0</span>
+            <small>Total Users</small>
+          </article>
+          <article class="summary-card">
+            <span id="totalDrivers">0</span>
+            <small>Total Drivers</small>
+          </article>
+          <article class="summary-card pending">
+            <span id="pendingDrivers">0</span>
+            <small>Pending Drivers</small>
+          </article>
+        </div>
+
+        <div class="tabs">
+          <button class="tab-button active" data-tab="driversTab">Drivers</button>
+          <button class="tab-button" data-tab="usersTab">Users</button>
+        </div>
+
+        <div id="driversTab" class="list-panel">
+          <div class="list-header">
+            <label>
+              Search drivers
+              <input id="driverSearch" placeholder="Name, email or status" />
+            </label>
+          </div>
+          <div id="driverList" class="list"></div>
+        </div>
+
+        <div id="usersTab" class="list-panel hidden">
+          <div class="list-header">
+            <label>
+              Search users
+              <input id="userSearch" placeholder="Name or email" />
+            </label>
+          </div>
+          <div id="userList" class="list"></div>
+        </div>
+      </aside>
+
+      <section class="detail-panel">
+        <div id="emptyState" class="empty-state">
+          <h2>Select a driver</h2>
+          <p>Choose a driver from the list to review personal information, uploaded documents, and verification actions.</p>
+        </div>
+
+        <section id="driverDetails" class="driver-details hidden">
+          <div class="driver-header">
+            <div>
+              <h2 id="driverName">Driver Name</h2>
+              <p id="driverStatus" class="status-pill">Status</p>
+            </div>
+            <div class="small-label" id="driverIdLabel"></div>
+          </div>
+
+          <div class="info-grid">
+            <div><strong>Email</strong><span id="driverEmail"></span></div>
+            <div><strong>Phone</strong><span id="driverPhone"></span></div>
+            <div><strong>City</strong><span id="driverCity"></span></div>
+            <div><strong>Availability</strong><span id="driverAvailability"></span></div>
+            <div><strong>Verification</strong><span id="driverVerification"></span></div>
+            <div><strong>Created</strong><span id="driverCreated"></span></div>
+          </div>
+
+          <div class="documents-section">
+            <h3>Documents</h3>
+            <div id="documentList" class="document-list"></div>
+          </div>
+
+          <div id="driverAction" class="driver-action hidden">
+            <div>
+              <p class="hint-text">When all driver documents are reviewed, finalize the driver verification below.</p>
+            </div>
+            <div class="button-group action-buttons">
+              <button id="approveDriverBtn" class="primary" disabled>Approve Driver</button>
+              <button id="rejectDriverBtn" class="danger">Reject Driver</button>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

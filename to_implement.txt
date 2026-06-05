@@ -61,3 +61,6 @@ DEBUG CONSOLE
 TERMINAL
 PORTS
 
+
+
+Create an admin dashboard in the empty admin folder to verify drivers and their documents, authentication is not needed as it's a prototype. Plus the admin's side won't be hosted on the internet. On opening, the admin sees a list of all users and drivers. It sees drivers with pending approval. On opening each driver, display the drivers information and documents. For each document, place an approve or reject button beside it (update the documents status in the database). After approving all documents, place a final approve or reject driver below (which updates the verificationStatus of the driver). Follow the 
