@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -68,6 +69,11 @@ class _TripDetailsScreenState extends ConsumerState<TripDetailsScreen> {
   }
 
   Future<void> _markCompleted(Trip trip) async {
+    final confirmed = await _showPinEntryModal();
+    if (!confirmed) {
+      return;
+    }
+
     setState(() => _isCompleting = true);
     try {
       await ref
@@ -76,6 +82,11 @@ class _TripDetailsScreenState extends ConsumerState<TripDetailsScreen> {
       _invalidatePassengerLists(trip.passengerId);
 
       if (mounted) {
+        AppToast.success(
+          context,
+          title: 'Payment processed',
+          description: 'Payment was recorded successfully.',
+        );
         AppToast.success(
           context,
           title: 'Trip completed',
@@ -95,6 +106,88 @@ class _TripDetailsScreenState extends ConsumerState<TripDetailsScreen> {
         setState(() => _isCompleting = false);
       }
     }
+  }
+
+  Future<bool> _showPinEntryModal() async {
+    String pin = '';
+    String? errorText;
+    final controller = TextEditingController();
+
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
+            top: AppSpacing.lg,
+            bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Enter payment PIN',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    'Confirm the payment by entering your 4-digit PIN.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    maxLength: 4,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'PIN',
+                      errorText: errorText,
+                      border: const OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        pin = value;
+                        errorText = null;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppButton(
+                    label: 'Submit PIN',
+                    icon: Icons.payments_outlined,
+                    onPressed: pin.length == 4
+                        ? () {
+                            Navigator.of(context).pop(true);
+                          }
+                        : null,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    controller.dispose();
+    return result == true;
   }
 
   Future<void> _deleteTrip(Trip trip) async {
