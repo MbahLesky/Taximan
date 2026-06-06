@@ -3,6 +3,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../shared/models/app_location.dart';
+import '../../../shared/models/driver.dart';
 import '../../../shared/models/driver_location.dart';
 
 class LocationAccessException implements Exception {
@@ -24,7 +25,7 @@ class LocationRepository {
 
   final FirebaseFirestore _firestore;
 
-  static const _driverLocationsCollection = 'driver_locations';
+  static const _driversCollection = 'drivers';
   static const _fallbackCity = 'Bamenda';
   static const _fallbackState = 'North West';
   static const _fallbackCountry = 'Cameroon';
@@ -149,19 +150,18 @@ class LocationRepository {
 
   Stream<List<DriverLocation>> streamOnlineDriverLocations({int limit = 50}) {
     return _firestore
-        .collection(_driverLocationsCollection)
-        .where('isOnline', isEqualTo: true)
+        .collection(_driversCollection)
+        .where('isAvailable', isEqualTo: true)
+        .where('availabilityStatus', isEqualTo: 'online')
         .limit(limit)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs
               .map((doc) {
                 final data = doc.data();
-                return DriverLocation.fromMap({
-                  ...data,
-                  'driverId': data['driverId'] ?? doc.id,
-                });
+                return _locationFromDriverData(doc.id, data);
               })
+              .whereType<DriverLocation>()
               .where(_hasUsableDriverCoordinates)
               .toList();
         });
@@ -173,20 +173,38 @@ class LocationRepository {
     }
 
     return _firestore
-        .collection(_driverLocationsCollection)
+        .collection(_driversCollection)
         .doc(driverId)
         .snapshots()
         .map((doc) {
-          if (!doc.exists || doc.data() == null) {
+          if (!doc.exists) {
             return null;
           }
-          final data = doc.data()!;
-          final location = DriverLocation.fromMap({
-            ...data,
-            'driverId': data['driverId'] ?? doc.id,
-          });
-          return _hasUsableDriverCoordinates(location) ? location : null;
+          final data = doc.data();
+          if (data == null) {
+            return null;
+          }
+          return _locationFromDriverData(doc.id, data);
         });
+  }
+
+  DriverLocation? _locationFromDriverData(String driverId, Map<String, dynamic> data) {
+    final driver = Driver.fromMap({
+      'id': driverId,
+      ...data,
+    });
+    final location = driver.currentLocation;
+    if (location == null || !location.hasCoordinates) {
+      return null;
+    }
+    return DriverLocation(
+      driverId: driver.id,
+      latitude: location.latitude!,
+      longitude: location.longitude!,
+      isOnline: driver.availabilityStatus.toLowerCase() == 'online',
+      isAvailable: driver.isAvailable,
+      updatedAt: location.updatedAt,
+    );
   }
 
   AppLocation _positionToLiveLocation(Position position) {

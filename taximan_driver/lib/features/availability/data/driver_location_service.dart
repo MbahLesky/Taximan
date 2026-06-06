@@ -10,11 +10,10 @@ class DriverLocationService {
   final FirebaseFirestore _firestore;
 
   StreamSubscription<Position>? _positionSubscription;
-  String? _driverId;
 
   Future<void> startUpdating({required String driverId, int distanceFilterMeters = 10}) async {
     if (_positionSubscription != null) return;
-    _driverId = driverId;
+    // driverId provided for document targeting in the stream handler
 
     await _ensureLocationPermission();
 
@@ -25,12 +24,13 @@ class DriverLocationService {
       ),
     ).listen((position) async {
       try {
-        await _firestore.collection('driver_locations').doc(driverId).set({
-          'driverId': driverId,
-          'latitude': position.latitude,
-          'longitude': position.longitude,
-          'heading': position.heading,
-          'speed': position.speed,
+        await _firestore.collection('drivers').doc(driverId).set({
+          'currentLocation': {
+            'address': '',
+            'latitude': position.latitude,
+            'longitude': position.longitude,
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
           'isOnline': true,
           'isAvailable': true,
           'updatedAt': FieldValue.serverTimestamp(),
@@ -44,7 +44,6 @@ class DriverLocationService {
   Future<void> stopUpdating() async {
     await _positionSubscription?.cancel();
     _positionSubscription = null;
-    _driverId = null;
   }
 
   Future<void> _ensureLocationPermission() async {

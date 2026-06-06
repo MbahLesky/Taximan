@@ -1,5 +1,6 @@
 import 'model_helpers.dart';
 import 'vehicle.dart';
+import 'app_location.dart';
 
 class DriverModel {
   const DriverModel({
@@ -24,6 +25,7 @@ class DriverModel {
     this.availabilitySchedule = const [],
     this.createdAt,
     this.updatedAt,
+    this.currentLocation,
   });
 
   final String id;
@@ -43,6 +45,7 @@ class DriverModel {
   final int ratingCount;
   final String? vehicleId;
   final Vehicle? vehicle;
+  final AppLocation? currentLocation;
   final Map<String, String> documentUrls;
   final List<Map<String, String>> availabilitySchedule;
   final DateTime? createdAt;
@@ -66,6 +69,7 @@ class DriverModel {
     int? ratingCount,
     String? vehicleId,
     Vehicle? vehicle,
+    AppLocation? currentLocation,
     Map<String, String>? documentUrls,
     List<Map<String, String>>? availabilitySchedule,
     DateTime? createdAt,
@@ -89,6 +93,7 @@ class DriverModel {
       ratingCount: ratingCount ?? this.ratingCount,
       vehicleId: vehicleId ?? this.vehicleId,
       vehicle: vehicle ?? this.vehicle,
+      currentLocation: currentLocation ?? this.currentLocation,
       documentUrls: documentUrls ?? this.documentUrls,
       availabilitySchedule: availabilitySchedule ?? this.availabilitySchedule,
       createdAt: createdAt ?? this.createdAt,
@@ -115,6 +120,7 @@ class DriverModel {
       'ratingCount': ratingCount,
       'vehicleId': vehicleId,
       'vehicle': vehicle?.toMap(),
+      'currentLocation': currentLocation?.toMap(),
       'documentUrls': documentUrls,
       'availabilitySchedule': availabilitySchedule,
       'createdAt': writeDateTime(createdAt),
@@ -154,6 +160,9 @@ class DriverModel {
       ratingCount: (map['ratingCount'] as num?)?.toInt() ?? 0,
       vehicleId: map['vehicleId'] as String?,
       vehicle: vehicleMap == null ? null : Vehicle.fromMap(vehicleMap),
+      currentLocation: map['currentLocation'] == null
+          ? null
+          : AppLocation.fromValue(map['currentLocation']),
       documentUrls: documentUrls.map(
         (key, value) => MapEntry(key, value?.toString() ?? ''),
       ),

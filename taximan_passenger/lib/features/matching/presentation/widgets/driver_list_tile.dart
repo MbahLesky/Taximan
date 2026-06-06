@@ -27,7 +27,33 @@ class DriverListItem extends StatelessWidget {
           ? driver.currentLocation!.city
           : driver.currentLocation!.address;
     }
+
+    if (driver.availabilityStatus.toLowerCase() != 'online' || !driver.isAvailable) {
+      final lastSeen = driver.currentLocation?.updatedAt ?? driver.updatedAt;
+      return lastSeen != null
+          ? 'Last seen ${_formatLastSeen(lastSeen)}'
+          : 'Offline';
+    }
+
     return 'Location unavailable';
+  }
+
+  String _formatLastSeen(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+    if (difference.inDays >= 2) {
+      return '${difference.inDays} days ago';
+    }
+    if (difference.inDays == 1) {
+      return '1 day ago';
+    }
+    if (difference.inHours >= 1) {
+      return '${difference.inHours} hours ago';
+    }
+    if (difference.inMinutes >= 1) {
+      return '${difference.inMinutes} minutes ago';
+    }
+    return 'just now';
   }
 
   Color get _availabilityColor {
@@ -89,11 +115,11 @@ class DriverListItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _TagChip(
-                  label: driver.isAvailable ? 'Available Today' : 'Not available',
-                  color: _availabilityColor,
-                ),
-                const SizedBox(height: AppSpacing.xs),
+                // _TagChip(
+                //   label: driver.isAvailable ? 'Available Today' : 'Not available',
+                //   color: _availabilityColor,
+                // ),
+                // const SizedBox(height: AppSpacing.xs),
                 _TagChip(
                   label: driver.availabilityStatus.capitalize(),
                   color: _onlineColor,
@@ -116,7 +142,7 @@ class DriverListItem extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isSelected ? AppColors.primaryDark : AppColors.primary,
                     ),
-                    child: Text(isSelected ? 'Selected' : 'Select'),
+                    child: Text(isSelected ? 'Selected' : 'Select', style: TextStyle(color: Colors.white),),
                   ),
                 ),
               ],
@@ -151,6 +177,37 @@ class _TagChip extends StatelessWidget {
       ),
     );
   }
+}
+
+String _detailsLocationLabelForDriver(Driver driver) {
+  if (driver.currentLocation != null) {
+    return driver.currentLocation!.city.isNotEmpty
+        ? driver.currentLocation!.city
+        : driver.currentLocation!.address;
+  }
+
+  final lastSeen = driver.currentLocation?.updatedAt ?? driver.updatedAt;
+  return lastSeen != null
+      ? 'Last seen ${_formatLastSeenForDriver(lastSeen)}'
+      : 'Location not available';
+}
+
+String _formatLastSeenForDriver(DateTime timestamp) {
+  final now = DateTime.now();
+  final difference = now.difference(timestamp);
+  if (difference.inDays >= 2) {
+    return '${difference.inDays} days ago';
+  }
+  if (difference.inDays == 1) {
+    return '1 day ago';
+  }
+  if (difference.inHours >= 1) {
+    return '${difference.inHours} hours ago';
+  }
+  if (difference.inMinutes >= 1) {
+    return '${difference.inMinutes} minutes ago';
+  }
+  return 'just now';
 }
 
 Future<void> showDriverDetailsModal(BuildContext context, Driver driver) {
@@ -218,7 +275,7 @@ Future<void> showDriverDetailsModal(BuildContext context, Driver driver) {
                 const SizedBox(height: AppSpacing.xs),
                 Center(
                   child: Text(
-                    driver.currentLocation?.city ?? driver.currentLocation?.address ?? 'Location not available',
+                    _detailsLocationLabelForDriver(driver),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -254,12 +311,18 @@ Future<void> showDriverDetailsModal(BuildContext context, Driver driver) {
                 const SizedBox(height: AppSpacing.sm),
                 _DriverDetailRow(
                   label: 'City',
-                  value: driver.currentLocation?.city ?? 'Unknown',
+                  value: driver.currentLocation?.city ??
+                      (driver.availabilityStatus.toLowerCase() != 'online' || !driver.isAvailable
+                          ? 'Offline'
+                          : 'Unknown'),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _DriverDetailRow(
                   label: 'Address',
-                  value: driver.currentLocation?.address ?? 'Unknown',
+                  value: driver.currentLocation?.address ??
+                      (driver.availabilityStatus.toLowerCase() != 'online' || !driver.isAvailable
+                          ? _detailsLocationLabelForDriver(driver)
+                          : 'Unknown'),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _DriverDetailRow(
