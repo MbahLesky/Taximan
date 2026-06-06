@@ -69,11 +69,14 @@ class BookingRequestCard extends ConsumerWidget {
                 icon: Icons.groups_outlined,
                 label: '${booking.passengerCount} passenger(s)',
               ),
-              if (booking.hasLuggage)
-                _DetailChip(
-                  icon: Icons.luggage_outlined,
-                  label: '${booking.luggageCount} luggage',
-                ),
+              _DetailChip(
+                icon: Icons.luggage_outlined,
+                label: '${booking.luggageCount} luggage',
+              ),
+              _DetailChip(
+                icon: Icons.share,
+                label: booking.isRideSharing ? 'Shared ride' : 'Private ride',
+              ),
             ],
           ),
           if (booking.additionalInfo.isNotEmpty) ...[
@@ -118,9 +121,9 @@ class BookingRequestCard extends ConsumerWidget {
 
   Future<void> _accept(BuildContext context, WidgetRef ref) async {
     try {
-      await ref.read(bookingActionsProvider).accept(booking);
+      final trip = await ref.read(bookingActionsProvider).accept(booking);
       if (context.mounted) {
-        context.push('/navigate-to-pickup');
+        context.push('/trip-details', extra: trip);
       }
     } catch (e) {
       if (context.mounted) {

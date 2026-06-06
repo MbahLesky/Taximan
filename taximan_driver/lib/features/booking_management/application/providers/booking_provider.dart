@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/models/booking.dart';
 import '../../../../shared/models/fare_proposal.dart';
+import '../../../../shared/models/trip.dart';
 import '../../../auth/application/providers/auth_state_provider.dart';
 import '../../../onboarding/application/providers/driver_providers.dart';
 import '../../data/booking_repository.dart';
@@ -42,13 +43,19 @@ class BookingActions {
 
   final Ref _ref;
 
-  Future<void> accept(Booking booking) async {
+  Future<Trip> accept(Booking booking) async {
     final driverId = _driverId;
-    await _repository.acceptBooking(
+    final tripId = await _repository.acceptBooking(
       bookingId: booking.id,
       driverId: driverId,
       vehicleId: _vehicleId,
     );
+
+    final tripData = await _repository.getTripDataById(tripId);
+    if (tripData == null) {
+      throw Exception('Could not load created trip.');
+    }
+    return Trip.fromMap(tripData);
   }
 
   Future<void> decline(Booking booking) async {

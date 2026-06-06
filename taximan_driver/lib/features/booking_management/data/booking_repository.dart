@@ -33,7 +33,7 @@ class BookingRepository {
         });
   }
 
-  Future<void> acceptBooking({
+  Future<String> acceptBooking({
     required String bookingId,
     required String driverId,
     String? vehicleId,
@@ -42,7 +42,7 @@ class BookingRepository {
     final tripRef = _firestore.collection('trips').doc();
     final notificationRef = _firestore.collection('notifications').doc();
 
-    await _firestore.runTransaction((transaction) async {
+    return await _firestore.runTransaction((transaction) async {
       final snapshot = await transaction.get(bookingRef);
       final data = snapshot.data();
       if (data == null) {
@@ -91,6 +91,8 @@ class BookingRepository {
         'relatedId': tripRef.id,
         'createdAt': FieldValue.serverTimestamp(),
       });
+
+      return tripRef.id;
     });
   }
 
@@ -174,6 +176,12 @@ class BookingRepository {
     final doc = await _firestore.collection('fare_proposals').doc(proposalId).get();
     if (!doc.exists) return null;
     return FareProposal.fromMap({...doc.data() as Map<String, dynamic>, 'id': doc.id});
+  }
+
+  Future<Map<String, dynamic>?> getTripDataById(String tripId) async {
+    final doc = await _firestore.collection('trips').doc(tripId).get();
+    if (!doc.exists) return null;
+    return {...doc.data() as Map<String, dynamic>, 'id': doc.id};
   }
 }
 

@@ -19,6 +19,7 @@ class Booking {
     this.passengerCount = 1,
     this.hasLuggage = false,
     this.luggageCount = 0,
+    this.isRideSharing = false,
     this.additionalInfo = '',
     this.finalFare,
     this.pickup = const AppLocation(address: ''),
@@ -43,6 +44,7 @@ class Booking {
   final int passengerCount;
   final bool hasLuggage;
   final int luggageCount;
+  final bool isRideSharing;
   final String additionalInfo;
   final int? finalFare;
   final AppLocation pickup;
@@ -86,6 +88,7 @@ class Booking {
       passengerCount: (map['passengerCount'] as num?)?.toInt() ?? 1,
       hasLuggage: map['hasLuggage'] as bool? ?? false,
       luggageCount: (map['luggageCount'] as num?)?.toInt() ?? 0,
+      isRideSharing: map['isRideSharing'] as bool? ?? false,
       additionalInfo: map['additionalInfo'] as String? ?? '',
       finalFare: (map['finalFare'] as num?)?.toInt(),
       pickup: pickup,
