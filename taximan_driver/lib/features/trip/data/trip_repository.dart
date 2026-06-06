@@ -27,11 +27,7 @@ class TripRepository {
     return _firestore
         .collection('trips')
         .where('driverId', isEqualTo: driverId)
-        .where('status', whereIn: [
-          TripStatus.driverArriving,
-          TripStatus.arrived,
-          TripStatus.inProgress,
-        ])
+        .where('status', whereIn: TripStatus.active)
         .orderBy('createdAt', descending: true)
         .limit(1)
         .snapshots()
@@ -40,6 +36,20 @@ class TripRepository {
             return null;
           }
           return Trip.fromMap({...snapshot.docs.first.data(), 'id': snapshot.docs.first.id});
+        });
+  }
+
+  Stream<List<Trip>> streamTrackableTrips(String driverId) {
+    return _firestore
+        .collection('trips')
+        .where('driverId', isEqualTo: driverId)
+        .where('status', whereIn: TripStatus.trackable)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => Trip.fromMap({...doc.data(), 'id': doc.id}))
+              .toList();
         });
   }
 

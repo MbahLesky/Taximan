@@ -20,6 +20,8 @@ class Trip {
     this.finalFare,
     this.paymentMethod = 'cash',
     this.paymentStatus = 'pending',
+    this.pickupLocationDetails,
+    this.destinationLocationDetails,
     this.startedAt,
     this.completedAt,
     this.cancelledAt,
@@ -44,6 +46,8 @@ class Trip {
   final int? finalFare;
   final String paymentMethod;
   final String paymentStatus;
+  final AppLocation? pickupLocationDetails;
+  final AppLocation? destinationLocationDetails;
   final DateTime? startedAt;
   final DateTime? completedAt;
   final DateTime? cancelledAt;
@@ -52,8 +56,10 @@ class Trip {
 
   String get formattedFare => '${fare.toStringAsFixed(0)} FCFA';
   String get formattedFinalFare => '${(finalFare ?? fare)} FCFA';
-  AppLocation get pickup => AppLocation(address: pickupLocation);
-  AppLocation get destinationLocation => AppLocation(address: destination);
+  AppLocation get pickup =>
+      pickupLocationDetails ?? AppLocation(address: pickupLocation);
+  AppLocation get destinationLocation =>
+      destinationLocationDetails ?? AppLocation(address: destination);
 
   Trip copyWith({
     String? id,
@@ -73,6 +79,8 @@ class Trip {
     int? finalFare,
     String? paymentMethod,
     String? paymentStatus,
+    AppLocation? pickupLocationDetails,
+    AppLocation? destinationLocationDetails,
     DateTime? startedAt,
     DateTime? completedAt,
     DateTime? cancelledAt,
@@ -98,6 +106,10 @@ class Trip {
       finalFare: finalFare ?? this.finalFare,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       paymentStatus: paymentStatus ?? this.paymentStatus,
+      pickupLocationDetails:
+          pickupLocationDetails ?? this.pickupLocationDetails,
+      destinationLocationDetails:
+          destinationLocationDetails ?? this.destinationLocationDetails,
       startedAt: startedAt ?? this.startedAt,
       completedAt: completedAt ?? this.completedAt,
       cancelledAt: cancelledAt ?? this.cancelledAt,
@@ -181,6 +193,8 @@ class Trip {
       finalFare: (map['finalFare'] as num?)?.toInt(),
       paymentMethod: map['paymentMethod'] as String? ?? 'cash',
       paymentStatus: map['paymentStatus'] as String? ?? 'pending',
+      pickupLocationDetails: pickup,
+      destinationLocationDetails: destinationLocation,
       startedAt: startedAt,
       completedAt: completedAt,
       cancelledAt: cancelledAt,

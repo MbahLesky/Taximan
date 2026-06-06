@@ -42,7 +42,7 @@ class _DriverTripHistoryScreenState extends ConsumerState<DriverTripHistoryScree
     final proposals = ref.watch(driverProposalsStreamProvider);
 
     return BottomNavShell(
-      currentIndex: 2,
+      currentIndex: 3,
       title: 'Trips',
       child: SafeArea(
         child: Column(

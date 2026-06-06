@@ -403,6 +403,8 @@ Booking _bookingFromTrip(Trip trip) {
     vehicleId: trip.vehicleId,
     pickupTimeType: trip.scheduledPickupTime == null ? 'now' : 'scheduled',
     scheduledPickupTime: trip.scheduledPickupTime,
+    pickupLocationDetails: trip.pickup,
+    destinationLocationDetails: trip.destinationLocation,
     finalFare: trip.finalFare,
     paymentStatus: trip.paymentStatus,
   );

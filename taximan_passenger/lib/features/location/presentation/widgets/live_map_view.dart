@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -28,6 +30,8 @@ class LiveMapView extends StatefulWidget {
     this.myLocationEnabled = false,
     this.onTap,
     this.onCurrentLocationPressed,
+    this.onExpandPressed,
+    this.showExpandButton = true,
     this.borderRadius = 24,
   });
 
@@ -46,6 +50,8 @@ class LiveMapView extends StatefulWidget {
   final bool myLocationEnabled;
   final ValueChanged<LatLng>? onTap;
   final VoidCallback? onCurrentLocationPressed;
+  final VoidCallback? onExpandPressed;
+  final bool showExpandButton;
   final double borderRadius;
 
   @override
@@ -103,6 +109,11 @@ class _LiveMapViewState extends State<LiveMapView> {
               _fitCameraToVisiblePoints();
             },
             onTap: widget.onTap,
+            gestureRecognizers: {
+              Factory<OneSequenceGestureRecognizer>(
+                () => EagerGestureRecognizer(),
+              ),
+            },
           ),
           if (widget.onCurrentLocationPressed != null)
             Positioned(
@@ -112,6 +123,26 @@ class _LiveMapViewState extends State<LiveMapView> {
                 tooltip: 'Use current location',
                 onPressed: widget.onCurrentLocationPressed,
                 icon: const Icon(Icons.gps_fixed),
+              ),
+            ),
+          if (widget.showExpandButton)
+            Positioned(
+              right: AppSpacing.sm,
+              bottom: widget.onCurrentLocationPressed == null
+                  ? AppSpacing.sm
+                  : AppSpacing.sm + 52,
+              child: IconButton.filledTonal(
+                tooltip: 'Open full map',
+                style: IconButton.styleFrom(
+                  fixedSize: const Size.square(44),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  backgroundColor: AppColors.surface,
+                  foregroundColor: AppColors.primaryDark,
+                ),
+                onPressed: _openExpandedMap,
+                icon: const Icon(Icons.open_in_full),
               ),
             ),
           Positioned(
@@ -384,6 +415,99 @@ class _LiveMapViewState extends State<LiveMapView> {
   LatLng get _defaultTarget {
     final fallback = defaultPassengerLocation;
     return LatLng(fallback.latitude!, fallback.longitude!);
+  }
+
+  void _openExpandedMap() {
+    final customHandler = widget.onExpandPressed;
+    if (customHandler != null) {
+      customHandler();
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LiveMapPage(
+          currentLocation: widget.currentLocation,
+          pickup: widget.pickup,
+          destination: widget.destination,
+          pinnedLocation: widget.pinnedLocation,
+          driverLocations: widget.driverLocations,
+          assignedDriverLocation: widget.assignedDriverLocation,
+          permissionStatus: widget.permissionStatus,
+          isLoading: widget.isLoading,
+          errorMessage: widget.errorMessage,
+          showDriverEmptyState: widget.showDriverEmptyState,
+          showRoute: widget.showRoute,
+          myLocationEnabled: widget.myLocationEnabled,
+          onTap: widget.onTap,
+          onCurrentLocationPressed: widget.onCurrentLocationPressed,
+        ),
+      ),
+    );
+  }
+}
+
+class LiveMapPage extends StatelessWidget {
+  const LiveMapPage({
+    super.key,
+    this.currentLocation,
+    this.pickup,
+    this.destination,
+    this.pinnedLocation,
+    this.driverLocations = const [],
+    this.assignedDriverLocation,
+    this.permissionStatus = 'unknown',
+    this.isLoading = false,
+    this.errorMessage,
+    this.showDriverEmptyState = false,
+    this.showRoute = true,
+    this.myLocationEnabled = false,
+    this.onTap,
+    this.onCurrentLocationPressed,
+    this.title = 'Live map',
+  });
+
+  final AppLocation? currentLocation;
+  final AppLocation? pickup;
+  final AppLocation? destination;
+  final AppLocation? pinnedLocation;
+  final List<DriverLocation> driverLocations;
+  final DriverLocation? assignedDriverLocation;
+  final String permissionStatus;
+  final bool isLoading;
+  final String? errorMessage;
+  final bool showDriverEmptyState;
+  final bool showRoute;
+  final bool myLocationEnabled;
+  final ValueChanged<LatLng>? onTap;
+  final VoidCallback? onCurrentLocationPressed;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: SafeArea(
+        child: LiveMapView(
+          currentLocation: currentLocation,
+          pickup: pickup,
+          destination: destination,
+          pinnedLocation: pinnedLocation,
+          driverLocations: driverLocations,
+          assignedDriverLocation: assignedDriverLocation,
+          permissionStatus: permissionStatus,
+          isLoading: isLoading,
+          errorMessage: errorMessage,
+          showDriverEmptyState: showDriverEmptyState,
+          showRoute: showRoute,
+          myLocationEnabled: myLocationEnabled,
+          onTap: onTap,
+          onCurrentLocationPressed: onCurrentLocationPressed,
+          showExpandButton: false,
+          borderRadius: 0,
+        ),
+      ),
+    );
   }
 }
 

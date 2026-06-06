@@ -8,6 +8,7 @@ import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
+import '../../../../shared/utils/fare_estimator.dart';
 import '../../application/providers/booking_state_provider.dart';
 
 class RideDetailsScreen extends ConsumerStatefulWidget {
@@ -37,7 +38,7 @@ class _RideDetailsScreenState extends ConsumerState<RideDetailsScreen> {
     _paymentMethod = booking.paymentMethod;
     _fareController = TextEditingController(
       text: booking.proposedFareAmount == 0
-          ? (booking.estimatedFare == 0 ? '' : booking.estimatedFare.toString())
+          ? ''
           : booking.proposedFareAmount.toString(),
     );
     _notesController = TextEditingController(text: booking.additionalInfo);
@@ -69,6 +70,13 @@ class _RideDetailsScreenState extends ConsumerState<RideDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final booking = ref.watch(bookingStateProvider).booking;
+    final previewFare = booking.distanceKm == null
+        ? booking.estimatedFare
+        : FareEstimator.calculate(
+            distanceKm: booking.distanceKm!,
+            isRideSharing: _rideSharing,
+            luggageCount: _hasLuggage ? _luggageCount : 0,
+          );
 
     return Scaffold(
       appBar: AppBar(
@@ -154,14 +162,54 @@ class _RideDetailsScreenState extends ConsumerState<RideDetailsScreen> {
                   },
                 ),
                 const SizedBox(height: AppSpacing.md),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.receipt_long_outlined,
+                        color: AppColors.primaryDark,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Estimated fare',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              '$previewFare FCFA',
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(
+                                    color: AppColors.primaryDark,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
                 TextField(
                   controller: _fareController,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: InputDecoration(
-                    labelText: 'Proposed amount of pay',
-                    hintText: booking.estimatedFare > 0
-                        ? booking.estimatedFare.toString()
+                    labelText: 'Optional proposed amount',
+                    hintText: previewFare > 0
+                        ? previewFare.toString()
                         : 'Enter amount',
                     prefixIcon: const Icon(Icons.sell_outlined),
                     suffixText: 'FCFA',

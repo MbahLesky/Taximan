@@ -29,9 +29,12 @@ class BottomNavShell extends StatelessWidget {
               context.go('/earnings');
               break;
             case 2:
-              context.go('/trip-history');
+              context.go('/tracking');
               break;
             case 3:
+              context.go('/trip-history');
+              break;
+            case 4:
               context.go('/profile');
               break;
           }
@@ -39,15 +42,27 @@ class BottomNavShell extends StatelessWidget {
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
           NavigationDestination(
             icon: Icon(Icons.payments_outlined),
+            selectedIcon: Icon(Icons.payments),
             label: 'Earnings',
           ),
-          NavigationDestination(icon: Icon(Icons.history), label: 'Trips'),
+          NavigationDestination(
+            icon: Icon(Icons.near_me_outlined),
+            selectedIcon: Icon(Icons.near_me),
+            label: 'Tracking',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.history_outlined),
+            selectedIcon: Icon(Icons.history),
+            label: 'Trips',
+          ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
             label: 'Profile',
           ),
         ],

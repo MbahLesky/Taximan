@@ -18,7 +18,7 @@ class DriverProfileScreen extends ConsumerWidget {
     final photoUrl = driver?.profilePhotoUrl;
 
     return BottomNavShell(
-      currentIndex: 3,
+      currentIndex: 4,
       title: 'Profile',
       child: SafeArea(
         child: ListView(

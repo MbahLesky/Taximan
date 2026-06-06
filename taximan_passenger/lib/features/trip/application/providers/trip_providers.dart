@@ -39,6 +39,16 @@ final passengerActiveTripsProvider = StreamProvider.family<List<Trip>, String>(
     return repository.streamActiveTrips(passengerId);
   },
 );
+
+/// Stream active and upcoming trips that can be opened in tracking.
+final passengerTrackableTripsProvider =
+    StreamProvider.family<List<Trip>, String>(
+  (ref, passengerId) {
+    final repository = ref.watch(tripRepositoryProvider);
+    return repository.streamTrackableTrips(passengerId);
+  },
+);
+
 /// Stream upcoming trip for a passenger
 final upcomingTripStreamProvider = StreamProvider.family<Trip?, String>((
   ref,

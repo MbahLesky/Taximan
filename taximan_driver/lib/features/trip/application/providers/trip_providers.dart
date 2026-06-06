@@ -24,6 +24,14 @@ final driverActiveTripProvider = StreamProvider<Trip?>((ref) {
   return ref.watch(tripRepositoryProvider).streamActiveTrip(driverId);
 });
 
+final driverTrackableTripsProvider = StreamProvider<List<Trip>>((ref) {
+  final driverId = ref.watch(authStateProvider).userId;
+  if (driverId == null || driverId.isEmpty) {
+    return const Stream<List<Trip>>.empty();
+  }
+  return ref.watch(tripRepositoryProvider).streamTrackableTrips(driverId);
+});
+
 final driverCompletedTripsProvider = StreamProvider<List<Trip>>((ref) {
   final driverId = ref.watch(authStateProvider).userId;
   if (driverId == null || driverId.isEmpty) {

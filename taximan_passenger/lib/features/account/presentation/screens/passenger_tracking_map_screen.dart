@@ -84,6 +84,7 @@ class _PassengerTrackingMapScreenState
               myLocationEnabled: locationState.hasLocationPermission,
               onCurrentLocationPressed: () =>
                   ref.read(locationStateProvider.notifier).requestCurrentLocation(),
+              showExpandButton: false,
             ),
             if (message != null)
               Positioned(

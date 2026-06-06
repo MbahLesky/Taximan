@@ -4,40 +4,51 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
+import '../../../../shared/models/driver_location.dart';
+import '../../../../shared/models/trip.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
 import '../../../auth/application/providers/auth_state_provider.dart';
-import '../../../booking/application/providers/booking_state_provider.dart';
 import '../../../location/application/providers/location_state_provider.dart';
 import '../../../location/presentation/widgets/live_map_view.dart';
 import '../../../trip/application/providers/trip_providers.dart';
-import '../../../../core/constants/ride_statuses.dart';
 
-class PassengerTrackingScreen extends ConsumerWidget {
+class PassengerTrackingScreen extends ConsumerStatefulWidget {
   const PassengerTrackingScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final booking = ref.watch(bookingStateProvider).booking;
-    final driverId = booking.driverId ?? '';
-    if (driverId.isNotEmpty) {
-      ref.listen(assignedDriverLocationProvider(driverId), (previous, next) {
-        final location = next.valueOrNull;
-        if (location != null) {
-          ref.read(locationStateProvider.notifier).updateAssignedDriverLocation(location);
-        }
-      });
-    }
+  ConsumerState<PassengerTrackingScreen> createState() =>
+      _PassengerTrackingScreenState();
+}
+
+class _PassengerTrackingScreenState
+    extends ConsumerState<PassengerTrackingScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(locationStateProvider.notifier).startLiveUpdates();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final locationState = ref.watch(locationStateProvider);
-    final assignedDriverLocation = driverId.isEmpty
-        ? null
-        : ref.watch(assignedDriverLocationProvider(driverId)).valueOrNull;
     final authState = ref.watch(authStateProvider);
     final passengerId = authState.userId ?? '';
-    final activeTripsState = passengerId.isNotEmpty
-        ? ref.watch(passengerActiveTripsProvider(passengerId))
-        : const AsyncValue.data([]);
+    final trackableTripsState = passengerId.isNotEmpty
+        ? ref.watch(passengerTrackableTripsProvider(passengerId))
+        : const AsyncValue<List<Trip>>.data([]);
+    final trackableTrips = trackableTripsState.valueOrNull ?? const <Trip>[];
+    final previewTrip = trackableTrips.isEmpty ? null : trackableTrips.first;
+    final driverId = previewTrip?.driverId ?? '';
+    final AsyncValue<DriverLocation?> assignedDriverState = driverId.isEmpty
+        ? const AsyncValue<DriverLocation?>.data(null)
+        : ref.watch(assignedDriverLocationProvider(driverId));
+    final previewMapPath = previewTrip == null
+        ? '/tracking/map'
+        : '/tracking/map/${previewTrip.id}';
 
     return BottomNavShell(
       currentIndex: 2,
@@ -53,18 +64,24 @@ class PassengerTrackingScreen extends ConsumerWidget {
                   currentLocation: locationState.currentLocation.hasCoordinates
                       ? locationState.currentLocation
                       : null,
-                  pickup: booking.pickup,
-                  destination: booking.destinationLocation,
-                  assignedDriverLocation: assignedDriverLocation,
+                  pickup: previewTrip?.pickup,
+                  destination: previewTrip?.destinationLocation,
+                  assignedDriverLocation: assignedDriverState.valueOrNull,
                   permissionStatus: locationState.permissionStatus,
                   isLoading:
-                      driverId.isNotEmpty &&
-                      ref.watch(assignedDriverLocationProvider(driverId)).isLoading,
-                  errorMessage: driverId.isEmpty
-                      ? 'A driver has not been assigned yet.'
-                      : null,
+                      trackableTripsState.isLoading ||
+                      assignedDriverState.isLoading,
+                  errorMessage: passengerId.isEmpty
+                      ? 'Sign in to view your trips.'
+                      : previewTrip == null
+                          ? 'No active or upcoming trips to track yet.'
+                          : null,
                   myLocationEnabled: locationState.hasLocationPermission,
-                  onTap: (_) => context.push('/tracking/map'),
+                  onTap: (_) => context.push(previewMapPath),
+                  onExpandPressed: () => context.push(previewMapPath),
+                  onCurrentLocationPressed: () => ref
+                      .read(locationStateProvider.notifier)
+                      .requestCurrentLocation(),
                 ),
                 Positioned(
                   right: AppSpacing.sm,
@@ -101,7 +118,7 @@ class PassengerTrackingScreen extends ConsumerWidget {
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
-                          'Live trips',
+                          'Active and upcoming trips',
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
@@ -115,52 +132,36 @@ class PassengerTrackingScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  activeTripsState.when(
+                  trackableTripsState.when(
                     data: (trips) {
                       if (trips.isEmpty) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (TripStatus.active.contains(booking.status))
-                              ListTile(
-                                title: Text('Trip: ${booking.id.isEmpty ? 'current' : booking.id}'),
-                                subtitle: Text('Status: ${booking.status}'),
-                                trailing: AppButton(
-                                  label: 'View',
-                                  icon: Icons.map,
-                                  onPressed: () => context.push('/tracking/map'),
-                                ),
-                              )
-                            else
-                              const ListTile(
-                                title: Text('No live trips to track'),
-                                subtitle: Text('Only active trips are shown here.'),
-                              ),
-                          ],
+                        return const ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text('No trips to track'),
+                          subtitle: Text(
+                            'Active and upcoming trips will appear here.',
+                          ),
                         );
                       }
 
                       return Column(
-                        children: trips.map(
-                          (trip) {
-                            return ListTile(
-                              title: Text('Trip: ${trip.id}'),
-                              subtitle: Text(
-                                'Status: ${trip.status}\n${trip.pickup.displayName} → ${trip.destinationLocation.displayName}',
+                        children: trips
+                            .map(
+                              (trip) => _TrackableTripTile(
+                                trip: trip,
+                                onPressed: () => context.push(
+                                  '/tracking/map/${trip.id}',
+                                ),
                               ),
-                              trailing: AppButton(
-                                label: 'View',
-                                icon: Icons.map,
-                                onPressed: () => context.push('/tracking/map/${trip.id}'),
-                              ),
-                            );
-                          },
-                        ).toList(),
+                            )
+                            .toList(),
                       );
                     },
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
                     error: (error, stack) => ListTile(
-                      title: const Text('Unable to load live trips'),
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Unable to load trips'),
                       subtitle: Text(error.toString()),
                     ),
                   ),
@@ -174,4 +175,33 @@ class PassengerTrackingScreen extends ConsumerWidget {
   }
 }
 
-// Timeline widget removed; tracking screen now lists live trips and opens full map.
+class _TrackableTripTile extends StatelessWidget {
+  const _TrackableTripTile({required this.trip, required this.onPressed});
+
+  final Trip trip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(Icons.route, color: AppColors.primaryDark),
+      title: Text(
+        trip.destinationLocation.displayName,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        '${trip.pickup.displayName} to ${trip.destinationLocation.displayName}\n'
+        'Status: ${trip.status}',
+      ),
+      trailing: AppButton(
+        label: 'View',
+        icon: Icons.map,
+        fullWidth: false,
+        onPressed: onPressed,
+      ),
+      onTap: onPressed,
+    );
+  }
+}

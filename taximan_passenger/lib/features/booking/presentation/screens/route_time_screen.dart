@@ -237,12 +237,23 @@ class _LocationSelectorState extends ConsumerState<_LocationSelector> {
   String? _searchError;
   Timer? _searchDebounce;
   TextEditingController? _textController;
+  FocusNode? _focusNode;
+  bool _hasInputFocus = false;
 
   @override
   void dispose() {
     _searchDebounce?.cancel();
     _textController?.removeListener(_onSearchChanged);
+    _focusNode?.removeListener(_onFocusChanged);
     super.dispose();
+  }
+
+  void _onFocusChanged() {
+    final hasFocus = _focusNode?.hasFocus ?? false;
+    if (hasFocus == _hasInputFocus) {
+      return;
+    }
+    setState(() => _hasInputFocus = hasFocus);
   }
 
   void _onSearchChanged() {
@@ -304,7 +315,8 @@ class _LocationSelectorState extends ConsumerState<_LocationSelector> {
           ..clear()
           ..addAll(results);
         _isSearching = false;
-        _searchError = results.isEmpty
+        _searchError = results.isEmpty &&
+                _matchingPresetLocations(query).isEmpty
             ? 'No matching places found. Use coordinates or pin on the map.'
             : null;
       });
@@ -345,6 +357,51 @@ class _LocationSelectorState extends ConsumerState<_LocationSelector> {
     return suggestions;
   }
 
+  Iterable<AppLocation> _matchingPresetLocations(String query) {
+    final normalizedQuery = query.trim().toLowerCase();
+    if (normalizedQuery.isEmpty) {
+      return bamendaLocations;
+    }
+
+    return bamendaLocations.where((location) {
+      final searchableText = [
+        location.name,
+        location.address,
+        location.fullAddress,
+        location.landmarkType,
+      ].whereType<String>().join(' ').toLowerCase();
+      return searchableText.contains(normalizedQuery);
+    });
+  }
+
+  List<AppLocation> _combinedSuggestions({
+    required String query,
+    required LocationState locationState,
+    required BookingState bookingState,
+  }) {
+    final suggestions = <AppLocation>[
+      if (query.isEmpty) ..._defaultSuggestions(locationState, bookingState),
+      ..._matchingPresetLocations(query),
+      ..._searchResults,
+    ];
+    final seen = <String>{};
+    return suggestions.where((location) {
+      if (!location.hasCoordinates) {
+        return false;
+      }
+      final key = _locationKey(location);
+      return seen.add(key);
+    }).toList();
+  }
+
+  String _locationKey(AppLocation location) {
+    if (location.hasCoordinates) {
+      return '${location.latitude!.toStringAsFixed(5)},'
+          '${location.longitude!.toStringAsFixed(5)}';
+    }
+    return location.fullAddress.toLowerCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final locationState = ref.watch(locationStateProvider);
@@ -372,6 +429,10 @@ class _LocationSelectorState extends ConsumerState<_LocationSelector> {
         Autocomplete<AppLocation>(
           displayStringForOption: (location) => location.fullAddress,
           optionsBuilder: (value) {
+            if (!_hasInputFocus) {
+              return const Iterable<AppLocation>.empty();
+            }
+
             final query = value.text.trim();
             final coordMatch = RegExp(r"(-?\d+\.?\d*)[, ]+(-?\d+\.?\d*)").firstMatch(query);
             if (coordMatch != null) {
@@ -391,21 +452,28 @@ class _LocationSelectorState extends ConsumerState<_LocationSelector> {
               }
             }
 
-            if (query.isEmpty) {
-              return _defaultSuggestions(locationState, bookingState).where(
-                (location) => location.hasCoordinates,
-              );
-            }
-
-            return _searchResults;
+            return _combinedSuggestions(
+              query: query,
+              locationState: locationState,
+              bookingState: bookingState,
+            );
           },
-          onSelected: widget.onSelected,
+          onSelected: (location) {
+            FocusManager.instance.primaryFocus?.unfocus();
+            widget.onSelected(location);
+          },
           fieldViewBuilder:
               (context, textController, focusNode, onFieldSubmitted) {
             if (_textController != textController) {
               _textController?.removeListener(_onSearchChanged);
               _textController = textController;
               _textController?.addListener(_onSearchChanged);
+            }
+            if (_focusNode != focusNode) {
+              _focusNode?.removeListener(_onFocusChanged);
+              _focusNode = focusNode;
+              _hasInputFocus = focusNode.hasFocus;
+              _focusNode?.addListener(_onFocusChanged);
             }
             return TextField(
               controller: textController,

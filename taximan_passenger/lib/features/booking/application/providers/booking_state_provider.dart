@@ -6,6 +6,7 @@ import '../../../../core/constants/ride_statuses.dart';
 import '../../../../shared/data/bamenda_locations.dart';
 import '../../../../shared/models/booking.dart';
 import '../../../../shared/models/app_location.dart';
+import '../../../../shared/utils/fare_estimator.dart';
 
 const _unsetDestination = '';
 
@@ -157,20 +158,19 @@ class BookingController extends StateNotifier<BookingState> {
     required int proposedFareAmount,
     required String additionalInfo,
   }) {
+    final updatedBooking = state.booking.copyWith(
+      isRideSharing: isRideSharing,
+      passengerCount: passengerCount,
+      hasLuggage: hasLuggage,
+      luggageCount: hasLuggage ? luggageCount : 0,
+      paymentMethod: paymentMethod,
+      proposedFareAmount: proposedFareAmount,
+      additionalInfo: additionalInfo,
+      updatedAt: DateTime.now(),
+    );
+
     state = state.copyWith(
-      booking: state.booking.copyWith(
-        isRideSharing: isRideSharing,
-        passengerCount: passengerCount,
-        hasLuggage: hasLuggage,
-        luggageCount: hasLuggage ? luggageCount : 0,
-        paymentMethod: paymentMethod,
-        proposedFareAmount: proposedFareAmount,
-        estimatedFare: proposedFareAmount > 0
-            ? proposedFareAmount
-            : state.booking.estimatedFare,
-        additionalInfo: additionalInfo,
-        updatedAt: DateTime.now(),
-      ),
+      booking: _withRouteEstimate(updatedBooking),
     );
   }
 
@@ -208,9 +208,11 @@ class BookingController extends StateNotifier<BookingState> {
 
   void setRideSharing(bool isRideSharing) {
     state = state.copyWith(
-      booking: state.booking.copyWith(
-        isRideSharing: isRideSharing,
-        updatedAt: DateTime.now(),
+      booking: _withRouteEstimate(
+        state.booking.copyWith(
+          isRideSharing: isRideSharing,
+          updatedAt: DateTime.now(),
+        ),
       ),
     );
   }
@@ -286,16 +288,18 @@ class BookingController extends StateNotifier<BookingState> {
 
     final distanceKm = _distanceInKm(pickup, destination);
     final durationMinutes = math.max(5, (distanceKm / 22 * 60).round());
-    final estimatedFare = math.max(500, (500 + distanceKm * 220).round());
+    final estimatedFare = FareEstimator.calculate(
+      distanceKm: distanceKm,
+      isRideSharing: booking.isRideSharing,
+      luggageCount: booking.hasLuggage ? booking.luggageCount : 0,
+    );
 
     return booking.copyWith(
       distance: '${distanceKm.toStringAsFixed(1)} km',
       eta: '$durationMinutes min',
       distanceKm: distanceKm,
       estimatedDurationMinutes: durationMinutes,
-      estimatedFare: booking.proposedFareAmount > 0
-          ? booking.proposedFareAmount
-          : estimatedFare,
+      estimatedFare: estimatedFare,
     );
   }
 

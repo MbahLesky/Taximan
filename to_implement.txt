@@ -63,4 +63,38 @@ PORTS
 
 
 
-Create an admin dashboard in the empty admin folder to verify drivers and their documents, authentication is not needed as it's a prototype. Plus the admin's side won't be hosted on the internet. On opening, the admin sees a list of all users and drivers. It sees drivers with pending approval. On opening each driver, display the drivers information and documents. For each document, place an approve or reject button beside it (update the documents status in the database). After approving all documents, place a final approve or reject driver below (which updates the verificationStatus of the driver). Follow the 
+
+
+
+As a senior flutter developer, continue implementing the following.
+
+1. LiveMapPage
+On the LiveMapView in the passengers side, add a square icon on the bottom right which when clicked, expands the map to fullpage, you can do that by creating a fullpage map just like the livemapview, but fullpage and you could name it LiveMapPage. Both the LiveMapView and LiveMapPage should be easy to navigate, that is zoom in and zoom out or drag left, right, up, down using fingers or the normal screen gestures for each of them. The LiveMapPage could either be a fullpage or a bottomsheet or modal, which covers about 75 to 80% of the screen.
+
+When searching a place to book a ride, both in the pickup and destination, display the hardcoded locations (bamendaLocations) under shared data folder, along with the locations searched from the map on the autocomplete suggestions.
+
+Then the dropdown for the autocomplete should disappear when it loses focus.
+
+Then work on the tracking page. It doesn't work well currently. On the tracking screen, display the livemapview, then list of activetrips/upcoming trips below. When the user clicks on one, the livemappage opens. This screen also be found on the drivers side. Add it to the bottom nav as well. 
+
+2. Fare estimation. Here is how the fare price should be calculated.
+
+(Ride Sharing)
+Base Fare = 200
+
+Distance Fare = Distance × 100
+
+Luggage Fee =
+max(50, Distance Fare × 10%) × Luggage Count
+
+Shared Fare =
+Base Fare + Distance Fare + Luggage Fee
+
+Private Fare (Ride Sharing Turned Off) =
+Shared Fare × 2.5
+
+3. On the drivers earning page, display the earnings. A driver is suppose to send 15% of his earnings to the admin (that is how the platform benefits). So calculate the total for each day, then display 15% of that total and add a button to pay platformed. Once that is done, a pop up or modal displays saying that they driver has paid.
+
+4. For each trip, display it's details like that in the passenger's section with options as well. Display the passengers into like name and phone number.
+
+5. In the profile section of the driver, display drivers location and driver should be able to update his name, phone number and address/location
