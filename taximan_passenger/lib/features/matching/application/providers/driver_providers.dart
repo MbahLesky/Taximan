@@ -23,3 +23,7 @@ final availableDriverCountProvider = FutureProvider<int>((ref) {
 final availableDriversProvider = FutureProvider<List<Driver>>((ref) {
   return ref.watch(driverRepositoryProvider).getAvailableDrivers();
 });
+
+final allDriversStreamProvider = StreamProvider<List<Driver>>((ref) {
+  return ref.watch(driverRepositoryProvider).streamAllDrivers();
+});

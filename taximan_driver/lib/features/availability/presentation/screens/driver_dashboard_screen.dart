@@ -13,6 +13,8 @@ import '../../../booking_management/application/providers/booking_provider.dart'
 import '../../../onboarding/application/providers/driver_providers.dart';
 import '../../application/providers/driver_state_provider.dart';
 import '../../../trip/application/providers/trip_providers.dart';
+import '../../../account/application/driver_payment_pin_provider.dart';
+import '../../../account/presentation/widgets/driver_payment_pin_dialog.dart';
 import '../../../../shared/models/app_location.dart';
 import '../../../../shared/models/earnings.dart';
 import '../../../../shared/models/trip.dart';
@@ -38,6 +40,7 @@ class DriverDashboardScreen extends ConsumerWidget {
     final verificationStatus = currentDriver?.verificationStatus ?? 'pending';
     final availabilityStatus = currentDriver?.availabilityStatus ?? 'offline';
     final canGoOnline = verificationStatus.toLowerCase() == 'approved';
+    final pinState = ref.watch(driverPaymentPinProvider);
 
     return BottomNavShell(
       currentIndex: 0,
@@ -160,6 +163,54 @@ class DriverDashboardScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.lock_outline, color: AppColors.primaryDark),
+                    title: Text(pinState.when(
+                      data: (pin) => pin?.isNotEmpty == true
+                          ? 'Confirm payment' : 'Set payment PIN',
+                      loading: () => 'Payment PIN',
+                      error: (_, __) => 'Payment PIN',
+                    )),
+                    subtitle: Text(pinState.when(
+                      data: (pin) => pin?.isNotEmpty == true
+                          ? 'Use your PIN to verify cash payment collection.'
+                          : 'Create a payment PIN for safe cash collection.',
+                      loading: () => 'Checking payment PIN status...',
+                      error: (_, __) => 'Unable to retrieve PIN status.',
+                    )),
+                  ),
+                  const Divider(height: 24),
+                  AppButton(
+                    label: pinState.when(
+                      data: (pin) => pin?.isNotEmpty == true
+                          ? 'Confirm cash payment'
+                          : 'Set payment PIN',
+                      loading: () => 'Loading...',
+                      error: (_, __) => 'Set payment PIN',
+                    ),
+                    icon: Icons.payments_outlined,
+                    variant: AppButtonVariant.primary,
+                    isLoading: pinState.isLoading,
+                    onPressed: pinState.isLoading
+                        ? null
+                        : () async {
+                            final pin = pinState.valueOrNull;
+                            if (pin?.isNotEmpty == true) {
+                              await _showPaymentPinDialog(context, ref, pin!);
+                            } else {
+                              await showDriverPinSetupDialog(context, ref);
+                            }
+                          },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
             Row(
               children: [
                 Expanded(
@@ -208,6 +259,69 @@ class DriverDashboardScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+Future<void> _showPaymentPinDialog(
+  BuildContext context,
+  WidgetRef ref,
+  String expectedPin,
+) async {
+  final controller = TextEditingController();
+  await showDialog<void>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Confirm payment PIN'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Enter your payment PIN to verify the cash collection.'),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              maxLength: 6,
+              decoration: const InputDecoration(
+                hintText: 'Enter PIN',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final enteredPin = controller.text.trim();
+              if (enteredPin.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter your payment PIN.')),
+                );
+                return;
+              }
+              if (enteredPin != expectedPin) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Payment PIN does not match.')),
+                );
+                return;
+              }
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Payment confirmed successfully.')),
+                );
+              }
+            },
+            child: const Text('Verify'),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 String _availabilityLabel(String status, bool isOnline) {

@@ -6,6 +6,8 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../account/application/driver_payment_pin_provider.dart';
+import '../widgets/driver_payment_pin_dialog.dart';
 import '../../../auth/application/providers/auth_state_provider.dart';
 
 class DriverSettingsScreen extends ConsumerWidget {
@@ -13,33 +15,62 @@ class DriverSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pinState = ref.watch(driverPaymentPinProvider);
+    final pinTitle = pinState.when(
+      data: (pin) => pin?.isNotEmpty == true ? 'Payment PIN' : 'Set payment PIN',
+      loading: () => 'Payment PIN',
+      error: (_, __) => 'Payment PIN',
+    );
+    final pinSubtitle = pinState.when(
+      data: (pin) => pin?.isNotEmpty == true
+          ? 'Use your PIN to confirm payments and secure cash collection.'
+          : 'Create a payment PIN for driver-side cash collection.',
+      loading: () => 'Loading payment PIN status...',
+      error: (_, __) => 'Unable to load payment PIN status.',
+    );
+
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          const AppCard(
+          AppCard(
             child: Column(
               children: [
-                _SettingsTile(
+                const _SettingsTile(
                   icon: Icons.person_outline,
                   title: 'Account settings',
                   subtitle: 'Profile and driver account',
                 ),
-                _SettingsTile(
+                const _SettingsTile(
                   icon: Icons.language,
                   title: 'Language',
                   subtitle: 'English',
                 ),
-                _SettingsTile(
+                const _SettingsTile(
                   icon: Icons.contrast,
                   title: 'Theme',
                   subtitle: 'Light',
                 ),
-                _SettingsTile(
+                const _SettingsTile(
                   icon: Icons.notifications_outlined,
                   title: 'Notifications',
                   subtitle: 'Ride request alerts enabled',
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.pin, color: AppColors.primaryDark),
+                  title: Text(pinTitle),
+                  subtitle: Text(pinSubtitle),
+                  trailing: pinState.isLoading
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    await showDriverPinSetupDialog(context, ref);
+                  },
                 ),
               ],
             ),

@@ -24,6 +24,7 @@ import '../features/onboarding/presentation/screens/verification_pending_screen.
 import '../features/onboarding/presentation/screens/verification_rejected_screen.dart';
 import '../features/trip/presentation/screens/mark_arrival_screen.dart';
 import '../features/trip/presentation/screens/driver_trip_map_screen.dart';
+import '../features/trip/presentation/screens/driver_tracking_screen.dart';
 import '../features/trip/presentation/screens/navigate_to_pickup_screen.dart';
 import '../features/trip/presentation/screens/trip_completed_screen.dart';
 import '../features/trip/presentation/screens/trip_in_progress_screen.dart';
@@ -78,6 +79,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/incoming-request',
       builder: (context, state) => const IncomingRideRequestScreen(),
+    ),
+    GoRoute(
+      path: '/tracking',
+      builder: (context, state) => const DriverTrackingScreen(),
     ),
     GoRoute(
       path: '/fare-proposal',

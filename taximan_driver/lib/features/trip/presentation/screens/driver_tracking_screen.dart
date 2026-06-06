@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:taximan_driver/features/availability/presentation/screens/driver_dashboard_screen.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_spacing.dart';
@@ -8,7 +9,6 @@ import '../../../../shared/models/trip.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/bottom_nav_shell.dart';
-import '../../../availability/presentation/screens/driver_dashboard_screen.dart';
 import '../../application/providers/trip_providers.dart';
 
 class DriverTrackingScreen extends ConsumerWidget {

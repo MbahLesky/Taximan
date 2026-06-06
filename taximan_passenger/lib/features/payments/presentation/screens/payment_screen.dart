@@ -73,9 +73,17 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
   Future<void> _confirmPayment(BuildContext context) async {
     await _ensurePayment();
-    final payment = ref.read(paymentStateProvider).activePayment;
+    final paymentState = ref.read(paymentStateProvider);
+    final payment = paymentState.activePayment;
     if (payment == null) {
       return;
+    }
+
+    if (paymentState.selectedMethod == 'cash') {
+      final confirmed = await _requestPaymentPin(context);
+      if (!confirmed) {
+        return;
+      }
     }
 
     ref.read(paymentStateProvider.notifier).setLoading(true);
@@ -97,6 +105,55 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           .read(paymentStateProvider.notifier)
           .markFailed('Could not confirm payment. Try again.');
     }
+  }
+
+  Future<bool> _requestPaymentPin(BuildContext context) async {
+    final pinController = TextEditingController();
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Enter payment PIN'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Enter the payment PIN to complete your trip payment.'),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: pinController,
+                keyboardType: TextInputType.number,
+                obscureText: true,
+                maxLength: 6,
+                decoration: const InputDecoration(
+                  hintText: 'Payment PIN',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final pin = pinController.text.trim();
+                if (pin.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a PIN.')),
+                  );
+                  return;
+                }
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+    return result == true;
   }
 
   @override

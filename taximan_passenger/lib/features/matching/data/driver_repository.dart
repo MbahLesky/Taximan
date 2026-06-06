@@ -47,4 +47,16 @@ class DriverRepository {
         .get();
     return query.docs.map((doc) => Driver.fromMap(doc.data())).toList();
   }
+
+  Stream<List<Driver>> streamAllDrivers({int limit = 100}) {
+    return _firestore
+        .collection(_collection)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => Driver.fromMap(doc.data() as Map<String, dynamic>))
+              .toList();
+        });
+  }
 }

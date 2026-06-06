@@ -9,6 +9,7 @@ import '../../../../shared/utils/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../matching/application/providers/driver_providers.dart';
+import '../../../matching/presentation/widgets/driver_list_tile.dart';
 import '../../application/providers/booking_state_provider.dart';
 
 class DriverPreferenceScreen extends ConsumerStatefulWidget {
@@ -32,7 +33,7 @@ class _DriverPreferenceScreenState
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(availableDriversProvider, (previous, next) {
+    ref.listen(allDriversStreamProvider, (previous, next) {
       if (next.hasError && previous?.hasError != true) {
         AppToast.warning(
           context,
@@ -43,7 +44,7 @@ class _DriverPreferenceScreenState
     });
 
     final booking = ref.watch(bookingStateProvider).booking;
-    final driversAsync = ref.watch(availableDriversProvider);
+    final driversAsync = ref.watch(allDriversStreamProvider);
     final hasPreferredDriver = booking.preferredDriverId?.isNotEmpty == true;
 
     return Scaffold(
@@ -67,17 +68,16 @@ class _DriverPreferenceScreenState
                     Icons.sensors,
                     color: AppColors.primaryDark,
                   ),
-                  title: const Text('Nearby driver search'),
+                  title: const Text('Driver search'),
                   subtitle: driversAsync.when(
                     data: (drivers) => Text(
                       drivers.isEmpty
-                          ? 'No nearby drivers found yet.'
-                          : '${drivers.length} nearby driver(s) available.',
+                          ? 'No drivers found yet.'
+                          : '${drivers.length} driver(s) available.',
                     ),
-                    loading: () =>
-                        const Text('Searching around your pickup point.'),
+                    loading: () => const Text('Loading drivers for selection.'),
                     error: (_, _) => const Text(
-                      'Nearby search is unavailable right now.',
+                      'Driver list is unavailable right now.',
                     ),
                   ),
                   trailing: driversAsync.isLoading
@@ -136,35 +136,12 @@ class _DriverPreferenceScreenState
               return Column(
                 children: filteredDrivers.map((driver) {
                   final isSelected = booking.preferredDriverId == driver.id;
-                  return AppCard(
-                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: CircleAvatar(
-                        backgroundColor: AppColors.primaryLight,
-                        child: Text(
-                          driver.fullName.isEmpty
-                              ? 'D'
-                              : driver.fullName.substring(0, 1),
-                          style: const TextStyle(
-                            color: AppColors.primaryDark,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
-                      title: Text(driver.fullName),
-                      subtitle: Text(
-                        '${driver.vehicle} - ${driver.plateNumber} - '
-                        '${driver.arrivalEta}',
-                      ),
-                      trailing: isSelected
-                          ? const Icon(
-                              Icons.check_circle,
-                              color: AppColors.success,
-                            )
-                          : const Icon(Icons.arrow_forward),
-                      onTap: () => _selectDriver(context, driver),
-                    ),
+                  return DriverListItem(
+                    driver: driver,
+                    onViewDetails: () => showDriverDetailsModal(context, driver),
+                    canSelect: true,
+                    isSelected: isSelected,
+                    onSelect: () => _selectDriver(context, driver),
                   );
                 }).toList(),
               );
