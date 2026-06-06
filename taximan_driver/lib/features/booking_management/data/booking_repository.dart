@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../core/constants/ride_statuses.dart';
 import '../../../shared/models/booking.dart';
+import '../../../shared/models/fare_proposal.dart';
 
 class BookingRepository {
   BookingRepository({FirebaseFirestore? firestore})
@@ -154,6 +155,25 @@ class BookingRepository {
         'createdAt': FieldValue.serverTimestamp(),
       });
     });
+  }
+
+  Stream<List<FareProposal>> streamDriverProposals(String driverId) {
+    return _firestore
+        .collection('fare_proposals')
+        .where('driverId', isEqualTo: driverId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => FareProposal.fromMap({...doc.data(), 'id': doc.id}))
+              .toList();
+        });
+  }
+
+  Future<FareProposal?> getProposal(String proposalId) async {
+    final doc = await _firestore.collection('fare_proposals').doc(proposalId).get();
+    if (!doc.exists) return null;
+    return FareProposal.fromMap({...doc.data() as Map<String, dynamic>, 'id': doc.id});
   }
 }
 

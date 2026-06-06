@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/models/booking.dart';
+import '../../../../shared/models/fare_proposal.dart';
 import '../../../auth/application/providers/auth_state_provider.dart';
 import '../../../onboarding/application/providers/driver_providers.dart';
 import '../../data/booking_repository.dart';
@@ -22,6 +23,14 @@ final availableBookingsStreamProvider = StreamProvider<List<Booking>>((ref) {
   }
 
   return ref.watch(bookingRepositoryProvider).streamAvailableBookings(driverId);
+});
+
+final driverProposalsStreamProvider = StreamProvider<List<FareProposal>>((ref) {
+  final driverId = ref.watch(authStateProvider).userId;
+  if (driverId == null || driverId.isEmpty) {
+    return const Stream<List<FareProposal>>.empty();
+  }
+  return ref.watch(bookingRepositoryProvider).streamDriverProposals(driverId);
 });
 
 final bookingActionsProvider = Provider<BookingActions>((ref) {
