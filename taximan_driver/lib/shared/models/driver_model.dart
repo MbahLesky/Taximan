@@ -21,6 +21,7 @@ class DriverModel {
     this.ratingCount = 0,
     this.vehicleId,
     this.vehicle,
+    this.platformFeePaidAt,
     this.documentUrls = const {},
     this.availabilitySchedule = const [],
     this.createdAt,
@@ -45,6 +46,7 @@ class DriverModel {
   final int ratingCount;
   final String? vehicleId;
   final Vehicle? vehicle;
+  final DateTime? platformFeePaidAt;
   final AppLocation? currentLocation;
   final Map<String, String> documentUrls;
   final List<Map<String, String>> availabilitySchedule;
@@ -120,6 +122,7 @@ class DriverModel {
       'ratingCount': ratingCount,
       'vehicleId': vehicleId,
       'vehicle': vehicle?.toMap(),
+      'platformFeePaidAt': writeDateTime(platformFeePaidAt),
       'currentLocation': currentLocation?.toMap(),
       'documentUrls': documentUrls,
       'availabilitySchedule': availabilitySchedule,
@@ -167,6 +170,7 @@ class DriverModel {
         (key, value) => MapEntry(key, value?.toString() ?? ''),
       ),
       availabilitySchedule: availabilitySchedule,
+      platformFeePaidAt: readDateTime(map['platformFeePaidAt']),
       createdAt: readDateTime(map['createdAt']),
       updatedAt: readDateTime(map['updatedAt']),
     );

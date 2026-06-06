@@ -63,6 +63,21 @@ class DriverRepository {
     }, SetOptions(merge: true));
   }
 
+  Future<void> updateDriverProfile({
+    required String driverId,
+    required String fullName,
+    required String phone,
+    required String city,
+  }) async {
+    await _firestore.collection('drivers').doc(driverId).set({
+      'id': driverId,
+      'fullName': fullName.trim(),
+      'phone': phone.trim(),
+      'city': city.trim(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
   Future<String> saveVehicle({
     required String driverId,
     required Vehicle vehicle,
@@ -138,6 +153,13 @@ class DriverRepository {
       'profilePhotoUrl': profilePhotoUrl,
       'verificationStatus': 'pending',
       'onboardingStatus': 'pending',
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> markPlatformFeePaidToday(String driverId) async {
+    await _firestore.collection('drivers').doc(driverId).set({
+      'platformFeePaidAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }

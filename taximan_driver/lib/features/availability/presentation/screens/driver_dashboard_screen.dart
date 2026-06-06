@@ -13,8 +13,7 @@ import '../../../booking_management/application/providers/booking_provider.dart'
 import '../../../onboarding/application/providers/driver_providers.dart';
 import '../../application/providers/driver_state_provider.dart';
 import '../../../trip/application/providers/trip_providers.dart';
-import '../../../account/application/driver_payment_pin_provider.dart';
-import '../../../account/presentation/widgets/driver_payment_pin_dialog.dart';
+import '../../../auth/application/providers/auth_state_provider.dart';
 import '../../../../shared/models/app_location.dart';
 import '../../../../shared/models/earnings.dart';
 import '../../../../shared/models/trip.dart';
@@ -29,9 +28,12 @@ class DriverDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // final earnings = ref.watch(earningsProvider);
     final currentDriver = ref.watch(currentDriverProvider).valueOrNull;
-    final incomingRequests = ref.watch(availableBookingsStreamProvider).valueOrNull;
+    final incomingRequests = ref
+        .watch(availableBookingsStreamProvider)
+        .valueOrNull;
     final activeTrip = ref.watch(driverActiveTripProvider).valueOrNull;
-    final earnings = ref.watch(earningsProvider).valueOrNull ??
+    final earnings =
+        ref.watch(earningsProvider).valueOrNull ??
         const Earnings(today: 0, week: 0, total: 0, completedTrips: 0);
     final online = currentDriver?.isAvailable ?? false;
     final driverName = currentDriver?.fullName.isNotEmpty == true
@@ -40,7 +42,6 @@ class DriverDashboardScreen extends ConsumerWidget {
     final verificationStatus = currentDriver?.verificationStatus ?? 'pending';
     final availabilityStatus = currentDriver?.availabilityStatus ?? 'offline';
     final canGoOnline = verificationStatus.toLowerCase() == 'approved';
-    final pinState = ref.watch(driverPaymentPinProvider);
 
     return BottomNavShell(
       currentIndex: 0,
@@ -163,52 +164,15 @@ class DriverDashboardScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            AppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.lock_outline, color: AppColors.primaryDark),
-                    title: Text(pinState.when(
-                      data: (pin) => pin?.isNotEmpty == true
-                          ? 'Confirm payment' : 'Set payment PIN',
-                      loading: () => 'Payment PIN',
-                      error: (_, __) => 'Payment PIN',
-                    )),
-                    subtitle: Text(pinState.when(
-                      data: (pin) => pin?.isNotEmpty == true
-                          ? 'Use your PIN to verify cash payment collection.'
-                          : 'Create a payment PIN for safe cash collection.',
-                      loading: () => 'Checking payment PIN status...',
-                      error: (_, __) => 'Unable to retrieve PIN status.',
-                    )),
-                  ),
-                  const Divider(height: 24),
-                  AppButton(
-                    label: pinState.when(
-                      data: (pin) => pin?.isNotEmpty == true
-                          ? 'Confirm cash payment'
-                          : 'Set payment PIN',
-                      loading: () => 'Loading...',
-                      error: (_, __) => 'Set payment PIN',
-                    ),
-                    icon: Icons.payments_outlined,
-                    variant: AppButtonVariant.primary,
-                    isLoading: pinState.isLoading,
-                    onPressed: pinState.isLoading
-                        ? null
-                        : () async {
-                            final pin = pinState.valueOrNull;
-                            if (pin?.isNotEmpty == true) {
-                              await _showPaymentPinDialog(context, ref, pin!);
-                            } else {
-                              await showDriverPinSetupDialog(context, ref);
-                            }
-                          },
-                  ),
-                ],
-              ),
+            _PlatformFeeCard(
+              todayEarnings: earnings.today.toDouble(),
+              platformFee: earnings.today * 0.1,
+              paidForToday:
+                  currentDriver?.platformFeePaidAt != null &&
+                  _isSameDay(currentDriver!.platformFeePaidAt!, DateTime.now()),
+              onPay: () {
+                _markPlatformFeePaidToday(context, ref);
+              },
             ),
             const SizedBox(height: AppSpacing.md),
             Row(
@@ -247,11 +211,11 @@ class DriverDashboardScreen extends ConsumerWidget {
                   icon: Icons.notifications_active_outlined,
                   onTap: () => context.push('/incoming-request'),
                 ),
-                _QuickAction(
-                  label: 'Documents',
-                  icon: Icons.folder_copy_outlined,
-                  onTap: () => context.push('/document-status'),
-                ),
+                // _QuickAction(
+                //   label: 'Documents',
+                //   icon: Icons.folder_copy_outlined,
+                //   onTap: () => context.push('/document-status'),
+                // ),
               ],
             ),
           ],
@@ -261,68 +225,6 @@ class DriverDashboardScreen extends ConsumerWidget {
   }
 }
 
-Future<void> _showPaymentPinDialog(
-  BuildContext context,
-  WidgetRef ref,
-  String expectedPin,
-) async {
-  final controller = TextEditingController();
-  await showDialog<void>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Confirm payment PIN'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Enter your payment PIN to verify the cash collection.'),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              obscureText: true,
-              maxLength: 6,
-              decoration: const InputDecoration(
-                hintText: 'Enter PIN',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              final enteredPin = controller.text.trim();
-              if (enteredPin.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter your payment PIN.')),
-                );
-                return;
-              }
-              if (enteredPin != expectedPin) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Payment PIN does not match.')),
-                );
-                return;
-              }
-              if (context.mounted) {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Payment confirmed successfully.')),
-                );
-              }
-            },
-            child: const Text('Verify'),
-          ),
-        ],
-      );
-    },
-  );
-}
 
 String _availabilityLabel(String status, bool isOnline) {
   return switch (status.toLowerCase()) {
@@ -340,6 +242,10 @@ String _verificationLabel(String status) {
     'not_submitted' => 'Not submitted',
     _ => 'Pending verification',
   };
+}
+
+bool _isSameDay(DateTime a, DateTime b) {
+  return a.year == b.year && a.month == b.month && a.day == b.day;
 }
 
 class _StatusBadge extends StatelessWidget {
@@ -400,6 +306,95 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
+class _PlatformFeeCard extends StatelessWidget {
+  const _PlatformFeeCard({
+    required this.todayEarnings,
+    required this.platformFee,
+    required this.paidForToday,
+    required this.onPay,
+  });
+
+  final double todayEarnings;
+  final double platformFee;
+  final bool paidForToday;
+  final VoidCallback onPay;
+
+  String get _formattedEarnings => '${todayEarnings.toStringAsFixed(0)} FCFA';
+  String get _formattedFee => '${platformFee.toStringAsFixed(0)} FCFA';
+
+  @override
+  Widget build(BuildContext context) {
+    final netEarnings = todayEarnings - platformFee;
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            paidForToday ? 'Earnings after platform fee' : 'Today earnings',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            paidForToday
+                ? '${netEarnings.toStringAsFixed(0)} FCFA'
+                : _formattedEarnings,
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Platform fee (10%)'),
+              Text(
+                paidForToday ? 'Paid for today' : _formattedFee,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: paidForToday ? AppColors.success : AppColors.error,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AppButton(
+            label: paidForToday ? 'Paid' : 'Pay platform fee',
+            icon: Icons.payment,
+            variant: paidForToday
+                ? AppButtonVariant.secondary
+                : AppButtonVariant.primary,
+            onPressed: paidForToday ? null : onPay,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Future<void> _markPlatformFeePaidToday(BuildContext context, WidgetRef ref) async {
+  final driverId = ref.read(authStateProvider).userId;
+  if (driverId == null || driverId.isEmpty) {
+    return;
+  }
+
+  try {
+    await ref.read(driverRepositoryProvider).markPlatformFeePaidToday(driverId);
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not save payment status: $e')),
+      );
+    }
+    return;
+  }
+
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Platform fee payment confirmed.'),
+      ),
+    );
+  }
+}
+
 class DriverDashboardMiniMap extends StatefulWidget {
   const DriverDashboardMiniMap({super.key, this.activeTrip});
 
@@ -445,10 +440,7 @@ class _DriverDashboardMiniMapState extends State<DriverDashboardMiniMap> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Live map',
-            style: TextStyle(fontWeight: FontWeight.w900),
-          ),
+          const Text('Live map', style: TextStyle(fontWeight: FontWeight.w900)),
           const SizedBox(height: AppSpacing.sm),
           FutureBuilder<Position>(
             future: _currentPositionFuture,
@@ -490,8 +482,9 @@ class _DriverDashboardMiniMapState extends State<DriverDashboardMiniMap> {
 
               if (widget.activeTrip != null) {
                 final pickup = _latLngFromLocation(widget.activeTrip!.pickup);
-                final destination =
-                    _latLngFromLocation(widget.activeTrip!.destinationLocation);
+                final destination = _latLngFromLocation(
+                  widget.activeTrip!.destinationLocation,
+                );
                 if (pickup != null) {
                   markers.add(
                     Marker(
@@ -571,10 +564,8 @@ class _DriverDashboardMiniMapState extends State<DriverDashboardMiniMap> {
                       label: 'Open full screen',
                       icon: Icons.open_in_full,
                       variant: AppButtonVariant.secondary,
-                      onPressed: () => context.push(
-                        '/trip-map',
-                        extra: widget.activeTrip,
-                      ),
+                      onPressed: () =>
+                          context.push('/trip-map', extra: widget.activeTrip),
                     ),
                   ),
                 ],
