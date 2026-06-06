@@ -183,17 +183,17 @@ class _PassengerHomeScreenState extends ConsumerState<PassengerHomeScreen> {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            AppCard(
-              child: _LocationTile(
-                icon: Icons.my_location,
-                title: 'Current Location',
-                value: booking.pickupLocation.isEmpty
-                    ? 'Set pickup location'
-                    : booking.pickupLocation,
-                onTap: () => context.push('/pickup'),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
+            // AppCard(
+            //   child: _LocationTile(
+            //     icon: Icons.my_location,
+            //     title: 'Current Location',
+            //     value: booking.pickupLocation.isEmpty
+            //         ? 'Set pickup location'
+            //         : booking.pickupLocation,
+            //     onTap: () => context.push('/pickup'),
+            //   ),
+            // ),
+            // const SizedBox(height: AppSpacing.md),
             LiveMapView(
               height: 210,
               currentLocation: locationState.currentLocation.hasCoordinates

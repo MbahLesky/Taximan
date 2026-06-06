@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:taximan_passenger/shared/models/vehicle.dart';
 
 import '../../../../shared/models/driver.dart';
 import '../../../../shared/models/fare_proposal.dart';
@@ -48,8 +49,7 @@ class MatchingController extends StateNotifier<MatchingState> {
               id: 'driver-001',
               fullName: 'Jean Talla',
               rating: 4.8,
-              vehicle: 'Toyota Corolla',
-              plateNumber: 'LT 4821 AB',
+              vehicle: Vehicle(model: "Toyota Corolla", type: "Taxi", color: "Light Green", capacity: 6, plateNumber: "LT 4821 AB"),
               arrivalEta: '6 min',
               ratingCount: 128,
             ),
@@ -57,8 +57,13 @@ class MatchingController extends StateNotifier<MatchingState> {
               id: 'driver-002',
               fullName: 'Aline Mbarga',
               rating: 4.9,
-              vehicle: 'Hyundai Accent',
-              plateNumber: 'CE 9472 LT',
+              vehicle: Vehicle(
+                model: 'Hyundai Accent',
+                type: 'Taxi',
+                color: 'White',
+                capacity: 4,
+                plateNumber: 'CE 9472 LT',
+              ),
               arrivalEta: '8 min',
               ratingCount: 96,
             ),

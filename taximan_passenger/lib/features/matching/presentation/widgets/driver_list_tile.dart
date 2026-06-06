@@ -80,7 +80,7 @@ class DriverListItem extends StatelessWidget {
                 Text(_locationLabel),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  '${driver.vehicle} • ${driver.plateNumber}',
+                  '${driver.vehicle.model} • ${driver.vehicle.plateNumber}',
                   style: const TextStyle(color: AppColors.textSecondary),
                 ),
               ],
@@ -248,7 +248,8 @@ Future<void> showDriverDetailsModal(BuildContext context, Driver driver) {
                 const SizedBox(height: AppSpacing.lg),
                 _DriverDetailRow(
                   label: 'Vehicle',
-                  value: '${driver.vehicle} • ${driver.plateNumber}',
+                  value:
+                      '${driver.vehicle.model.isNotEmpty ? driver.vehicle.model : driver.vehicle.type} • ${driver.vehicle.plateNumber}',
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _DriverDetailRow(

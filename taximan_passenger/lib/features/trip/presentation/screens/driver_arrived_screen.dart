@@ -56,8 +56,12 @@ class DriverArrivedScreen extends ConsumerWidget {
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.local_taxi),
-                    title: Text(driver?.vehicle ?? 'Vehicle pending'),
-                    subtitle: Text(driver?.plateNumber ?? 'Plate pending'),
+                    title: Text(
+                      driver?.vehicle.model.isNotEmpty == true
+                          ? driver!.vehicle.model
+                          : driver?.vehicle.type ?? 'Vehicle pending',
+                    ),
+                    subtitle: Text(driver?.vehicle.plateNumber ?? 'Plate pending'),
                     trailing:
                         const Icon(Icons.verified, color: AppColors.success),
                   ),

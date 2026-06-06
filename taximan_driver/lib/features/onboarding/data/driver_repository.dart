@@ -52,12 +52,10 @@ class DriverRepository {
 
   Future<void> updatePersonalInfo({
     required String driverId,
-    required String fullName,
     required String city,
   }) async {
     await _firestore.collection('drivers').doc(driverId).set({
       'id': driverId,
-      'fullName': fullName.trim(),
       'city': city.trim(),
       'role': 'driver',
       'onboardingStatus': 'vehicle_details',

@@ -18,7 +18,6 @@ class DriverPersonalInfoScreen extends ConsumerStatefulWidget {
 
 class _DriverPersonalInfoScreenState
     extends ConsumerState<DriverPersonalInfoScreen> {
-  String _fullName = '';
   String _city = '';
   bool _isSaving = false;
 
@@ -28,8 +27,8 @@ class _DriverPersonalInfoScreenState
       _showMessage('Sign in before continuing onboarding.');
       return;
     }
-    if (_fullName.trim().isEmpty || _city.trim().isEmpty) {
-      _showMessage('Add your full name and city.');
+    if (_city.trim().isEmpty) {
+      _showMessage('Enter your city.');
       return;
     }
 
@@ -39,7 +38,6 @@ class _DriverPersonalInfoScreenState
           .read(driverRepositoryProvider)
           .updatePersonalInfo(
             driverId: driverId,
-            fullName: _fullName,
             city: _city,
           );
       if (mounted) {
@@ -67,12 +65,6 @@ class _DriverPersonalInfoScreenState
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          AppTextField(
-            label: 'Full name',
-            icon: Icons.badge_outlined,
-            onChanged: (value) => _fullName = value,
-          ),
-          const SizedBox(height: AppSpacing.md),
           AppTextField(
             label: 'City or location',
             icon: Icons.location_city_outlined,

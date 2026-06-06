@@ -35,7 +35,7 @@ class AuthRepository {
       throw Exception('Could not create driver account.');
     }
 
-    await firebaseUser.updateDisplayName(fullName.trim());
+    // await firebaseUser.updateDisplayName(fullName.trim());
 
     final driver = DriverModel(
       id: firebaseUser.uid,

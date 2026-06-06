@@ -54,8 +54,11 @@ class DriverRepository {
         .limit(limit)
         .snapshots()
         .map((snapshot) {
+
+          print("/n/n/nReceived driver snapshot with ${snapshot.docs.length} documents/n ${snapshot.docs} /n/n");
+
           return snapshot.docs
-              .map((doc) => Driver.fromMap(doc.data() as Map<String, dynamic>))
+              .map((doc) => Driver.fromMap(doc.data()))
               .toList();
         });
   }

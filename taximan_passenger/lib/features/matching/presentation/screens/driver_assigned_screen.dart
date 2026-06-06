@@ -88,12 +88,14 @@ class DriverAssignedScreen extends ConsumerWidget {
                 _InfoLine(
                   icon: Icons.local_taxi,
                   label: 'Vehicle',
-                  value: driver?.vehicle ?? '',
+                  value: driver?.vehicle.model.isNotEmpty == true
+                      ? driver!.vehicle.model
+                      : driver?.vehicle.type ?? '',
                 ),
                 _InfoLine(
                   icon: Icons.pin,
                   label: 'Plate number',
-                  value: driver?.plateNumber ?? '',
+                  value: driver?.vehicle.plateNumber ?? '',
                 ),
                 _InfoLine(
                   icon: Icons.timer_outlined,

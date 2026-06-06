@@ -90,7 +90,7 @@ class DriverEnRouteScreen extends ConsumerWidget {
                     leading: const CircleAvatar(child: Icon(Icons.person)),
                     title: Text(driver?.fullName ?? 'Driver assigned'),
                     subtitle: Text(
-                      [driver?.vehicle, driver?.plateNumber]
+                      [driver?.vehicle.model, driver?.vehicle.plateNumber]
                           .whereType<String>()
                           .where((value) => value.isNotEmpty)
                           .join(' - '),

@@ -1,5 +1,6 @@
 import 'app_location.dart';
 import 'model_helpers.dart';
+import 'vehicle.dart';
 
 class Driver {
   const Driver({
@@ -7,7 +8,6 @@ class Driver {
     required this.fullName,
     required this.rating,
     required this.vehicle,
-    required this.plateNumber,
     required this.arrivalEta,
     this.email = '',
     this.phone = '',
@@ -26,8 +26,7 @@ class Driver {
   final String id;
   final String fullName;
   final double rating;
-  final String vehicle;
-  final String plateNumber;
+  final Vehicle vehicle;
   final String arrivalEta;
   final String email;
   final String phone;
@@ -46,8 +45,7 @@ class Driver {
     String? id,
     String? fullName,
     double? rating,
-    String? vehicle,
-    String? plateNumber,
+    Vehicle? vehicle,
     String? arrivalEta,
     String? email,
     String? phone,
@@ -67,7 +65,6 @@ class Driver {
       fullName: fullName ?? this.fullName,
       rating: rating ?? this.rating,
       vehicle: vehicle ?? this.vehicle,
-      plateNumber: plateNumber ?? this.plateNumber,
       arrivalEta: arrivalEta ?? this.arrivalEta,
       email: email ?? this.email,
       phone: phone ?? this.phone,
@@ -99,8 +96,7 @@ class Driver {
       'rating': rating,
       'ratingAverage': rating,
       'ratingCount': ratingCount,
-      'vehicle': vehicle,
-      'plateNumber': plateNumber,
+      'vehicle': vehicle.toMap(),
       'arrivalEta': arrivalEta,
       'currentLocation': currentLocation?.toMap(),
       'createdAt': writeDateTime(createdAt),
@@ -116,8 +112,7 @@ class Driver {
           (map['ratingAverage'] as num?)?.toDouble() ??
           (map['rating'] as num?)?.toDouble() ??
           0,
-      vehicle: map['vehicle'] as String? ?? '',
-      plateNumber: map['plateNumber'] as String? ?? '',
+      vehicle: Vehicle.fromMap(map['vehicle'] as Map<String, dynamic>?),
       arrivalEta: map['arrivalEta'] as String? ?? '',
       email: map['email'] as String? ?? '',
       phone: map['phone'] as String? ?? '',

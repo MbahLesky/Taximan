@@ -92,7 +92,9 @@ class PassengerDriversScreen extends ConsumerWidget {
                   ),
                 ),
               ],
-              error: (_, _) => [
+              error: (e, s) {
+                print("\n\n\nError in driver subtitle: $e\n$s\n\n\n");
+                return [
                 const AppCard(
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
@@ -100,7 +102,8 @@ class PassengerDriversScreen extends ConsumerWidget {
                     title: Text('Could not load drivers'),
                   ),
                 ),
-              ],
+              ];
+              },
             ),
             const SizedBox(height: AppSpacing.md),
             AppButton(

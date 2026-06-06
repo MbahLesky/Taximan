@@ -35,6 +35,9 @@ class _DriverPreferenceScreenState
   Widget build(BuildContext context) {
     ref.listen(allDriversStreamProvider, (previous, next) {
       if (next.hasError && previous?.hasError != true) {
+
+        print("\n\n\n======================\nError loading drivers: ${next.error} or ${previous?.error}");
+
         AppToast.warning(
           context,
           title: 'Driver list unavailable',
@@ -76,9 +79,12 @@ class _DriverPreferenceScreenState
                           : '${drivers.length} driver(s) available.',
                     ),
                     loading: () => const Text('Loading drivers for selection.'),
-                    error: (_, _) => const Text(
+                    error: (e, s) {
+                      print("\n\n\nError in driver subtitle: $e\n$s\n\n\n");
+                      return const Text(
                       'Driver list is unavailable right now.',
-                    ),
+                    );
+                    },
                   ),
                   trailing: driversAsync.isLoading
                       ? const SizedBox.square(
@@ -180,9 +186,13 @@ class _DriverPreferenceScreenState
       return drivers;
     }
     return drivers.where((driver) {
+      final vehicleModel = driver.vehicle.model.toLowerCase();
+      final vehicleType = driver.vehicle.type.toLowerCase();
+      final plate = driver.vehicle.plateNumber.toLowerCase();
       return driver.fullName.toLowerCase().contains(query) ||
-          driver.vehicle.toLowerCase().contains(query) ||
-          driver.plateNumber.toLowerCase().contains(query);
+        vehicleModel.contains(query) ||
+        vehicleType.contains(query) ||
+        plate.contains(query);
     }).toList();
   }
 }
