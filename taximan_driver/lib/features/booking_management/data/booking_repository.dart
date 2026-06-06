@@ -65,6 +65,7 @@ class BookingRepository {
         'id': tripRef.id,
         'bookingId': bookingId,
         'passengerId': data['passengerId'],
+        'passengerName': data['passengerName'] ?? data['preferredPassengerName'] ?? '',
         'driverId': driverId,
         'vehicleId': vehicleId,
         'pickupLocation': data['pickupLocation'],

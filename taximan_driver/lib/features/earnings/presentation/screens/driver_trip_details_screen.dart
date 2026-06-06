@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -113,11 +114,28 @@ class DriverTripDetailsScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  trip!.passengerName,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                FutureBuilder<String>(
+                  future: FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(trip!.passengerId)
+                              .get()
+                              .then((doc) {
+                              if (!doc.exists) return 'Passenger';
+                              final data = doc.data() as Map<String, dynamic>?;
+                              return (data?['fullName'] as String?) ??
+                                  (data?['name'] as String?) ??
+                                  'Passenger';
+                            }),
+                  builder: (context, snapshot) {
+                    final name = snapshot.connectionState == ConnectionState.done
+                        ? (snapshot.data ?? 'Passenger')
+                        : 'Loading...';
+                    return Text(
+                      name,
+                      style: Theme.of(context).textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w900),
+                    );
+                  },
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
